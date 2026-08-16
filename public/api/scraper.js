@@ -48,7 +48,8 @@ if (apiKey.startsWith('gsk_')) {
 }
 
 const openai = new OpenAI(openaiConfig);
-const NOME_MODELO = apiKey.startsWith('gsk_') ? 'llama-3.1-8b-instant' : 'gpt-4o-mini';
+
+const NOME_MODELO = apiKey.startsWith('gsk_') ? 'openai/gpt-oss-20b' : 'gpt-4o-mini';
 
 console.log(`🤖 LLM: ${apiKey.startsWith('gsk_') ? 'Groq Cloud' : 'OpenAI'} — Modelo: ${NOME_MODELO}`);
 
