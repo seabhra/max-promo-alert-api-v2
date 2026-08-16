@@ -1,0 +1,21 @@
+id,tipo,titulo,desc,loja,precoold,preconew,temporestante,link,cupom,precoOld,precoNew,tempoRestante
+1,flash,Bolsa Hobo – edição limitada,Flash Sale: 10% OFF por 2 horas apenas!,Atelier Sorelle Santos,null,null,null,https://ateliersorellesantos.vercel.app/,null,3499,126.00,7200
+2,cupom,Fone Bluetooth Sony WH-1000XM5,Use o cupom RADAR10 e ganhe 10% OFF,SomMax,null,null,null,null,RADAR10,2299,2069,null
+3,frete_gratis,Kit Organizacao Closet 5 pecas,Frete Grátis em compras acima de R$ 99,Casa&Estrutura,null,null,null,null,null,189,149,null
+4,cashback,Perfume Tom Ford Tobacco Vanille 50ml,10% de Cashback na sua carteira digital,BelezaVIP,null,null,null,null,null,1450,1299,null
+5,leve_pague,Camiseta Polo Classic,"Compre 2, Leve 3 — Pague 2!",ModaFit,null,null,null,null,null,89,59,null
+6,blackfriday,MacBook Air M3 256GB,Black Friday: Maiores descontos do ano!,AppleZone,null,null,null,null,null,12499,9999,null
+7,saldao,Jaqueta de Couro Legítimo,Saldão de Inverno — ate 70% OFF,Couro&Style,null,null,null,null,null,899,269,null
+8,outlet,Tenis Nike Air Max 90,Outlet de Fabrica — pecas de colecao passada,SneakerOutlet,null,null,null,null,null,749,349,null
+9,brinde,Skincare Coreano Set 7 Steps,Ganhe um brinde exclusivo na compra acima de R$ 150,KBeauty,null,null,null,null,null,280,199,null
+10,progressivo,Vinho Malbec Argentino,Compre 2 = 10% | 3 = 20% | 4 = 30% OFF,VinhoPremium,null,null,null,null,null,89,62,null
+11,primeira,Kindle Paperwhite 11a Geracao,20% OFF na sua primeira compra!,LivrariaDigital,null,null,null,null,null,649,519,null
+12,live,Make Set Profissional 24 pecas,AO VIVO agora: Ofertas exclusivas na live!,GlamLive,null,null,null,null,null,450,189,null
+13,combo,Kit Gamer: Mouse + Teclado + Mousepad,Kit Completo: 3 produtos por R$ 199,GameZone,null,null,null,null,null,349,199,null
+14,parcela,"TV LG OLED 55"" C4",12x sem juros em todos os produtos!,TVWorld,null,null,null,null,null,6999,5499,null
+15,misterio,Caixa Misteriosa Premium,Caixa por R$ 49 — Valor garantido de R$ 150!,SurpriseBox,null,null,null,null,null,150,49,null
+16,desconto,Smartwatch Amazfit GTR 4,-30% em todos os produtos,WearTech,null,null,null,null,null,1299,909,null
+17,fidelidade,Cafe Especial 250g — 3 pacotes,Ganhe pontos duplos nesta compra!,CafeArtesanal,null,null,null,null,null,120,96,null
+18,bilhete,Bilhete Dourado — Edicao Limitada,Voce encontrou um Bilhete Dourado!,LuxMall,null,null,null,null,null,500,99,null
+19,cross,iPhone 15 + Capinha + Pelicula,Leve junto com 20% OFF: Capinha + Pelicula,iAccess,null,null,null,null,null,5299,4599,null
+20,sorteio,Sorteio iPhone 16 Pro!,Compre qualquer produto e concorra!,MegaSorteio,null,null,null,null,null,0,0,null

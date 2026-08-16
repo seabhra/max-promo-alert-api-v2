@@ -1,0 +1,1334 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>Max Promo — Alerta Inteligente de Promoções</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <link rel="icon" type="image/x-icon" href="/favicon_io/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon_io/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon_io/favicon-16x16.png">
+  <link rel="apple-touch-icon" href="/favicon_io/apple-touch-icon.png">
+  <link rel="manifest" href="/favicon_io/site.webmanifest">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+<div class="loading-fullscreen" id="loading-fullscreen">
+  <div class="spinner-ring"></div>
+  <div class="loading-text">Iniciando <span>Max Promo</span></div>
+  <div class="loading-sub">Buscando as melhores ofertas...</div>
+</div>
+
+<header>
+  <div class="header-left">
+    <div class="app-icon">
+      <img src="./imagens_app/ic_icon_app.png" alt="MAX PROMO" style="width:42px;height:42px;border-radius:10px;object-fit:contain;">
+    </div>
+    <h1>MAX <span>PROMO</span></h1>
+  </div>
+  <div class="header-right">
+    <div class="savings-badge" id="savings-badge" title="Total economizado">
+      <i class="fas fa-piggy-bank"></i>
+      <span id="savings-total">R$ 0</span>
+    </div>
+    <div class="status-dot" id="status-dot" title="Conectado ao Supabase"></div>
+    <button class="btn-menu-toggle" id="btn-menu-toggle" aria-label="Menu">
+      <div class="menu-hamburger"><span></span><span></span><span></span></div>
+      <div class="menu-label">MENU</div>
+    </button>
+    <div class="menu-dropdown" id="menu-dropdown">
+      <div class="menu-dropdown-inner">
+        <button class="menu-item" id="menu-info">
+          <div class="menu-item-icon" style="background:rgba(66,165,245,0.12);color:#42A5F5;"><i class="fas fa-circle-info"></i></div>
+          <div class="menu-item-text"><div class="mi-title">Informação</div><div class="mi-desc">Sobre o Max Promo</div></div>
+          <i class="fas fa-chevron-right menu-item-arrow"></i>
+        </button>
+        <button class="menu-item" id="menu-donate">
+          <div class="menu-item-icon" style="background:rgba(236,64,122,0.12);color:#EC407A;"><i class="fas fa-heart"></i></div>
+          <div class="menu-item-text"><div class="mi-title">Donate</div><div class="mi-desc">Apoie o projeto</div></div>
+          <i class="fas fa-chevron-right menu-item-arrow"></i>
+        </button>
+        <button class="menu-item" id="menu-promo-types">
+          <div class="menu-item-icon" style="background:rgba(255,179,0,0.12);color:#FFB300;"><i class="fas fa-tags"></i></div>
+          <div class="menu-item-text"><div class="mi-title">Tipos de Promos</div><div class="mi-desc">Todos os tipos disponíveis</div></div>
+          <i class="fas fa-chevron-right menu-item-arrow"></i>
+        </button>
+        <div class="menu-divider"></div>
+        <!-- FIX: sem onclick inline, sem !important, z-index:3 explícito via CSS -->
+        <button class="menu-item-plus" id="menu-monitorar">
+          <div class="plus-circle">+</div>
+          <div class="menu-item-text">
+            <div class="mi-title">Monitorar Produto</div>
+            <div class="mi-desc">Receba alertas de preço</div>
+          </div>
+          <i class="fas fa-chevron-right menu-item-arrow"></i>
+        </button>
+        <button class="menu-item-plus" id="menu-inserir-loja">
+          <div class="plus-circle">+</div>
+          <div class="menu-item-text">
+            <div class="mi-title">Inserir Loja</div>
+            <div class="mi-desc">Adicione suas lojas favoritas</div>
+          </div>
+          <i class="fas fa-chevron-right menu-item-arrow"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<nav class="tab-bar" id="tab-bar" role="tablist">
+  <button class="tab-btn active" data-tab="feed" role="tab"><i class="fas fa-fire"></i> Em Alta</button>
+  <button class="tab-btn" data-tab="monitored" role="tab"><i class="fas fa-eye"></i> Monitorados<span class="badge-count" id="monitored-count" style="display:none;">0</span></button>
+  <button class="tab-btn" data-tab="history" role="tab"><i class="fas fa-chart-line"></i> Historico</button>
+  <button class="tab-btn" data-tab="compare" role="tab"><i class="fas fa-balance-scale"></i> Comparar</button>
+</nav>
+
+<div class="main-content">
+  <div class="search-container" id="search-bar">
+    <input type="text" id="search-query" placeholder="Buscar produto, loja ou tipo de promocao..." aria-label="Buscar">
+    <button class="btn-search-action" id="btn-search" title="Buscar"><i class="fas fa-search"></i></button>
+  </div>
+  <div class="filter-strip" id="filter-strip" role="group" aria-label="Filtros"></div>
+  <div class="feed-container" id="feed-container"></div>
+  <button class="fab-search" id="btn-search-toggle" title="Buscar"><i class="fas fa-search"></i></button>
+  <div id="alert-container">
+    <div class="alert-bar" id="alert-bar">
+      <div class="alert-icon-box" id="alert-icon-box">
+        <img class="alert-icon-img" id="alert-icon-img" src="" alt="" style="display:none;">
+        <i class="fas fa-tags fa-fallback" id="alert-icon-fa"></i>
+      </div>
+      <div class="alert-info"><h3 id="alert-title">PROMOCAO!</h3><p id="alert-text">Oferta detectada</p></div>
+      <button class="alert-close-btn" id="alert-close-btn"><i class="fas fa-times"></i></button>
+    </div>
+  </div>
+  <div class="toast-notification" id="toast-msg"></div>
+</div>
+
+<!-- MODAL: Monitorar Produto -->
+<div class="modal-overlay" id="modal-add-product">
+  <div class="modal-box">
+    <h2>Monitorar Produto</h2>
+    <p>Adicione um produto para receber alertas quando o preco cair.</p>
+    <label for="input-prod-name">Nome do Produto</label>
+    <input type="text" id="input-prod-name" placeholder="Ex: iPhone 15 128GB">
+    <label for="input-prod-target">Preco Alvo (R$)</label>
+    <input type="number" id="input-prod-target" placeholder="Ex: 4999" min="0" step="0.01">
+    <label for="input-prod-category">Categoria</label>
+    <select id="input-prod-category">
+      <option value="eletronicos">Eletronicos</option>
+      <option value="moda">Moda</option>
+      <option value="casa">Casa e Decoracao</option>
+      <option value="beleza">Beleza e Saude</option>
+      <option value="esporte">Esporte e Lazer</option>
+      <option value="games">Games</option>
+      <option value="livros">Livros</option>
+      <option value="outro">Outro</option>
+    </select>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="btn-modal-cancel">Cancelar</button>
+      <button class="btn-confirm" id="btn-modal-confirm">Monitorar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Inserir Loja (3 steps) — store-error DENTRO do modal-box, não fora -->
+<div class="modal-overlay" id="modal-add-store">
+  <div class="modal-box">
+
+    <!-- STEP 1 -->
+    <div id="store-step-1">
+      <h2><i class="fas fa-store" style="color:var(--accent-color);margin-right:8px;"></i>Inserir Loja</h2>
+      <p>Preencha os dados e escolha o plano. O pagamento é via PIX, único e sem renovação automática.</p>
+
+      <div class="section-label"><i class="fas fa-layer-group"></i> Escolha o plano</div>
+      <!-- FIX: onclick chama selecionarPlano(this) — função global definida no JS -->
+      <div class="planos-grid">
+        <div class="plano-card" data-dias="30" data-valor="9.90" onclick="selecionarPlano(this)">
+          <div class="plano-dias">30 dias</div>
+          <div class="plano-valor">R$ 9,90</div>
+          <div class="plano-desc">Teste o serviço</div>
+        </div>
+        <div class="plano-card" data-dias="60" data-valor="19.90" onclick="selecionarPlano(this)">
+          <div class="plano-popular">Popular</div>
+          <div class="plano-dias">60 dias</div>
+          <div class="plano-valor">R$ 19,90</div>
+          <div class="plano-desc">R$ 0,33/dia</div>
+        </div>
+        <div class="plano-card" data-dias="90" data-valor="39.90" onclick="selecionarPlano(this)">
+          <div class="plano-dias">90 dias</div>
+          <div class="plano-valor">R$ 39,90</div>
+          <div class="plano-desc">R$ 0,44/dia</div>
+        </div>
+        <div class="plano-card" data-dias="365" data-valor="99.90" onclick="selecionarPlano(this)">
+          <div class="plano-dias">365 dias</div>
+          <div class="plano-valor">R$ 99,90</div>
+          <div class="plano-desc">Melhor custo</div>
+        </div>
+      </div>
+      <!-- aviso inline quando tenta continuar sem plano -->
+      <div class="plano-aviso" id="plano-aviso">
+        <i class="fas fa-triangle-exclamation"></i> Selecione um plano para continuar
+      </div>
+
+      <div class="section-label"><i class="fas fa-pencil"></i> Dados da loja</div>
+      <label for="input-store-name">Nome da Loja</label>
+      <input type="text" id="input-store-name" placeholder="Ex: Minha Loja"
+             oninput="limparErro(this)">
+      <label for="input-store-url">Site / URL</label>
+      <input type="url" id="input-store-url" placeholder="https://minhaloja.com.br"
+             oninput="limparErro(this)">
+      <label for="input-store-cat">Tipo de Promoção Principal</label>
+      <select id="input-store-cat">
+        <option value="desconto">Desconto</option>
+        <option value="flash">Flash Sale</option>
+        <option value="cupom">Cupom</option>
+        <option value="cashback">Cashback</option>
+        <option value="frete_gratis">Frete Grátis</option>
+        <option value="saldao">Saldão</option>
+        <option value="outlet">Outlet</option>
+        <option value="live">Live Sale</option>
+        <option value="sorteio">Sorteio</option>
+  <div class="loading-fullscreen" id="loading-fullscreen">
+    <div class="spinner-ring"></div>
+    <div class="loading-text">Iniciando <span>Max Promo</span></div>
+    <div class="loading-sub">Buscando as melhores ofertas...</div>
+  </div>
+
+  <header>
+    <div class="header-left">
+      <div class="app-icon">
+        <img src="./imagens_app/ic_icon_app.png" alt="MAX PROMO" style="width:42px;height:42px;border-radius:10px;object-fit:contain;">
+      </div>
+      <h1>MAX <span>PROMO</span></h1>
+    </div>
+    <div class="header-right">
+      <div class="savings-badge" id="savings-badge" title="Total economizado">
+        <i class="fas fa-piggy-bank"></i>
+        <span id="savings-total">R$ 0</span>
+      </div>
+      <div class="status-dot" id="status-dot" title="Conectado ao Supabase"></div>
+      <button class="btn-menu-toggle" id="btn-menu-toggle" aria-label="Menu">
+        <div class="menu-hamburger"><span></span><span></span><span></span></div>
+        <div class="menu-label">MENU</div>
+      </button>
+      <div class="menu-dropdown" id="menu-dropdown">
+        <div class="menu-dropdown-inner">
+          <button class="menu-item" id="menu-info">
+            <div class="menu-item-icon" style="background:rgba(66,165,245,0.12);color:#42A5F5;"><i class="fas fa-circle-info"></i></div>
+            <div class="menu-item-text"><div class="mi-title">Informação</div><div class="mi-desc">Sobre o Max Promo</div></div>
+            <i class="fas fa-chevron-right menu-item-arrow"></i>
+          </button>
+          <button class="menu-item" id="menu-donate">
+            <div class="menu-item-icon" style="background:rgba(236,64,122,0.12);color:#EC407A;"><i class="fas fa-heart"></i></div>
+            <div class="menu-item-text"><div class="mi-title">Donate</div><div class="mi-desc">Apoie o projeto</div></div>
+            <i class="fas fa-chevron-right menu-item-arrow"></i>
+          </button>
+          <button class="menu-item" id="menu-promo-types">
+            <div class="menu-item-icon" style="background:rgba(255,179,0,0.12);color:#FFB300;"><i class="fas fa-tags"></i></div>
+            <div class="menu-item-text"><div class="mi-title">Tipos de Promos</div><div class="mi-desc">Todos os tipos disponíveis</div></div>
+            <i class="fas fa-chevron-right menu-item-arrow"></i>
+          </button>
+          <div class="menu-divider"></div>
+          <button class="menu-item-plus" id="menu-monitorar">
+            <div class="plus-circle">+</div>
+            <div class="menu-item-text"><div class="mi-title">Monitorar Produto</div><div class="mi-desc">Receba alertas de preço</div></div>
+            <i class="fas fa-chevron-right menu-item-arrow"></i>
+          </button>
+          <button class="menu-item-plus" id="menu-inserir-loja">
+            <div class="plus-circle">+</div>
+            <div class="menu-item-text"><div class="mi-title">Inserir Loja</div><div class="mi-desc">Adicione suas lojas favoritas</div></div>
+            <i class="fas fa-chevron-right menu-item-arrow"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <nav class="tab-bar" id="tab-bar" role="tablist">
+    <button class="tab-btn active" data-tab="feed" role="tab"><i class="fas fa-fire"></i> Em Alta</button>
+    <button class="tab-btn" data-tab="monitored" role="tab"><i class="fas fa-eye"></i> Monitorados<span class="badge-count" id="monitored-count" style="display:none;">0</span></button>
+    <button class="tab-btn" data-tab="history" role="tab"><i class="fas fa-chart-line"></i> Historico</button>
+    <button class="tab-btn" data-tab="compare" role="tab"><i class="fas fa-balance-scale"></i> Comparar</button>
+  </nav>
+
+  <div class="main-content">
+    <div class="search-container" id="search-bar">
+      <input type="text" id="search-query" placeholder="Buscar produto, loja ou tipo de promocao..." aria-label="Buscar">
+      <button class="btn-search-action" id="btn-search" title="Buscar"><i class="fas fa-search"></i></button>
+    </div>
+    <div class="filter-strip" id="filter-strip" role="group" aria-label="Filtros"></div>
+    <div class="feed-container" id="feed-container"></div>
+    <button class="fab-search" id="btn-search-toggle" title="Buscar"><i class="fas fa-search"></i></button>
+    <div id="alert-container">
+      <div class="alert-bar" id="alert-bar">
+        <div class="alert-icon-box" id="alert-icon-box">
+          <img class="alert-icon-img" id="alert-icon-img" src="" alt="" style="display:none;">
+          <i class="fas fa-tags fa-fallback" id="alert-icon-fa"></i>
+        </div>
+        <div class="alert-info"><h3 id="alert-title">PROMOCAO!</h3><p id="alert-text">Oferta detectada</p></div>
+        <button class="alert-close-btn" id="alert-close-btn"><i class="fas fa-times"></i></button>
+      </div>
+    </div>
+    <div class="toast-notification" id="toast-msg"></div>
+  </div>
+
+  <!-- MODAL: Monitorar Produto -->
+  <div class="modal-overlay" id="modal-add-product">
+    <div class="modal-box">
+      <h2>Monitorar Produto</h2>
+      <p>Adicione um produto para receber alertas quando o preco cair.</p>
+      <label for="input-prod-name">Nome do Produto</label>
+      <input type="text" id="input-prod-name" placeholder="Ex: iPhone 15 128GB">
+      <label for="input-prod-target">Preco Alvo (R$)</label>
+      <input type="number" id="input-prod-target" placeholder="Ex: 4999" min="0" step="0.01">
+      <label for="input-prod-category">Categoria</label>
+      <select id="input-prod-category">
+        <option value="eletronicos">Eletronicos</option>
+        <option value="moda">Moda</option>
+        <option value="casa">Casa e Decoracao</option>
+        <option value="beleza">Beleza e Saude</option>
+        <option value="esporte">Esporte e Lazer</option>
+        <option value="games">Games</option>
+        <option value="livros">Livros</option>
+        <option value="outro">Outro</option>
+      </select>
+      <label for="input-store-email">Seu E-mail (para recibo)</label>
+      <input type="email" id="input-store-email" placeholder="seuemail@exemplo.com"
+             oninput="limparErro(this)">
+
+      <div class="modal-actions">
+        <button class="btn-cancel" id="btn-store-cancel">Cancelar</button>
+        <button class="btn-confirm" id="btn-store-step1-next" disabled>
+          <i class="fas fa-lock" style="font-size:.75rem;margin-right:6px;"></i>Continuar → Pagar PIX
+        </button>
+      </div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div id="store-step-2" style="display:none;">
+      <div class="step-pix-header">
+        <h2><i class="fas fa-qrcode" style="color:#4CAF50;margin-right:8px;"></i>Pague via PIX</h2>
+        <p>Escaneie o QR Code ou copie a chave.<br>Após o pagamento, clique em <strong>"Já Paguei"</strong>.</p>
+      </div>
+      <div class="pix-valor-destaque">
+        <i class="fas fa-receipt" style="color:#4CAF50;"></i>
+        <span id="pix-valor-label">R$ 9,90</span>
+        <span style="font-size:.75rem;color:var(--text-muted);">•</span>
+        <span id="pix-dias-label" style="font-size:.75rem;color:var(--text-muted);"></span>
+      </div>
+      <div style="text-align:center;">
+        <div class="qr-wrapper" id="pix-qr-wrapper">
+          <canvas id="pix-qr-canvas" width="180" height="180"></canvas>
+        </div>
+      </div>
+      <div class="pix-copiacola-row">
+        <input id="pix-key-display" readonly placeholder="Gerando código PIX...">
+        <button class="btn-copy-pix" id="btn-copy-pix" title="Copiar"><i class="fas fa-copy"></i></button>
+      </div>
+      <div class="manual-instrucoes">
+        <strong><i class="fas fa-circle-info" style="color:var(--accent-color);margin-right:4px;"></i>Como pagar:</strong>
+        <ol>
+          <li>Abra o app do seu banco</li>
+          <li>Escolha <strong>PIX → Copia e Cola</strong> ou escaneie o QR</li>
+          <li>Confirme o valor: <strong id="instrucao-valor">R$ 9,90</strong></li>
+          <li>Pague e clique em <strong>"Já Paguei"</strong> abaixo</li>
+        </ol>
+      </div>
+      <div class="pix-timer-box" id="pix-timer-box">
+        <i class="fas fa-clock"></i>
+        <span>QR válido por: </span>
+        <span id="pix-countdown">10:00</span>
+      </div>
+      <div class="pix-status-msg aguardando" id="pix-status-msg">
+        <i class="fas fa-hourglass-half" style="color:var(--accent-color);"></i>
+        Aguardando confirmação do pagamento...
+      </div>
+      <div class="dev-bar" id="dev-bar-teste" style="display:none;">
+        <i class="fas fa-flask"></i>
+        <span><strong>Modo teste</strong> — simula pagamento confirmado</span>
+        <button class="btn-dev-confirm" id="btn-dev-simular">✔ Simular Pago</button>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" id="btn-store-step2-back">← Voltar</button>
+        <button class="btn-confirm" id="btn-store-step2-paguei">
+          <i class="fas fa-check-circle" style="font-size:.8rem;margin-right:5px;"></i>Já Paguei
+        </button>
+      </div>
+  </div>
+
+  <!-- MODAL: Inserir Loja (3 steps) -->
+  <div class="modal-overlay" id="modal-add-store">
+    <div class="modal-box">
+
+      <!-- STEP 1 -->
+      <div id="store-step-1">
+        <h2><i class="fas fa-store" style="color:var(--accent-color);margin-right:8px;"></i>Inserir Loja</h2>
+        <p>Preencha os dados e escolha o plano. O pagamento é via PIX, único e sem renovação automática.</p>
+        <div class="section-label"><i class="fas fa-layer-group"></i> Escolha o plano</div>
+        <div class="planos-grid">
+          <div class="plano-card" data-dias="30" data-valor="9.90" onclick="selecionarPlano(this)">
+            <div class="plano-dias">30 dias</div>
+            <div class="plano-valor">R$ 9,90</div>
+            <div class="plano-desc">Teste o serviço</div>
+          </div>
+          <div class="plano-card" data-dias="60" data-valor="19.90" onclick="selecionarPlano(this)">
+            <div class="plano-popular">Popular</div>
+            <div class="plano-dias">60 dias</div>
+            <div class="plano-valor">R$ 19,90</div>
+            <div class="plano-desc">R$ 0,33/dia</div>
+          </div>
+          <div class="plano-card" data-dias="90" data-valor="39.90" onclick="selecionarPlano(this)">
+            <div class="plano-dias">90 dias</div>
+            <div class="plano-valor">R$ 39,90</div>
+            <div class="plano-desc">R$ 0,44/dia</div>
+          </div>
+          <div class="plano-card" data-dias="365" data-valor="99.90" onclick="selecionarPlano(this)">
+            <div class="plano-dias">365 dias</div>
+            <div class="plano-valor">R$ 99,90</div>
+            <div class="plano-desc">Melhor custo</div>
+          </div>
+        </div>
+        <div class="section-label"><i class="fas fa-pencil"></i> Dados da loja</div>
+        <label for="input-store-name">Nome da Loja</label>
+        <input type="text" id="input-store-name" placeholder="Ex: Minha Loja">
+        <label for="input-store-url">Site / URL</label>
+        <input type="url" id="input-store-url" placeholder="https://minhaloja.com.br">
+        <label for="input-store-cat">Tipo de Promoção Principal</label>
+        <select id="input-store-cat">
+          <option value="desconto">Desconto</option>
+          <option value="flash">Flash Sale</option>
+          <option value="cupom">Cupom</option>
+          <option value="cashback">Cashback</option>
+          <option value="frete_gratis">Frete Grátis</option>
+          <option value="saldao">Saldão</option>
+          <option value="outlet">Outlet</option>
+          <option value="live">Live Sale</option>
+          <option value="sorteio">Sorteio</option>
+        </select>
+        <label for="input-store-email">Seu E-mail (para recibo)</label>
+        <input type="email" id="input-store-email" placeholder="seuemail@exemplo.com">
+        <div class="modal-actions">
+          <button class="btn-cancel" id="btn-store-cancel">Cancelar</button>
+          <button class="btn-confirm" id="btn-store-step1-next" disabled>
+            <i class="fas fa-lock" style="font-size:.75rem;margin-right:6px;"></i>Continuar → Pagar PIX
+          </button>
+        </div>
+      </div>
+
+      <!-- STEP 2 -->
+      <div id="store-step-2" style="display:none;">
+        <div class="step-pix-header">
+          <h2><i class="fas fa-qrcode" style="color:#4CAF50;margin-right:8px;"></i>Pague via PIX</h2>
+          <p>Escaneie o QR Code ou copie a chave.<br>Após o pagamento, clique em <strong>"Já Paguei"</strong>.</p>
+        </div>
+        <div class="pix-valor-destaque">
+          <i class="fas fa-receipt" style="color:#4CAF50;"></i>
+          <span id="pix-valor-label">R$ 9,90</span>
+          <span style="font-size:.75rem;color:var(--text-muted);">•</span>
+          <span id="pix-dias-label" style="font-size:.75rem;color:var(--text-muted);"></span>
+        </div>
+        <div style="text-align:center;">
+          <div class="qr-wrapper" id="pix-qr-wrapper">
+            <canvas id="pix-qr-canvas" width="180" height="180"></canvas>
+          </div>
+        </div>
+        <div class="pix-copiacola-row">
+          <input id="pix-key-display" readonly placeholder="Gerando código PIX...">
+          <button class="btn-copy-pix" id="btn-copy-pix" title="Copiar"><i class="fas fa-copy"></i></button>
+        </div>
+        <div class="manual-instrucoes">
+          <strong><i class="fas fa-circle-info" style="color:var(--accent-color);margin-right:4px;"></i>Como pagar:</strong>
+          <ol>
+            <li>Abra o app do seu banco</li>
+            <li>Escolha <strong>PIX → Copia e Cola</strong> ou escaneie o QR</li>
+            <li>Confirme o valor: <strong id="instrucao-valor">R$ 9,90</strong></li>
+            <li>Pague e clique em <strong>"Já Paguei"</strong> abaixo</li>
+          </ol>
+        </div>
+        <div class="pix-timer-box" id="pix-timer-box">
+          <i class="fas fa-clock"></i>
+          <span>QR válido por: </span>
+          <span id="pix-countdown">10:00</span>
+        </div>
+        <div class="pix-status-msg aguardando" id="pix-status-msg">
+          <i class="fas fa-hourglass-half" style="color:var(--accent-color);"></i>
+          Aguardando confirmação do pagamento...
+        </div>
+        <div class="dev-bar" id="dev-bar-teste" style="display:none;">
+          <i class="fas fa-flask"></i>
+          <span><strong>Modo teste</strong> — simula pagamento confirmado</span>
+          <button class="btn-dev-confirm" id="btn-dev-simular">✔ Simular Pago</button>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-cancel" id="btn-store-step2-back">← Voltar</button>
+          <button class="btn-confirm" id="btn-store-step2-paguei">
+            <i class="fas fa-check-circle" style="font-size:.8rem;margin-right:5px;"></i>Já Paguei
+          </button>
+        </div>
+      </div>
+
+      <!-- STEP 3 -->
+      <div id="store-step-3" style="display:none;">
+        <div class="step3-center">
+          <div class="step3-check-circle"><i class="fas fa-check"></i></div>
+          <h2>Loja Cadastrada!</h2>
+          <p>Pagamento registrado. Sua loja será publicada em até 24h após validação manual.</p>
+          <div class="step3-resumo" id="store-step3-resumo"></div>
+          <div class="modal-actions">
+            <button class="btn-confirm" id="btn-store-step3-close" style="flex:1;">
+              <i class="fas fa-check" style="font-size:.8rem;margin-right:5px;"></i>Concluir
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL: Informação -->
+  <div class="modal-overlay" id="modal-info">
+    <div class="modal-box">
+      <h2><i class="fas fa-circle-info" style="color:#42A5F5;margin-right:8px;"></i>Sobre o Max Promo</h2>
+      <p>Seu assistente inteligente para nunca mais perder uma promocao.</p>
+      <div class="info-section"><h3><i class="fas fa-bolt"></i> Como Funciona</h3><p>O Max Promo monitora precos em tempo real de diversas lojas e alerta voce quando encontra as melhores ofertas.</p></div>
+      <div class="info-section"><h3><i class="fas fa-bell"></i> Alertas Inteligentes</h3><p>Receba notificacoes instantaneas quando o preco de um produto monitorado atingir seu valor alvo. Suportamos mais de 20 tipos de promocoes.</p></div>
+      <div class="info-section"><h3><i class="fas fa-shield-halved"></i> Privacidade</h3><p>Seus dados de monitoramento ficam armazenados localmente no seu dispositivo. Nao compartilhamos informacoes com terceiros.</p></div>
+      <div class="info-section"><h3><i class="fas fa-store"></i> Lojas Personalizadas</h3><p>Adicione suas lojas favoritas que nao estao na nossa base e expanda seu alcance de monitoramento.</p></div>
+      <div class="info-version">Max Promo v2.0.0 — Feito com <i class="fas fa-heart" style="color:#EC407A;font-size:0.65rem;"></i> no Brasil</div>
+      <div class="modal-actions" style="margin-top:16px;"><button class="btn-confirm" id="btn-info-close" style="flex:1;">Entendi</button></div>
+    </div>
+  </div>
+
+  <!-- MODAL: Donate -->
+  <div class="modal-overlay" id="modal-donate">
+    <div class="modal-box">
+      <h2><i class="fas fa-heart" style="color:#EC407A;margin-right:8px;"></i>Apoie o Projeto</h2>
+      <p>O Max Promo e um projeto independente. Seu apoio ajuda a manter o servico funcionando.</p>
+      <div id="donate-options-list"></div>
+      <div class="paypal-section">
+        <div class="paypal-section-label"><i class="fab fa-paypal"></i><span>Doação direta via PayPal</span></div>
+        <a href="https://www.paypal.com/donate/?hosted_button_id=VVRPXE4C2JYUE" target="_blank" rel="noopener noreferrer" class="paypal-image-link">
+          <img src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" alt="Doe com PayPal" class="paypal-button-image">
+        </a>
+      </div>
+      <p style="text-align:center;font-size:0.7rem;color:var(--text-muted);margin-bottom:0;margin-top:16px;">Qualquer valor faz diferenca. Obrigado!</p>
+      <div class="modal-actions" style="margin-top:16px;"><button class="btn-cancel" id="btn-donate-close" style="flex:1;">Fechar</button></div>
+    </div>
+  </div>
+
+  <!-- MODAL: Tipos de Promos -->
+  <div class="modal-overlay" id="modal-promo-types">
+    <div class="modal-box">
+      <h2><i class="fas fa-tags" style="color:#FFB300;margin-right:8px;"></i>Tipos de Promocoes</h2>
+      <p>Conheca todos os tipos de promocoes que o Max Promo monitora.</p>
+      <div class="promo-types-grid" id="promo-types-grid"></div>
+      <div class="modal-actions"><button class="btn-cancel" id="btn-types-close" style="flex:1;">Fechar</button></div>
+    </div>
+  </div>
+
+  <!-- MODAL: Comparar -->
+  <div class="modal-overlay" id="modal-compare">
+    <div class="modal-box">
+      <h2 id="compare-title">Comparar Precos</h2>
+      <p id="compare-subtitle">Mesmo produto em diferentes lojas</p>
+      <div id="compare-list"></div>
+      <div class="modal-actions"><button class="btn-cancel" id="btn-compare-close">Fechar</button></div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div id="store-step-3" style="display:none;">
+      <div class="step3-center">
+        <div class="step3-check-circle"><i class="fas fa-check"></i></div>
+        <h2>Loja Cadastrada!</h2>
+        <p>Pagamento registrado. Sua loja será publicada em até 24h após validação manual.</p>
+        <div class="step3-resumo" id="store-step3-resumo"></div>
+        <div class="modal-actions">
+          <button class="btn-confirm" id="btn-store-step3-close" style="flex:1;">
+            <i class="fas fa-check" style="font-size:.8rem;margin-right:5px;"></i>Concluir
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL: Informação -->
+<div class="modal-overlay" id="modal-info">
+  <div class="modal-box">
+    <h2><i class="fas fa-circle-info" style="color:#42A5F5;margin-right:8px;"></i>Sobre o Max Promo</h2>
+    <p>Seu assistente inteligente para nunca mais perder uma promocao.</p>
+    <div class="info-section"><h3><i class="fas fa-bolt"></i> Como Funciona</h3><p>O Max Promo monitora precos em tempo real de diversas lojas e alerta voce quando encontra as melhores ofertas.</p></div>
+    <div class="info-section"><h3><i class="fas fa-bell"></i> Alertas Inteligentes</h3><p>Receba notificacoes instantaneas quando o preco de um produto monitorado atingir seu valor alvo. Suportamos mais de 20 tipos de promocoes.</p></div>
+    <div class="info-section"><h3><i class="fas fa-shield-halved"></i> Privacidade</h3><p>Seus dados de monitoramento ficam armazenados localmente no seu dispositivo. Nao compartilhamos informacoes com terceiros.</p></div>
+    <div class="info-section"><h3><i class="fas fa-store"></i> Lojas Personalizadas</h3><p>Adicione suas lojas favoritas que nao estao na nossa base e expanda seu alcance de monitoramento.</p></div>
+    <div class="info-version">Max Promo v2.0.2 — Feito com <i class="fas fa-heart" style="color:#EC407A;font-size:0.65rem;"></i> no Brasil</div>
+    <div class="modal-actions" style="margin-top:16px;"><button class="btn-confirm" id="btn-info-close" style="flex:1;">Entendi</button></div>
+  </div>
+</div>
+
+<!-- MODAL: Donate -->
+<div class="modal-overlay" id="modal-donate">
+  <div class="modal-box">
+    <h2><i class="fas fa-heart" style="color:#EC407A;margin-right:8px;"></i>Apoie o Projeto</h2>
+    <p>O Max Promo e um projeto independente. Seu apoio ajuda a manter o servico funcionando.</p>
+    <div id="donate-options-list"></div>
+    <div class="paypal-section">
+      <div class="paypal-section-label"><i class="fab fa-paypal"></i><span>Doação direta via PayPal</span></div>
+      <a href="https://www.paypal.com/donate/?hosted_button_id=VVRPXE4C2JYUE" target="_blank" rel="noopener noreferrer" class="paypal-image-link">
+        <img src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" alt="Doe com PayPal" class="paypal-button-image">
+      </a>
+    </div>
+    <p style="text-align:center;font-size:0.7rem;color:var(--text-muted);margin-bottom:0;margin-top:16px;">Qualquer valor faz diferenca. Obrigado!</p>
+    <div class="modal-actions" style="margin-top:16px;"><button class="btn-cancel" id="btn-donate-close" style="flex:1;">Fechar</button></div>
+  </div>
+</div>
+
+<!-- MODAL: Tipos de Promos -->
+<div class="modal-overlay" id="modal-promo-types">
+  <div class="modal-box">
+    <h2><i class="fas fa-tags" style="color:#FFB300;margin-right:8px;"></i>Tipos de Promocoes</h2>
+    <p>Conheca todos os tipos de promocoes que o Max Promo monitora.</p>
+    <div class="promo-types-grid" id="promo-types-grid"></div>
+    <div class="modal-actions"><button class="btn-cancel" id="btn-types-close" style="flex:1;">Fechar</button></div>
+  </div>
+</div>
+
+<!-- MODAL: Comparar -->
+<div class="modal-overlay" id="modal-compare">
+  <div class="modal-box">
+    <h2 id="compare-title">Comparar Precos</h2>
+    <p id="compare-subtitle">Mesmo produto em diferentes lojas</p>
+    <div id="compare-list"></div>
+    <div class="modal-actions"><button class="btn-cancel" id="btn-compare-close">Fechar</button></div>
+  </div>
+</div>
+
+<audio id="alert-sound" preload="auto"></audio>
+
+<script>
+/* ═══════════════════════════════════════════════════
+   MAX PROMO v2.0.2
+   Correções:
+   1. .menu-item-plus sem !important → clique funciona em todos os browsers
+   2. selecionarPlano() → função global única, habilita botão corretamente
+   3. Validação com notificações toast E highlight de campo
+   4. store-error removido (estava fora do modal, era código morto)
+   5. inserirLoja() com IDs errados removida (era código morto conflitante)
+   6. Fila rotativa de alertas por tipo (sem repetição consecutiva)
+   ═══════════════════════════════════════════════════ */
+
+/* ── PROMO CONFIG ── */
+
+  <audio id="alert-sound" preload="auto"></audio>
+
+<script>
+/* ═══════════════════════════════════════════════════
+   MAX PROMO — script único, sem duplicatas
+   ═══════════════════════════════════════════════════ */
+
+/* ── PROMO CONFIG ───────────────────────────────── */
+var PROMO_CONFIG = {
+  'desconto'   :{icon:'./imagens_promo/ic_promo_desconto.png',   faIcon:'fas fa-percent',       color:'#2E7D32',label:'DESCONTO',         emoji:'🏷️'},
+  'saldao'     :{icon:'./imagens_promo/ic_promo_saldao.png',     faIcon:'fas fa-tags',           color:'#E65100',label:'SALDAO',           emoji:'🔥'},
+  'outlet'     :{icon:'./imagens_promo/ic_promo_outlet.png',     faIcon:'fas fa-store',          color:'#6A1B9A',label:'OUTLET',           emoji:'🏪'},
+  'flash'      :{icon:'./imagens_promo/ic_promo_flash.png',      faIcon:'fas fa-bolt',           color:'#FBC02D',label:'FLASH SALE',       emoji:'⚡',urgent:true},
+  'frete_gratis':{icon:'./imagens_promo/ic_promo_frete.png',     faIcon:'fas fa-truck',          color:'#0288D1',label:'FRETE GRATIS',     emoji:'🚚'},
+  'cupom'      :{icon:'./imagens_promo/ic_promo_cupom.png',      faIcon:'fas fa-ticket',         color:'#C2185B',label:'CUPOM',            emoji:'🎟️'},
+  'leve_pague' :{icon:'./imagens_promo/ic_promo_leve.png',       faIcon:'fas fa-gift',           color:'#00796B',label:'COMPRE X LEVE Y', emoji:'🎁'},
+  'cashback'   :{icon:'./imagens_promo/ic_promo_cashback.png',   faIcon:'fas fa-coins',          color:'#F9A825',label:'CASHBACK',         emoji:'💰'},
+  'blackfriday':{icon:'./imagens_promo/ic_promo_blackfriday.png',faIcon:'fas fa-calendar-minus', color:'#212121',label:'BLACK FRIDAY',     emoji:'🖤',goldAccent:'#FFD700'},
+  'brinde'     :{icon:'./imagens_promo/ic_promo_brinde.png',     faIcon:'fas fa-gift',           color:'#EC407A',label:'BRINDE',           emoji:'🎀'},
+  'progressivo':{icon:'./imagens_promo/ic_promo_progressivo.png',faIcon:'fas fa-chart-line',     color:'#689F38',label:'DESC. PROGRESSIVO',emoji:'📈'},
+  'primeira'   :{icon:'./imagens_promo/ic_promo_primeira.png',   faIcon:'fas fa-star',           color:'#1565C0',label:'PRIMEIRA COMPRA',  emoji:'🆕'},
+  'fidelidade' :{icon:'./imagens_promo/ic_promo_fidelidade.png', faIcon:'fas fa-award',          color:'#FFB300',label:'FIDELIDADE',       emoji:'⭐'},
+  'misterio'   :{icon:'./imagens_promo/ic_promo_misterio.png',   faIcon:'fas fa-box-open',       color:'#4527A0',label:'CAIXA MISTERIOSA', emoji:'🎲'},
+  'bilhete'    :{icon:'./imagens_promo/ic_promo_bilhete.png',    faIcon:'fas fa-ticket',         color:'#FFD700',label:'BILHETE DOURADO',  emoji:'🎫',goldAccent:'#FFD700'},
+  'live'       :{icon:'./imagens_promo/ic_promo_live.png',       faIcon:'fas fa-video',          color:'#D32F2F',label:'LIVE SALE',        emoji:'📱',isLive:true},
+  'combo'      :{icon:'./imagens_promo/ic_promo_combo.png',      faIcon:'fas fa-boxes-stacked',  color:'#EF6C00',label:'COMBO',            emoji:'📦'},
+  'parcela'    :{icon:'./imagens_promo/ic_promo_parcela.png',    faIcon:'fas fa-credit-card',    color:'#00695C',label:'PARCELAMENTO',     emoji:'💳'},
+  'cross'      :{icon:'./imagens_promo/ic_promo_cross.png',      faIcon:'fas fa-link',           color:'#42A5F5',label:'COMPRE JUNTO',     emoji:'🔗'},
+  'sorteio'    :{icon:'./imagens_promo/ic_promo_sorteio.png',    faIcon:'fas fa-trophy',         color:'#7B1FA2',label:'SORTEIO',          emoji:'🎰'}
+};
+
+/* ── ÍCONE CACHE ── */
+/* ── ÍCONE CACHE ────────────────────────────────── */
+var iconCache = {};
+function testarIconeDisponivel(src,cb){if(iconCache.hasOwnProperty(src)){cb(iconCache[src]);return}var img=new Image();img.onload=function(){iconCache[src]=true;cb(true)};img.onerror=function(){iconCache[src]=false;cb(false)};img.src=src}
+function preTestarTodosIcones(){Object.keys(PROMO_CONFIG).forEach(function(t){testarIconeDisponivel(PROMO_CONFIG[t].icon,function(){})})}
+function gerarHTMLIcone(tipo,tamanho){var c=PROMO_CONFIG[tipo]||PROMO_CONFIG['desconto'];var sc=tamanho==='grande'?'alert-icon-img':'promo-icon-img';if(iconCache[c.icon]===true)return'<img class="'+sc+'" src="'+c.icon+'" alt="'+c.label+'"><i class="'+c.faIcon+' fa-fallback" style="display:none;"></i>';if(iconCache[c.icon]===false)return'<i class="'+c.faIcon+' fa-fallback"></i>';return'<img class="'+sc+'" src="'+c.icon+'" alt="'+c.label+'" onerror="this.classList.add(\'img-failed\');this.style.display=\'none\';var f=this.nextElementSibling;if(f)f.style.display=\'\';" onload="var f=this.nextElementSibling;if(f)f.style.display=\'none\';"><i class="'+c.faIcon+' fa-fallback"></i>'}
+
+/* ── MOCK DATA ── */
+var MOCK_PROMOS=[{id:1,tipo:'flash',titulo:'Bolsa Hobo – edição limitada',desc:'Flash Sale: 10% OFF por 2 horas apenas!',loja:'Atelier Sorelle Santos',precoOld:3499,precoNew:126.00,tempoRestante:7200,link:'https://ateliersorellesantos.vercel.app/'},{id:2,tipo:'cupom',titulo:'Fone Bluetooth Sony WH-1000XM5',desc:'Use o cupom RADAR10 e ganhe 10% OFF',loja:'SomMax',precoOld:2299,precoNew:2069,cupom:'RADAR10'},{id:3,tipo:'frete_gratis',titulo:'Kit Organizacao Closet 5 pecas',desc:'Frete Grátis em compras acima de R$ 99',loja:'Casa&Estrutura',precoOld:189,precoNew:149},{id:4,tipo:'cashback',titulo:'Perfume Tom Ford Tobacco Vanille 50ml',desc:'10% de Cashback na sua carteira digital',loja:'BelezaVIP',precoOld:1450,precoNew:1299},{id:5,tipo:'leve_pague',titulo:'Camiseta Polo Classic',desc:'Compre 2, Leve 3 — Pague 2!',loja:'ModaFit',precoOld:89,precoNew:59},{id:6,tipo:'blackfriday',titulo:'MacBook Air M3 256GB',desc:'Black Friday: Maiores descontos do ano!',loja:'AppleZone',precoOld:12499,precoNew:9999},{id:7,tipo:'saldao',titulo:'Jaqueta de Couro Legítimo',desc:'Saldão de Inverno — ate 70% OFF',loja:'Couro&Style',precoOld:899,precoNew:269},{id:8,tipo:'outlet',titulo:'Tenis Nike Air Max 90',desc:'Outlet de Fabrica — pecas de colecao passada',loja:'SneakerOutlet',precoOld:749,precoNew:349},{id:9,tipo:'brinde',titulo:'Skincare Coreano Set 7 Steps',desc:'Ganhe um brinde exclusivo na compra acima de R$ 150',loja:'KBeauty',precoOld:280,precoNew:199},{id:10,tipo:'progressivo',titulo:'Vinho Malbec Argentino',desc:'Compre 2 = 10% | 3 = 20% | 4 = 30% OFF',loja:'VinhoPremium',precoOld:89,precoNew:62},{id:11,tipo:'primeira',titulo:'Kindle Paperwhite 11a Geracao',desc:'20% OFF na sua primeira compra!',loja:'LivrariaDigital',precoOld:649,precoNew:519},{id:12,tipo:'live',titulo:'Make Set Profissional 24 pecas',desc:'AO VIVO agora: Ofertas exclusivas na live!',loja:'GlamLive',precoOld:450,precoNew:189},{id:13,tipo:'combo',titulo:'Kit Gamer: Mouse + Teclado + Mousepad',desc:'Kit Completo: 3 produtos por R$ 199',loja:'GameZone',precoOld:349,precoNew:199},{id:14,tipo:'parcela',titulo:'TV LG OLED 55" C4',desc:'12x sem juros em todos os produtos!',loja:'TVWorld',precoOld:6999,precoNew:5499},{id:15,tipo:'misterio',titulo:'Caixa Misteriosa Premium',desc:'Caixa por R$ 49 — Valor garantido de R$ 150!',loja:'SurpriseBox',precoOld:150,precoNew:49},{id:16,tipo:'desconto',titulo:'Smartwatch Amazfit GTR 4',desc:'-30% em todos os produtos',loja:'WearTech',precoOld:1299,precoNew:909},{id:17,tipo:'fidelidade',titulo:'Cafe Especial 250g — 3 pacotes',desc:'Ganhe pontos duplos nesta compra!',loja:'CafeArtesanal',precoOld:120,precoNew:96},{id:18,tipo:'bilhete',titulo:'Bilhete Dourado — Edicao Limitada',desc:'Voce encontrou um Bilhete Dourado!',loja:'LuxMall',precoOld:500,precoNew:99},{id:19,tipo:'cross',titulo:'iPhone 15 + Capinha + Pelicula',desc:'Leve junto com 20% OFF: Capinha + Pelicula',loja:'iAccess',precoOld:5299,precoNew:4599},{id:20,tipo:'sorteio',titulo:'Sorteio iPhone 16 Pro!',desc:'Compre qualquer produto e concorra!',loja:'MegaSorteio',precoOld:0,precoNew:0}];
+var MOCK_PRICE_HISTORY={};MOCK_PROMOS.forEach(function(p){if(p.precoNew>0){var b=[];for(var i=0;i<12;i++){var v=p.precoOld+(p.precoNew-p.precoOld)*(i/11)+(Math.random()-0.5)*(p.precoOld-p.precoNew)*0.3;b.push(Math.max(p.precoNew*0.9,Math.min(p.precoOld*1.1,v)))}b[11]=p.precoNew;MOCK_PRICE_HISTORY[p.id]=b}});
+var MOCK_COMPARE={'Bolsa Hobo – edição limitada':[{loja:'Shopee',preco:160.55},{loja:'SorelleSantos',preco:126},{loja:'Atelier Sorelle Santos',preco:140}],'Galaxy S24 FE 128GB':[{loja:'TechStore',preco:1749},{loja:'MobileShop',preco:1899},{loja:'ElectroMax',preco:1799},{loja:'ImportTech',preco:1699}],'Fone Bluetooth Sony WH-1000XM5':[{loja:'SomMax',preco:2069},{loja:'AudioPro',preco:2199},{loja:'TechStore',preco:2149}],'MacBook Air M3 256GB':[{loja:'AppleZone',preco:9999},{loja:'MegaByte',preco:10499},{loja:'iAccess',preco:10299},{loja:'ImportTech',preco:9799}]};
+
+/* ── ESTADO GLOBAL ── */
+var searchActive=false,alertasAtivados=true,alertTimeout=null,tabAtiva='feed',filtroAtivo=null;
+var monitoredProducts=[],savingsTotal=0,flashTimers={},supabaseOnline=false;
+var toastTimer=null,menuAberto=false;
+
+/* ── PIX / LOJA ── */
+var PIX_CONFIG={chave:'seabhra@gmail.com',nome:'GERALDO A. SEABRA',cidade:'SABARA',descricao:'Max Promo Cadastro'};
+var PLANOS={'30':{valor:9.90,label:'30 dias'},'60':{valor:19.90,label:'60 dias'},'90':{valor:39.90,label:'90 dias'},'365':{valor:99.90,label:'365 dias'}};
+var storeFormData={},planoSelecionado=null,pixCountdownInterval=null,pixPollingInterval=null,pixTxid=null;
+var MODO_TESTE=true;
+
+/* ── DONATE ── */
+var DONATE_API_URL='https://seabhra.github.io/max-promo-alert-api/donate_promos';
+var donateOptionsCache=null;
+var DONATE_ICONS={'pix':{icon:'fas fa-qrcode',color:'#4CAF50',bg:'rgba(76,175,80,0.12)'},'paypal':{icon:'fab fa-paypal',color:'#0070D2',bg:'rgba(0,112,210,0.12)'},'apoia.se':{icon:'fas fa-hand-holding-heart',color:'#EC407A',bg:'rgba(236,64,122,0.12)'},'apoia':{icon:'fas fa-hand-holding-heart',color:'#EC407A',bg:'rgba(236,64,122,0.12)'},'criptomoeda':{icon:'fab fa-bitcoin',color:'#FFB300',bg:'rgba(255,179,0,0.12)'},'bitcoin':{icon:'fab fa-bitcoin',color:'#FFB300',bg:'rgba(255,179,0,0.12)'},'ethereum':{icon:'fab fa-ethereum',color:'#627EEA',bg:'rgba(98,126,234,0.12)'},'picpay':{icon:'fas fa-wallet',color:'#21C25E',bg:'rgba(33,194,94,0.12)'},'mercadopago':{icon:'fas fa-hand-holding-dollar',color:'#00B1EA',bg:'rgba(0,177,234,0.12)'},'ko-fi':{icon:'fas fa-mug-hot',color:'#FF5E5B',bg:'rgba(255,94,91,0.12)'},'padrim':{icon:'fas fa-heart',color:'#E74C3C',bg:'rgba(231,76,60,0.12)'},'default':{icon:'fas fa-heart',color:'#EC407A',bg:'rgba(236,64,122,0.12)'}};
+
+/* ── ALERTAS ROTATIVOS ── */
+var _alertaFila=[],_alertaTipoUltimo=null,_alertaIntervalId=null;
+function _embaralhar(arr){for(var i=arr.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=arr[i];arr[i]=arr[j];arr[j]=t}return arr}
+function _montarFilaAlertas(promos){
+  var lista=(promos||MOCK_PROMOS).filter(function(p){return p.precoNew>0||p.tipo==='sorteio'});
+  var urgentes=_embaralhar(lista.filter(function(p){var c=PROMO_CONFIG[p.tipo];return c&&(c.urgent||c.isLive)}));
+  var normais=_embaralhar(lista.filter(function(p){var c=PROMO_CONFIG[p.tipo];return!(c&&(c.urgent||c.isLive))}));
+  var result=[],ni=0,ui=0;
+  while(ui<urgentes.length||ni<normais.length){
+    if(ui<urgentes.length)result.push(urgentes[ui++]);
+    if(ni<normais.length)result.push(normais[ni++]);
+    if(ni<normais.length)result.push(normais[ni++]);
+  }
+  return result;
+}
+function _proximoAlerta(promos){
+  if(!_alertaFila.length)_alertaFila=_montarFilaAlertas(promos);
+  var tentativas=0,item=null;
+  while(_alertaFila.length&&tentativas<_alertaFila.length){
+    var c=_alertaFila.shift();
+    if(c.tipo!==_alertaTipoUltimo){item=c;break}
+    _alertaFila.push(c);tentativas++;
+  }
+  if(!item&&_alertaFila.length)item=_alertaFila.shift();
+  if(_alertaFila.length<3)_alertaFila=_alertaFila.concat(_montarFilaAlertas(promos));
+  return item;
+}
+function iniciarRotacaoAlertas(promos){
+  clearInterval(_alertaIntervalId);
+  _alertaFila=_montarFilaAlertas(promos);
+  setTimeout(function(){_dispararProximoAlerta(promos)},3000);
+  _alertaIntervalId=setInterval(function(){_dispararProximoAlerta(promos)},9000);
+}
+function _dispararProximoAlerta(promos){
+  if(!alertasAtivados)return;
+  var item=_proximoAlerta(promos);if(!item)return;
+  _alertaTipoUltimo=item.tipo;
+  var c=PROMO_CONFIG[item.tipo]||PROMO_CONFIG['desconto'];
+  var msg=item.titulo+' em '+item.loja;
+  if(item.precoNew>0&&item.precoOld>0&&item.precoNew<item.precoOld){
+    var pct=Math.round((1-item.precoNew/item.precoOld)*100);
+    msg=item.titulo+' — de R$'+item.precoOld.toLocaleString('pt-BR')+' por R$'+item.precoNew.toLocaleString('pt-BR')+' (−'+pct+'%) em '+item.loja;
+  }
+  dispararAlertaPromocaoIA(msg,item.tipo);
+}
+
+/* ── UTILITÁRIOS ── */
+/* ── MOCK DATA ──────────────────────────────────── */
+var MOCK_PROMOS=[{id:1,tipo:'flash',titulo:'Bolsa Hobo – edição limitada',desc:'Flash Sale: 10% OFF por 2 horas apenas!',loja:'Atelier Sorelle Santos',precoOld:3499,precoNew:126.00,tempoRestante:7200,link:'https://ateliersorellesantos.vercel.app/'},{id:2,tipo:'cupom',titulo:'Fone Bluetooth Sony WH-1000XM5',desc:'Use o cupom RADAR10 e ganhe 10% OFF',loja:'SomMax',precoOld:2299,precoNew:2069,cupom:'RADAR10'},{id:3,tipo:'frete_gratis',titulo:'Kit Organizacao Closet 5 pecas',desc:'Frete Grátis em compras acima de R$ 99',loja:'Casa&Estrutura',precoOld:189,precoNew:149},{id:4,tipo:'cashback',titulo:'Perfume Tom Ford Tobacco Vanille 50ml',desc:'10% de Cashback na sua carteira digital',loja:'BelezaVIP',precoOld:1450,precoNew:1299},{id:5,tipo:'leve_pague',titulo:'Camiseta Polo Classic',desc:'Compre 2, Leve 3 — Pague 2!',loja:'ModaFit',precoOld:89,precoNew:59},{id:6,tipo:'blackfriday',titulo:'MacBook Air M3 256GB',desc:'Black Friday: Maiores descontos do ano!',loja:'AppleZone',precoOld:12499,precoNew:9999},{id:7,tipo:'saldao',titulo:'Jaqueta de Couro Legítimo',desc:'Saldão de Inverno — ate 70% OFF',loja:'Couro&Style',precoOld:899,precoNew:269},{id:8,tipo:'outlet',titulo:'Tenis Nike Air Max 90',desc:'Outlet de Fabrica — pecas de colecao passada',loja:'SneakerOutlet',precoOld:749,precoNew:349},{id:9,tipo:'brinde',titulo:'Skincare Coreano Set 7 Steps',desc:'Ganhe um brinde exclusivo na compra acima de R$ 150',loja:'KBeauty',precoOld:280,precoNew:199},{id:10,tipo:'progressivo',titulo:'Vinho Malbec Argentino',desc:'Compre 2 = 10% | 3 = 20% | 4 = 30% OFF',loja:'VinhoPremium',precoOld:89,precoNew:62},{id:11,tipo:'primeira',titulo:'Kindle Paperwhite 11a Geracao',desc:'20% OFF na sua primeira compra!',loja:'LivrariaDigital',precoOld:649,precoNew:519},{id:12,tipo:'live',titulo:'Make Set Profissional 24 pecas',desc:'AO VIVO agora: Ofertas exclusivas na live!',loja:'GlamLive',precoOld:450,precoNew:189},{id:13,tipo:'combo',titulo:'Kit Gamer: Mouse + Teclado + Mousepad',desc:'Kit Completo: 3 produtos por R$ 199',loja:'GameZone',precoOld:349,precoNew:199},{id:14,tipo:'parcela',titulo:'TV LG OLED 55" C4',desc:'12x sem juros em todos os produtos!',loja:'TVWorld',precoOld:6999,precoNew:5499},{id:15,tipo:'misterio',titulo:'Caixa Misteriosa Premium',desc:'Caixa por R$ 49 — Valor garantido de R$ 150!',loja:'SurpriseBox',precoOld:150,precoNew:49},{id:16,tipo:'desconto',titulo:'Smartwatch Amazfit GTR 4',desc:'-30% em todos os produtos',loja:'WearTech',precoOld:1299,precoNew:909},{id:17,tipo:'fidelidade',titulo:'Cafe Especial 250g — 3 pacotes',desc:'Ganhe pontos duplos nesta compra!',loja:'CafeArtesanal',precoOld:120,precoNew:96},{id:18,tipo:'bilhete',titulo:'Bilhete Dourado — Edicao Limitada',desc:'Voce encontrou um Bilhete Dourado!',loja:'LuxMall',precoOld:500,precoNew:99},{id:19,tipo:'cross',titulo:'iPhone 15 + Capinha + Pelicula',desc:'Leve junto com 20% OFF: Capinha + Pelicula',loja:'iAccess',precoOld:5299,precoNew:4599},{id:20,tipo:'sorteio',titulo:'Sorteio iPhone 16 Pro!',desc:'Compre qualquer produto e concorra!',loja:'MegaSorteio',precoOld:0,precoNew:0}];
+var MOCK_PRICE_HISTORY={};MOCK_PROMOS.forEach(function(p){if(p.precoNew>0){var b=[];for(var i=0;i<12;i++){var v=p.precoOld+(p.precoNew-p.precoOld)*(i/11)+(Math.random()-0.5)*(p.precoOld-p.precoNew)*0.3;b.push(Math.max(p.precoNew*0.9,Math.min(p.precoOld*1.1,v)))}b[11]=p.precoNew;MOCK_PRICE_HISTORY[p.id]=b}});
+var MOCK_COMPARE={'Bolsa Hobo – edição limitada':[{loja:'Shopee',preco:160.55,link:'https://s.shopee.com.br/2VpcHJ1w0H/'},{loja:'SorelleSantos',preco:126},{loja:'Atelier Sorelle Santos',preco:140,link:'https://ateliersorellesantos.vercel.app/'}],'Galaxy S24 FE 128GB':[{loja:'TechStore',preco:1749},{loja:'MobileShop',preco:1899},{loja:'ElectroMax',preco:1799},{loja:'ImportTech',preco:1699}],'Fone Bluetooth Sony WH-1000XM5':[{loja:'SomMax',preco:2069},{loja:'AudioPro',preco:2199},{loja:'TechStore',preco:2149}],'MacBook Air M3 256GB':[{loja:'AppleZone',preco:9999},{loja:'MegaByte',preco:10499},{loja:'iAccess',preco:10299},{loja:'ImportTech',preco:9799}]};
+
+/* ── ESTADO GLOBAL ──────────────────────────────── */
+var searchActive=false,alertasAtivados=true,alertTimeout=null,tabAtiva='feed',filtroAtivo=null;
+var monitoredProducts=[],savingsTotal=0,flashTimers={},supabaseOnline=false;
+var toastTimer=null;
+var menuAberto=false;
+
+/* ── PIX / LOJA ─────────────────────────────────── */
+var PIX_CONFIG = {
+  chave:    'seabhra@gmail.com',
+  nome:     'GERALDO A. SEABRA',   // max 25 chars, sem acento
+  cidade:   'SABARA',              // max 15 chars
+  descricao:'Max Promo Cadastro'   // max 72 chars
+};
+var PLANOS = {
+  '30' :{ valor:9.90,  label:'30 dias'  },
+  '60' :{ valor:19.90, label:'60 dias'  },
+  '90' :{ valor:39.90, label:'90 dias'  },
+  '365':{ valor:99.90, label:'365 dias' }
+};
+var storeFormData        = {};
+var planoSelecionado     = null;
+var pixCountdownInterval = null;
+var pixPollingInterval   = null;
+var pixTxid              = null;
+var MODO_TESTE           = true;   // ← false em produção
+
+/* ── DONATE ─────────────────────────────────────── */
+var DONATE_API_URL = 'https://seabhra.github.io/max-promo-alert-api/donate_promos';
+var donateOptionsCache = null;
+var DONATE_ICONS = {
+  'pix'         :{icon:'fas fa-qrcode',           color:'#4CAF50', bg:'rgba(76,175,80,0.12)'},
+  'paypal'      :{icon:'fab fa-paypal',            color:'#0070D2', bg:'rgba(0,112,210,0.12)'},
+  'apoia.se'    :{icon:'fas fa-hand-holding-heart',color:'#EC407A', bg:'rgba(236,64,122,0.12)'},
+  'apoia'       :{icon:'fas fa-hand-holding-heart',color:'#EC407A', bg:'rgba(236,64,122,0.12)'},
+  'criptomoeda' :{icon:'fab fa-bitcoin',           color:'#FFB300', bg:'rgba(255,179,0,0.12)'},
+  'bitcoin'     :{icon:'fab fa-bitcoin',           color:'#FFB300', bg:'rgba(255,179,0,0.12)'},
+  'ethereum'    :{icon:'fab fa-ethereum',          color:'#627EEA', bg:'rgba(98,126,234,0.12)'},
+  'picpay'      :{icon:'fas fa-wallet',            color:'#21C25E', bg:'rgba(33,194,94,0.12)'},
+  'mercadopago' :{icon:'fas fa-hand-holding-dollar',color:'#00B1EA',bg:'rgba(0,177,234,0.12)'},
+  'ko-fi'       :{icon:'fas fa-mug-hot',           color:'#FF5E5B', bg:'rgba(255,94,91,0.12)'},
+  'padrim'      :{icon:'fas fa-heart',             color:'#E74C3C', bg:'rgba(231,76,60,0.12)'},
+  'default'     :{icon:'fas fa-heart',             color:'#EC407A', bg:'rgba(236,64,122,0.12)'}
+};
+
+/* ── UTILITÁRIOS GERAIS ─────────────────────────── */
+function ajustarBrilho(hex,p){var n=parseInt(hex.replace('#',''),16);var a=Math.round(2.55*p);var R=(n>>16)+a;var G=(n>>8&0xFF)+a;var B=(n&0xFF)+a;return'#'+(0x1000000+(R<255?R<1?0:R:255)*0x10000+(G<255?G<1?0:G:255)*0x100+(B<255?B<1?0:B:255)).toString(16).slice(1)}
+function showNotification(m){var t=document.getElementById('toast-msg');t.textContent=m;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('show')},2800)}
+function fallbackCopy(text){var ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.left='-9999px';document.body.appendChild(ta);ta.select();try{document.execCommand('copy')}catch(e){}document.body.removeChild(ta)}
+function formatarTempo(s){var h=Math.floor(s/3600);var m=Math.floor((s%3600)/60);var sec=s%60;if(h>0)return h+'h '+String(m).padStart(2,'0')+'m';if(m>0)return m+'m '+String(sec).padStart(2,'0')+'s';return sec+'s'}
+function formatarDinheiro(v){return'R$ '+Number(v).toFixed(2).replace('.',',')}
+function calcularExpiracao(dias){var d=new Date();d.setDate(d.getDate()+parseInt(dias));return d.toLocaleDateString('pt-BR')}
+function openModal(id){document.getElementById(id).classList.add('active');fecharMenu()}
+function closeModal(id){document.getElementById(id).classList.remove('active')}
+
+/* FIX: validação com highlight de campo E toast */
+function marcarErro(elId,msg){
+  var el=document.getElementById(elId);
+  if(el){el.classList.add('input-error');el.focus()}
+  showNotification('⚠ '+msg);
+}
+function limparErro(el){if(el)el.classList.remove('input-error')}
+
+/* ── SUPABASE ── */
+async function buscarPromocoesSupabase(){try{var u='/api/promos?limite=50';if(filtroAtivo)u+='&tipo='+filtroAtivo;var r=await fetch(u);if(!r.ok)throw 0;var d=await r.json();if(d.promocoes&&d.promocoes.length>0){supabaseOnline=true;document.getElementById('status-dot').classList.remove('offline');return d.promocoes.map(function(p){return{id:p.id,tipo:p.tipo,titulo:p.titulo,desc:p.descricao||'',loja:p.loja||'?',precoOld:p.preco_antigo||0,precoNew:p.preco_novo||0,cupom:p.cupom||null,tempoRestante:p.tempo_restante||0,fonte:p.fonte||'',urlAfiliado:p.url_afiliado||null}})}return null}catch(e){supabaseOnline=false;document.getElementById('status-dot').classList.add('offline');return null}}
+
+/* ── ALERTA VISUAL ── */
+function dispararAlertaPromocaoIA(msg,tipo){if(!alertasAtivados)return;var bar=document.getElementById('alert-bar');bar.classList.remove('alert-bar-critico');bar.style.background='';bar.style.color='';bar.style.borderTopColor='';var c=PROMO_CONFIG[tipo]||PROMO_CONFIG['desconto'];document.getElementById('alert-title').textContent=c.emoji+' '+c.label+'!';document.getElementById('alert-text').textContent=msg;var ib=document.getElementById('alert-icon-box');ib.style.background='linear-gradient(135deg,'+c.color+','+ajustarBrilho(c.color,-25)+')';ib.innerHTML=gerarHTMLIcone(tipo,'grande');if(c.urgent||tipo==='blackfriday')bar.classList.add('alert-bar-critico');if(tipo==='flash'){bar.style.background='linear-gradient(90deg,'+c.color+','+ajustarBrilho(c.color,-20)+')';bar.style.color='#000'}else if(tipo==='blackfriday'){bar.style.background='linear-gradient(90deg,#212121,#111)';bar.style.borderTopColor='#FFD700';bar.style.color='#FFD700'}else if(tipo==='bilhete'){bar.style.background='linear-gradient(90deg,#1a1a2e,#16213e)';bar.style.borderTopColor='#FFD700';bar.style.color='#FFD700'}else{bar.style.background='linear-gradient(90deg,'+c.color+','+ajustarBrilho(c.color,-20)+')';bar.style.color='#fff'}var ct=document.getElementById('alert-container');if(ct.style.display!=='block'){ct.style.display='block';ct.style.animation='none';ct.offsetHeight;ct.style.animation='slideUp 0.35s ease-out'}try{var snd=document.getElementById('alert-sound');if(snd&&snd.src){snd.currentTime=0;snd.play().catch(function(){})}}catch(e){}clearTimeout(alertTimeout);alertTimeout=setTimeout(function(){esconderAlertaVisual()},7000);savingsTotal+=Math.floor(Math.random()*80)+20;document.getElementById('savings-total').textContent='R$ '+savingsTotal.toLocaleString('pt-BR')}
+function esconderAlertaVisual(){document.getElementById('alert-container').style.display='none';var b=document.getElementById('alert-bar');b.classList.remove('alert-bar-critico');b.style.color='';b.style.borderTopColor=''}
+
+/* ── TIMERS FLASH ── */
+function iniciarTimer(id,seg){var rem=seg;clearInterval(flashTimers[id]);flashTimers[id]=setInterval(function(){rem--;var el=document.getElementById('timer-'+id);if(!el){clearInterval(flashTimers[id]);return}if(rem<=0){el.querySelector('.timer-value').textContent='Encerrado';el.classList.add('urgent');clearInterval(flashTimers[id]);return}el.querySelector('.timer-value').textContent=formatarTempo(rem);if(rem<600)el.classList.add('urgent')},1000)}
+
+/* ── RENDER FEED ── */
+async function renderFeed(promos){var ct=document.getElementById('feed-container');ct.innerHTML='';var lista=promos;if(!lista){var sd=await buscarPromocoesSupabase();lista=sd||MOCK_PROMOS}if(filtroAtivo)lista=lista.filter(function(p){return p.tipo===filtroAtivo});var q=document.getElementById('search-query').value.trim().toLowerCase();if(q.length>=2)lista=lista.filter(function(p){return p.titulo.toLowerCase().indexOf(q)!==-1||p.desc.toLowerCase().indexOf(q)!==-1||p.loja.toLowerCase().indexOf(q)!==-1||(PROMO_CONFIG[p.tipo]&&PROMO_CONFIG[p.tipo].label.toLowerCase().indexOf(q)!==-1)});if(!lista.length){ct.innerHTML='<div class="empty-state"><i class="fas fa-search"></i><p>Nenhuma oferta encontrada.</p></div>';return}lista.forEach(function(p,i){var c=PROMO_CONFIG[p.tipo]||PROMO_CONFIG['desconto'];var card=document.createElement('div');card.className='promo-card';card.style.animationDelay=(i*0.06)+'s';var u=c.urgent,l=c.isLive,ht=p.tempoRestante>0;var po=p.precoOld>0?'R$ '+p.precoOld.toLocaleString('pt-BR'):'';var pn=p.precoNew>0?'R$ '+p.precoNew.toLocaleString('pt-BR'):'Gratuito';var pd='';if(p.precoOld>0&&p.precoNew>0){var pc=Math.round((1-p.precoNew/p.precoOld)*100);if(pc>0)pd='-'+pc+'%'}var hh='';var hi=MOCK_PRICE_HISTORY[p.id];if(hi&&hi.length){var mx=Math.max.apply(null,hi),mn=Math.min.apply(null,hi);hh='<div class="price-history-mini">';hi.forEach(function(v){var h=3+((v-mn)/(mx-mn+1))*27;var cl=v===hi[hi.length-1]?'#4CAF50':'rgba(255,255,255,0.15)';hh+='<div class="price-bar" style="height:'+h+'px;background:'+cl+';"></div>'});hh+='</div>'}var th='';if(ht)th='<div class="promo-timer urgent" id="timer-'+p.id+'"><i class="fas fa-clock"></i> <span class="timer-value">'+formatarTempo(p.tempoRestante)+'</span></div>';var bc=c.goldAccent||c.color;var bt='Aproveitar';if(p.cupom)bt='Cupom: '+p.cupom;if(l)bt='Assistir Live';var lh=l?'<div class="live-indicator"><div class="live-dot"></div> AO VIVO</div>':'';var sh=p.fonte?'<span class="source-badge" style="background:rgba(255,255,255,0.05);color:var(--text-muted);"><i class="fas fa-rss" style="font-size:0.5rem;"></i> '+p.fonte+'</span>':'';var ih=gerarHTMLIcone(p.tipo,'pequeno');card.innerHTML='<div class="promo-card-accent" style="background:linear-gradient(90deg,'+c.color+','+ajustarBrilho(c.color,-20)+');"></div><div class="promo-card-body"><div class="promo-card-icon" style="background:linear-gradient(135deg,'+c.color+','+ajustarBrilho(c.color,-30)+');">'+ih+(u?'<div class="pulse-ring"></div>':'')+'</div><div class="promo-card-content"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><span class="promo-card-type" style="background:'+ajustarBrilho(c.color,-60)+';color:'+c.color+';">'+c.label+'</span>'+(pd?'<span style="font-size:0.72rem;font-weight:800;color:#4CAF50;">'+pd+'</span>':'')+lh+sh+'</div><div class="promo-card-title">'+p.titulo+'</div><div class="promo-card-desc">'+p.desc+'</div><div class="promo-card-meta">'+(po?'<span class="promo-price-old">'+po+'</span>':'')+'<span class="promo-price-new" style="color:'+(p.precoNew<p.precoOld?'#4CAF50':'var(--text-main)')+';">'+pn+'</span><span class="promo-store"><i class="fas fa-store"></i> '+p.loja+'</span></div>'+hh+'</div></div><div class="promo-card-footer">'+th+'<button class="promo-btn-grab" style="background:linear-gradient(135deg,'+bc+','+ajustarBrilho(bc,-15)+');">'+bt+'</button></div>';ct.appendChild(card);if(p.urlAfiliado)card.addEventListener('click',function(){window.open(p.urlAfiliado,'_blank','noopener')});if(ht)iniciarTimer(p.id,p.tempoRestante)});
+  iniciarRotacaoAlertas(lista);
+}
+
+function renderMonitored(){var ct=document.getElementById('feed-container');ct.innerHTML='';if(!monitoredProducts.length){ct.innerHTML='<div class="empty-state"><i class="fas fa-eye-slash"></i><p>Nenhum produto monitorado.<br>Use o menu para adicionar.</p></div>';return}monitoredProducts.forEach(function(p,i){var card=document.createElement('div');card.className='monitored-card';card.style.animationDelay=(i*0.06)+'s';var sc='#4CAF50';if(p.currentPrice>p.targetPrice*1.1)sc='#ff4444';else if(p.currentPrice>p.targetPrice)sc='#FFB300';card.innerHTML='<div class="prod-img" style="color:'+sc+';"><i class="fas fa-box"></i></div><div class="prod-info"><div class="prod-name">'+p.name+'</div><div class="prod-target">Alvo: R$ '+p.targetPrice.toLocaleString('pt-BR')+'</div></div><div class="prod-current" style="color:'+sc+';">R$ '+p.currentPrice.toLocaleString('pt-BR')+'</div><button class="remove-btn" data-idx="'+i+'" title="Remover"><i class="fas fa-trash"></i></button>';ct.appendChild(card);card.querySelector('.remove-btn').addEventListener('click',function(){monitoredProducts.splice(parseInt(this.getAttribute('data-idx')),1);renderMonitored();atualizarBadgeMonitorados();showNotification('Produto removido')})})}
+function renderHistory(){var ct=document.getElementById('feed-container');ct.innerHTML='';var pp=MOCK_PROMOS.filter(function(p){return MOCK_PRICE_HISTORY[p.id]});if(!pp.length){ct.innerHTML='<div class="empty-state"><i class="fas fa-chart-line"></i><p>Nenhum historico.</p></div>';return}var ms=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];pp.forEach(function(p,i){var c=PROMO_CONFIG[p.tipo]||PROMO_CONFIG['desconto'];var h=MOCK_PRICE_HISTORY[p.id];var mx=Math.max.apply(null,h),mn=Math.min.apply(null,h);var card=document.createElement('div');card.className='promo-card';card.style.animationDelay=(i*0.06)+'s';var bh='<div style="display:flex;align-items:flex-end;gap:4px;height:80px;padding:10px 0;">';h.forEach(function(v,j){var hi=8+((v-mn)/(mx-mn+1))*65;var cl=j===h.length-1?'#4CAF50':'rgba(255,179,0,0.3)';bh+='<div style="display:flex;flex-direction:column;align-items:center;flex:1;gap:2px;"><div style="width:100%;height:'+hi+'px;background:'+cl+';border-radius:3px 3px 0 0;min-height:4px;"></div><span style="font-size:0.5rem;color:var(--text-muted);">'+ms[j]+'</span></div>'});bh+='</div>';card.innerHTML='<div class="promo-card-accent" style="background:linear-gradient(90deg,'+c.color+','+ajustarBrilho(c.color,-20)+');"></div><div style="padding:14px 16px;"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><span class="promo-card-type" style="background:'+ajustarBrilho(c.color,-60)+';color:'+c.color+';">'+c.label+'</span><span style="font-weight:700;font-size:0.9rem;">'+p.titulo+'</span></div><div style="display:flex;gap:16px;font-size:0.8rem;margin-bottom:4px;"><span style="color:var(--text-muted);">Maior: R$ '+mx.toLocaleString('pt-BR')+'</span><span style="color:#4CAF50;">Menor: R$ '+mn.toLocaleString('pt-BR')+'</span></div>'+bh+'</div>';ct.appendChild(card)})}
+function renderCompare(){var ct=document.getElementById('feed-container');ct.innerHTML='';var pk=Object.keys(MOCK_COMPARE);if(!pk.length){ct.innerHTML='<div class="empty-state"><i class="fas fa-balance-scale"></i><p>Nenhum produto para comparar.</p></div>';return}pk.forEach(function(nm,i){var ls=MOCK_COMPARE[nm].slice().sort(function(a,b){return a.preco-b.preco});var ml=ls[0].preco;var card=document.createElement('div');card.className='promo-card';card.style.animationDelay=(i*0.06)+'s';var rh='';ls.forEach(function(l){var ib=l.preco===ml;rh+='<div class="compare-row"><span class="compare-store"><i class="fas fa-store" style="margin-right:6px;color:'+(ib?'#4CAF50':'var(--text-muted)')+';"></i>'+l.loja+(ib?' <span style="font-size:0.65rem;font-weight:800;color:#4CAF50;">MELHOR PRECO</span>':'')+'</span><span class="compare-price '+(ib?'compare-best':'')+'">R$ '+l.preco.toLocaleString('pt-BR')+'</span></div>'});card.innerHTML='<div class="promo-card-accent" style="background:linear-gradient(90deg,#4CAF50,#2E7D32);"></div><div style="padding:14px 16px;"><div style="font-weight:700;font-size:0.95rem;margin-bottom:12px;"><i class="fas fa-balance-scale" style="margin-right:8px;color:#4CAF50;"></i>'+nm+'</div>'+rh+'</div>';ct.appendChild(card)})}
+function renderFilters(){var st=document.getElementById('filter-strip');st.innerHTML='';var ca=document.createElement('button');ca.className='filter-chip'+(!filtroAtivo?' active':'');ca.innerHTML='<i class="fas fa-th"></i> Todos';ca.addEventListener('click',function(){filtroAtivo=null;renderFilters();renderCurrentTab()});st.appendChild(ca);['flash','cupom','frete_gratis','cashback','leve_pague','blackfriday','saldao','outlet','desconto','brinde','progressivo','combo','parcela','live','misterio','sorteio'].forEach(function(t){var c=PROMO_CONFIG[t];if(!c)return;var ch=document.createElement('button');ch.className='filter-chip'+(filtroAtivo===t?' active':'');ch.innerHTML='<span class="chip-dot" style="background:'+c.color+';"></span> '+c.label;ch.addEventListener('click',function(){filtroAtivo=filtroAtivo===t?null:t;renderFilters();renderCurrentTab()});st.appendChild(ch)})}
+function renderPromoTypesGrid(){var g=document.getElementById('promo-types-grid');g.innerHTML='';Object.keys(PROMO_CONFIG).forEach(function(t){var c=PROMO_CONFIG[t];var it=document.createElement('div');it.className='promo-type-item';it.innerHTML='<div class="promo-type-dot" style="background:'+c.color+';"></div><div class="promo-type-label">'+c.emoji+' '+c.label+'</div>';g.appendChild(it)})}
+function renderCurrentTab(){if(tabAtiva==='feed')renderFeed();else if(tabAtiva==='monitored')renderMonitored();else if(tabAtiva==='history')renderHistory();else if(tabAtiva==='compare')renderCompare()}
+function atualizarBadgeMonitorados(){var b=document.getElementById('monitored-count');if(monitoredProducts.length>0){b.style.display='flex';b.textContent=monitoredProducts.length}else{b.style.display='none'}}
+
+/* ── MENU ── */
+function toggleMenu(){menuAberto=!menuAberto;var d=document.getElementById('menu-dropdown');var t=document.getElementById('btn-menu-toggle');if(menuAberto){d.classList.add('open');t.classList.add('active')}else{d.classList.remove('open');t.classList.remove('active')}}
+function fecharMenu(){if(!menuAberto)return;menuAberto=false;document.getElementById('menu-dropdown').classList.remove('open');document.getElementById('btn-menu-toggle').classList.remove('active')}
+
+/* ── DONATE ── */
+function detectarIconeDoacao(titulo){if(!titulo)return DONATE_ICONS['default'];var t=titulo.toLowerCase().trim();if(t.indexOf('apoia')!==-1)return DONATE_ICONS['apoia.se'];if(t.indexOf('ko-fi')!==-1||t.indexOf('kofi')!==-1)return DONATE_ICONS['ko-fi'];if(t.indexOf('picpay')!==-1)return DONATE_ICONS['picpay'];if(t.indexOf('mercado')!==-1)return DONATE_ICONS['mercadopago'];if(t.indexOf('padrim')!==-1)return DONATE_ICONS['padrim'];if(t.indexOf('ethereum')!==-1||t.indexOf('eth')!==-1)return DONATE_ICONS['ethereum'];if(t.indexOf('bitcoin')!==-1||t.indexOf('btc')!==-1)return DONATE_ICONS['bitcoin'];if(t.indexOf('cripto')!==-1)return DONATE_ICONS['criptomoeda'];if(t.indexOf('pix')!==-1)return DONATE_ICONS['pix'];if(t.indexOf('paypal')!==-1)return DONATE_ICONS['paypal'];return DONATE_ICONS['default']}
+async function carregarOpcoesDoacao(){var container=document.getElementById('donate-options-list');if(!container)return;if(donateOptionsCache){renderizarOpcoesDoacao(donateOptionsCache);return}container.innerHTML='<div class="donate-loading"><i class="fas fa-spinner fa-spin"></i> Carregando...</div>';try{var response=await fetch(DONATE_API_URL);if(!response.ok)throw new Error('HTTP '+response.status);var data=await response.json();var lista=Array.isArray(data)?data:null;if(!lista){var chaves=['doacoes','opcoes','donate_options','options','data','items'];for(var i=0;i<chaves.length;i++){if(Array.isArray(data[chaves[i]])){lista=data[chaves[i]];break}}}if(!lista||!lista.length)throw new Error('vazia');donateOptionsCache=lista;renderizarOpcoesDoacao(lista)}catch(err){renderizarOpcoesDoacao([{titulo:'PIX',descricao:'seabhra@gmail.com',tipo:'pix',acao:'copy',valor:'seabhra@gmail.com'},{titulo:'Apoia.se',descricao:'Apoio mensal recorrente',tipo:'apoia.se',acao:'link',url:'#'}])}}
+function renderizarOpcoesDoacao(lista){var container=document.getElementById('donate-options-list');if(!container)return;container.innerHTML='';lista.forEach(function(opt,i){var ic=detectarIconeDoacao(opt.titulo||opt.nome||opt.title||'');var titulo=opt.titulo||opt.title||opt.nome||opt.name||'Doar';var desc=opt.descricao||opt.desc||opt.description||'';var url=opt.url||opt.link||'#';var acao=opt.acao||'link';var valorCopy=opt.valor||opt.chave||titulo;var el=document.createElement('div');el.className='donate-option-link';el.style.animation='cardSlideIn 0.35s ease-out '+(i*0.06)+'s both';el.innerHTML='<div class="donate-option-icon-wrap" style="background:'+ic.bg+';color:'+ic.color+';"><i class="'+ic.icon+'"></i></div><div class="donate-option-text"><div class="do-title">'+titulo+'</div>'+(desc?'<div class="do-desc">'+desc+'</div>':'')+'</div><i class="fas fa-external-link-alt" style="color:var(--text-muted);font-size:0.7rem;margin-left:auto;flex-shrink:0;"></i>';(function(a,u,v,tit){el.addEventListener('click',function(){if(a==='copy'||a==='copiar'){if(navigator.clipboard){navigator.clipboard.writeText(v).then(function(){showNotification(tit+': copiado!')})}else{fallbackCopy(v);showNotification(tit+': copiado!')}}else if(u&&u!=='#'){window.open(u,'_blank','noopener');showNotification('Abrindo '+tit+'...')}})})(acao,url,valorCopy,titulo);container.appendChild(el)})}
+
+/* ── PIX: GERADOR BR CODE ── */
+function gerarPixCopiaCola(chave,nome,cidade,valor,descricao){
+  function campo(id,val){return id+String(val.length).padStart(2,'0')+val}
+  function crc16(str){var crc=0xFFFF;for(var i=0;i<str.length;i++){crc^=str.charCodeAt(i)<<8;for(var j=0;j<8;j++){crc=(crc&0x8000)?(crc<<1)^0x1021:crc<<1}}return(crc&0xFFFF).toString(16).toUpperCase().padStart(4,'0')}
+  var nomeClean=(nome||'').substring(0,25).toUpperCase();
+  var cidadeClean=(cidade||'').substring(0,15).toUpperCase();
+  var descClean=(descricao||'').substring(0,72);
+  var valorStr=Number(valor).toFixed(2);
+  var merchantAcc=campo('26',campo('00','BR.GOV.BCB.PIX')+campo('01',chave)+(descClean?campo('02',descClean):''));
+  var addData=campo('62',campo('05','***'));
+  var payload='000201'+'010212'+merchantAcc+'52040000'+'5303986'+'54'+String(valorStr.length).padStart(2,'0')+valorStr+'5802BR'+'59'+String(nomeClean.length).padStart(2,'0')+nomeClean+'60'+String(cidadeClean.length).padStart(2,'0')+cidadeClean+addData+'6304';
+  return payload+crc16(payload);
+}
+
+/* ── PIX: QR CODE ── */
+function renderizarQRCode(texto){
+  var canvas=document.getElementById('pix-qr-canvas');if(!canvas)return;
+  var ctx=canvas.getContext('2d');ctx.clearRect(0,0,180,180);
+  if(typeof QRCode!=='undefined'){
+    var tmpDiv=document.createElement('div');document.body.appendChild(tmpDiv);
+    try{
+      new QRCode(tmpDiv,{text:texto,width:180,height:180,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
+      setTimeout(function(){var img=tmpDiv.querySelector('img');if(img){var im=new Image();im.onload=function(){ctx.drawImage(im,0,0,180,180)};im.src=img.src}if(tmpDiv.parentNode)document.body.removeChild(tmpDiv)},150)
+    }catch(e){if(tmpDiv.parentNode)document.body.removeChild(tmpDiv);_qrFallback(ctx)}
+  }else{_qrFallback(ctx)}
+}
+function _qrFallback(ctx){ctx.fillStyle='#fff';ctx.fillRect(0,0,180,180);ctx.fillStyle='#444';ctx.font='13px Inter,sans-serif';ctx.textAlign='center';ctx.fillText('Use Copia e Cola',90,80);ctx.fillText('abaixo ↓',90,100)}
+
+/* ── PIX: COUNTDOWN ── */
+function iniciarCountdownPix(){
+  clearInterval(pixCountdownInterval);var segundos=600;
+  pixCountdownInterval=setInterval(function(){
+    segundos--;
+    var m=Math.floor(segundos/60);var s=segundos%60;
+    var countEl=document.getElementById('pix-countdown');if(countEl)countEl.textContent=m+':'+String(s).padStart(2,'0');
+    if(segundos<=60){var timerEl=document.getElementById('pix-timer-box');if(timerEl)timerEl.classList.add('urgente')}
+    if(segundos<=0){clearInterval(pixCountdownInterval);_setStatusPix('erro','<i class="fas fa-times-circle"></i> QR expirado. Volte e gere novamente.')}
+  },1000)
+}
+function _setStatusPix(tipo,html){var el=document.getElementById('pix-status-msg');if(!el)return;el.className='pix-status-msg '+tipo;el.innerHTML=html}
+
+/* ── PIX: SALVAR LOJA ── */
+async function salvarLojaNoSupabase(form,status){
+  var payload={loja_nome:form.nome,loja_url:form.url,loja_categoria:form.categoria,loja_email:form.email,plano_dias:parseInt(form.dias),valor_pago:parseFloat(form.valor),data_expiracao:calcularExpiracao(form.dias),pix_txid:pixTxid||('MANUAL_'+Date.now()),status:status||'aguardando_validacao',modo_pagamento:'pix_manual'};
+  try{var r=await fetch('/api/salvar-loja',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});if(!r.ok)throw new Error('HTTP '+r.status);return await r.json()}
+  catch(e){console.error('[Max Promo] salvarLoja:',e);try{var key='maxpromo_lojas_pendentes';var pending=JSON.parse(localStorage.getItem(key)||'[]');pending.push(Object.assign({},payload,{tentativa_em:new Date().toISOString()}));localStorage.setItem(key,JSON.stringify(pending))}catch(_){}return null}
+}
+
+/* ── PIX: STEP 3 ── */
+function confirmarPagamentoEAvancar(statusFinal){
+  clearInterval(pixPollingInterval);clearInterval(pixCountdownInterval);
+  salvarLojaNoSupabase(storeFormData,statusFinal||'aguardando_validacao');
+  var resumo=document.getElementById('store-step3-resumo');
+  if(resumo)resumo.innerHTML='<div><strong>Loja:</strong> '+storeFormData.nome+'</div><div><strong>URL:</strong> '+storeFormData.url+'</div><div><strong>Plano:</strong> '+storeFormData.label+' ('+formatarDinheiro(storeFormData.valor)+')</div><div><strong>Válido até:</strong> '+calcularExpiracao(storeFormData.dias)+'</div><div><strong>Status:</strong> <span style="color:#4CAF50;">✔ Solicitação recebida — publicação em até 24h</span></div>';
+  document.getElementById('store-step-2').style.display='none';
+  document.getElementById('store-step-3').style.display='block';
+}
+
+/*
+ * FIX CRÍTICO — selecionarPlano()
+ * Deve ser função GLOBAL (não dentro de DOMContentLoaded)
+ * pois é chamada via onclick="selecionarPlano(this)" no HTML.
+ * Habilita o botão Continuar E oculta o aviso de plano obrigatório.
+ */
+function selecionarPlano(el){
+  document.querySelectorAll('.plano-card').forEach(function(c){c.classList.remove('selected')});
+  el.classList.add('selected');
+  var dias=el.getAttribute('data-dias');
+  var valor=parseFloat(el.getAttribute('data-valor'));
+  if(!PLANOS[dias]){console.error('[Max Promo] Plano inválido:',dias);return}
+  planoSelecionado={dias:dias,valor:valor,label:PLANOS[dias].label};
+  var btn=document.getElementById('btn-store-step1-next');
+  if(btn)btn.disabled=false;
+  var aviso=document.getElementById('plano-aviso');
+  if(aviso)aviso.classList.remove('visivel');
+  showNotification('Plano '+PLANOS[dias].label+' selecionado: '+formatarDinheiro(valor));
+}
+
+/* ── PIX: LIMPAR MODAL ── */
+function limparModalLoja(){
+  clearInterval(pixCountdownInterval);clearInterval(pixPollingInterval);
+  planoSelecionado=null;storeFormData={};pixTxid=null;
+  ['input-store-name','input-store-url','input-store-email'].forEach(function(id){
+    var el=document.getElementById(id);
+    if(el){el.value='';el.classList.remove('input-error')}
+  });
+  var sel=document.getElementById('input-store-cat');if(sel)sel.selectedIndex=0;
+  var btn=document.getElementById('btn-store-step1-next');if(btn)btn.disabled=true;
+  var countdown=document.getElementById('pix-countdown');if(countdown)countdown.textContent='10:00';
+  var timerBox=document.getElementById('pix-timer-box');if(timerBox)timerBox.classList.remove('urgente');
+  var aviso=document.getElementById('plano-aviso');if(aviso)aviso.classList.remove('visivel');
+  _setStatusPix('aguardando','<i class="fas fa-hourglass-half" style="color:var(--accent-color);"></i> Aguardando confirmação do pagamento...');
+  document.querySelectorAll('.plano-card').forEach(function(c){c.classList.remove('selected')});
+  document.getElementById('store-step-1').style.display='block';
+  document.getElementById('store-step-2').style.display='none';
+  document.getElementById('store-step-3').style.display='none';
+}
+
+/* ─────────────────────────────────────────────────
+   [EFI] Descomente quando Efi Bank estiver aprovado:
+
+function iniciarPollingEfi(txid){...}
+async function criarCobrancaEfi(valor,descricao){...}
+───────────────────────────────────────────────── */
+
+/* ═══════════════════════════════════════════════
+   DOMContentLoaded — ÚNICO bloco de eventos
+   ═══════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', function(){
+
+  preTestarTodosIcones();
+  setTimeout(function(){document.getElementById('loading-fullscreen').classList.add('fade-out')},1200);
+  setTimeout(function(){document.getElementById('loading-fullscreen').style.display='none'},1800);
+
+  /* Menu */
+  document.getElementById('btn-menu-toggle').addEventListener('click',function(e){e.stopPropagation();toggleMenu()});
+  document.addEventListener('click',function(e){if(!e.target.closest('#btn-menu-toggle')&&!e.target.closest('#menu-dropdown'))fecharMenu()});
+  document.getElementById('menu-info').addEventListener('click',function(){openModal('modal-info')});
+  document.getElementById('menu-donate').addEventListener('click',function(){carregarOpcoesDoacao();openModal('modal-donate')});
+  document.getElementById('menu-promo-types').addEventListener('click',function(){renderPromoTypesGrid();openModal('modal-promo-types')});
+
+  /* FIX: stopPropagation impede que o click suba e chame fecharMenu antes de openModal */
+  document.getElementById('menu-monitorar').addEventListener('click',function(e){e.stopPropagation();openModal('modal-add-product')});
+  document.getElementById('menu-inserir-loja').addEventListener('click',function(e){e.stopPropagation();openModal('modal-add-store')});
+
+  /* Fechar modais */
+  document.getElementById('btn-info-close').addEventListener('click',function(){closeModal('modal-info')});
+  document.getElementById('btn-donate-close').addEventListener('click',function(){closeModal('modal-donate')});
+  document.getElementById('btn-types-close').addEventListener('click',function(){closeModal('modal-promo-types')});
+  document.getElementById('btn-modal-cancel').addEventListener('click',function(){closeModal('modal-add-product')});
+  document.getElementById('btn-compare-close').addEventListener('click',function(){closeModal('modal-compare')});
+  document.querySelectorAll('.modal-overlay').forEach(function(o){o.addEventListener('click',function(e){if(e.target===o)o.classList.remove('active')})});
+
+  /* Monitorar produto */
+  document.getElementById('btn-modal-confirm').addEventListener('click',function(){
+    var nm=document.getElementById('input-prod-name').value.trim();
+    var tg=parseFloat(document.getElementById('input-prod-target').value);
+    if(!nm){marcarErro('input-prod-name','Digite o nome do produto');return}
+    if(!tg||tg<=0){marcarErro('input-prod-target','Digite um preço alvo válido');return}
+    monitoredProducts.push({name:nm,targetPrice:tg,currentPrice:Math.round(tg*(1+Math.random()*0.4)*100)/100,category:document.getElementById('input-prod-category').value});
+    document.getElementById('input-prod-name').value='';
+    document.getElementById('input-prod-target').value='';
+    closeModal('modal-add-product');atualizarBadgeMonitorados();showNotification('✔ Produto adicionado à monitoração');
+    if(tabAtiva==='monitored')renderMonitored();
+  });
+
+  /* ── Modal Inserir Loja — Step 1 → 2 ── */
+  document.getElementById('btn-store-cancel').addEventListener('click',function(){limparModalLoja();closeModal('modal-add-store')});
+  document.getElementById('btn-store-step2-back').addEventListener('click',function(){clearInterval(pixCountdownInterval);clearInterval(pixPollingInterval);document.getElementById('store-step-2').style.display='none';document.getElementById('store-step-1').style.display='block'});
+  document.getElementById('btn-store-step3-close').addEventListener('click',function(){limparModalLoja();closeModal('modal-add-store')});
+
+  /*
+   * FIX PRINCIPAL — btn-store-step1-next
+   * Validação completa com toast + highlight de campo inválido.
+   * Se plano não selecionado, mostra aviso inline na grade de planos.
+   */
+  document.getElementById('btn-store-step1-next').addEventListener('click',function(){
+    var nome=document.getElementById('input-store-name').value.trim();
+    var url=document.getElementById('input-store-url').value.trim();
+    var cat=document.getElementById('input-store-cat').value;
+    var email=document.getElementById('input-store-email').value.trim();
+
+    /* Limpa erros anteriores */
+    ['input-store-name','input-store-url','input-store-email'].forEach(function(id){
+      var el=document.getElementById(id);if(el)el.classList.remove('input-error');
+    });
+
+    /* Valida plano */
+    if(!planoSelecionado){
+      var aviso=document.getElementById('plano-aviso');
+      if(aviso)aviso.classList.add('visivel');
+      showNotification('⚠ Selecione um plano para continuar');
+      return;
+    }
+
+    /* Valida campos obrigatórios */
+    if(!nome){marcarErro('input-store-name','Digite o nome da loja');return}
+    if(!url){marcarErro('input-store-url','Digite a URL da loja');return}
+    if(email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+      marcarErro('input-store-email','E-mail inválido');return;
+    }
+
+    storeFormData={nome:nome,url:url,categoria:cat,email:email,dias:planoSelecionado.dias,valor:planoSelecionado.valor,label:planoSelecionado.label};
+    pixTxid='MAXPROMO_'+Date.now();
+
+    var pixCode=gerarPixCopiaCola(PIX_CONFIG.chave,PIX_CONFIG.nome,PIX_CONFIG.cidade,planoSelecionado.valor,PIX_CONFIG.descricao+' '+planoSelecionado.label);
+    document.getElementById('pix-key-display').value=pixCode;
+    renderizarQRCode(pixCode);
+
+    var vf=formatarDinheiro(planoSelecionado.valor);
+    document.getElementById('pix-valor-label').textContent=vf;
+    document.getElementById('pix-dias-label').textContent=planoSelecionado.label;
+    document.getElementById('instrucao-valor').textContent=vf;
+    document.getElementById('dev-bar-teste').style.display=MODO_TESTE?'flex':'none';
+
+    iniciarCountdownPix();
+    document.getElementById('store-step-1').style.display='none';
+    document.getElementById('store-step-2').style.display='block';
+  });
+
+  /* PIX: copiar chave */
+  document.getElementById('btn-copy-pix').addEventListener('click',function(){
+    var val=document.getElementById('pix-key-display').value;
+    if(!val){showNotification('Código não disponível ainda');return}
+    if(navigator.clipboard){navigator.clipboard.writeText(val).then(function(){showNotification('✔ Chave PIX copiada!')}).catch(function(){fallbackCopy(val);showNotification('✔ Chave PIX copiada!')})}
+    else{fallbackCopy(val);showNotification('✔ Chave PIX copiada!')}
+  });
+
+  /* PIX: já paguei */
+  document.getElementById('btn-store-step2-paguei').addEventListener('click',function(){
+    var btn=this;btn.disabled=true;
+    btn.innerHTML='<i class="fas fa-spinner fa-spin" style="margin-right:5px;"></i> Verificando...';
+    _setStatusPix('aguardando','<i class="fas fa-spinner fa-spin" style="color:var(--accent-color);"></i> Registrando solicitação...');
+    setTimeout(function(){
+      confirmarPagamentoEAvancar('aguardando_validacao');
+      btn.disabled=false;
+      btn.innerHTML='<i class="fas fa-check-circle" style="font-size:.8rem;margin-right:5px;"></i>Já Paguei';
+    },1200);
+  });
+
+  /* Dev: simular pagamento */
+  document.getElementById('btn-dev-simular').addEventListener('click',function(){
+    if(!MODO_TESTE)return;
+    showNotification('🧪 Pagamento simulado!');
+    setTimeout(function(){confirmarPagamentoEAvancar('pago_simulado')},500);
+  });
+
+  /* Tabs */
+  document.querySelectorAll('.tab-btn').forEach(function(b){b.addEventListener('click',function(){document.querySelectorAll('.tab-btn').forEach(function(x){x.classList.remove('active')});this.classList.add('active');tabAtiva=this.getAttribute('data-tab');renderCurrentTab();document.getElementById('filter-strip').style.display=tabAtiva==='feed'?'flex':'none'})});
+
+  /* Busca */
+  var sb=document.getElementById('search-bar'),sf=document.getElementById('btn-search-toggle');
+  sf.addEventListener('click',function(){searchActive=!searchActive;sb.classList.toggle('active',searchActive);sf.classList.toggle('hidden-fab',searchActive);if(searchActive)document.getElementById('search-query').focus()});
+  document.getElementById('btn-search').addEventListener('click',function(){if(tabAtiva==='feed')renderFeed();showNotification('Busca atualizada')});
+  document.getElementById('search-query').addEventListener('keydown',function(e){if(e.key==='Enter'){if(tabAtiva==='feed')renderFeed();showNotification('Busca atualizada')}});
+
+  /* Alerta */
+  document.getElementById('alert-close-btn').addEventListener('click',function(){esconderAlertaVisual()});
+
+  /* Render inicial */
+
+/* ── SUPABASE ───────────────────────────────────── */
+async function buscarPromocoesSupabase(){try{var u='/api/promos?limite=50';if(filtroAtivo)u+='&tipo='+filtroAtivo;var r=await fetch(u);if(!r.ok)throw 0;var d=await r.json();if(d.promocoes&&d.promocoes.length>0){supabaseOnline=true;document.getElementById('status-dot').classList.remove('offline');return d.promocoes.map(function(p){return{id:p.id,tipo:p.tipo,titulo:p.titulo,desc:p.descricao||'',loja:p.loja||'?',precoOld:p.preco_antigo||0,precoNew:p.preco_novo||0,cupom:p.cupom||null,tempoRestante:p.tempo_restante||0,fonte:p.fonte||'',urlAfiliado:p.url_afiliado||null}})}return null}catch(e){supabaseOnline=false;document.getElementById('status-dot').classList.add('offline');return null}}
+
+/* ── ALERTA ─────────────────────────────────────── */
+function dispararAlertaPromocaoIA(msg,tipo){if(!alertasAtivados)return;var bar=document.getElementById('alert-bar');bar.classList.remove('alert-bar-critico');bar.style.background='';bar.style.color='';bar.style.borderTopColor='';var c=PROMO_CONFIG[tipo]||PROMO_CONFIG['desconto'];document.getElementById('alert-title').textContent=c.emoji+' '+c.label+'!';document.getElementById('alert-text').textContent=msg;var ib=document.getElementById('alert-icon-box');ib.style.background='linear-gradient(135deg,'+c.color+','+ajustarBrilho(c.color,-25)+')';ib.innerHTML=gerarHTMLIcone(tipo,'grande');if(c.urgent||tipo==='blackfriday')bar.classList.add('alert-bar-critico');if(tipo==='flash'){bar.style.background='linear-gradient(90deg,'+c.color+','+ajustarBrilho(c.color,-20)+')';bar.style.color='#000'}else if(tipo==='blackfriday'){bar.style.background='linear-gradient(90deg,#212121,#111)';bar.style.borderTopColor='#FFD700';bar.style.color='#FFD700'}else if(tipo==='bilhete'){bar.style.background='linear-gradient(90deg,#1a1a2e,#16213e)';bar.style.borderTopColor='#FFD700';bar.style.color='#FFD700'}else{bar.style.background='linear-gradient(90deg,'+c.color+','+ajustarBrilho(c.color,-20)+')';bar.style.color='#fff'}var ct=document.getElementById('alert-container');if(ct.style.display!=='block'){ct.style.display='block';ct.style.animation='none';ct.offsetHeight;ct.style.animation='slideUp 0.35s ease-out'}try{var snd=document.getElementById('alert-sound');if(snd&&snd.src){snd.currentTime=0;snd.play().catch(function(){})}}catch(e){}clearTimeout(alertTimeout);alertTimeout=setTimeout(function(){esconderAlertaVisual()},6000);savingsTotal+=Math.floor(Math.random()*80)+20;document.getElementById('savings-total').textContent='R$ '+savingsTotal.toLocaleString('pt-BR')}
+function esconderAlertaVisual(){document.getElementById('alert-container').style.display='none';var b=document.getElementById('alert-bar');b.classList.remove('alert-bar-critico');b.style.color='';b.style.borderTopColor=''}
+
+/* ── TIMERS DE FLASH SALE ───────────────────────── */
+function iniciarTimer(id,seg){var rem=seg;clearInterval(flashTimers[id]);flashTimers[id]=setInterval(function(){rem--;var el=document.getElementById('timer-'+id);if(!el){clearInterval(flashTimers[id]);return}if(rem<=0){el.querySelector('.timer-value').textContent='Encerrado';el.classList.add('urgent');clearInterval(flashTimers[id]);return}el.querySelector('.timer-value').textContent=formatarTempo(rem);if(rem<600)el.classList.add('urgent')},1000)}
+
+/* ── RENDER FEED ────────────────────────────────── */
+async function renderFeed(promos){var ct=document.getElementById('feed-container');ct.innerHTML='';var lista=promos;if(!lista){var sd=await buscarPromocoesSupabase();lista=sd||MOCK_PROMOS}if(filtroAtivo)lista=lista.filter(function(p){return p.tipo===filtroAtivo});var q=document.getElementById('search-query').value.trim().toLowerCase();if(q.length>=2)lista=lista.filter(function(p){return p.titulo.toLowerCase().indexOf(q)!==-1||p.desc.toLowerCase().indexOf(q)!==-1||p.loja.toLowerCase().indexOf(q)!==-1||(PROMO_CONFIG[p.tipo]&&PROMO_CONFIG[p.tipo].label.toLowerCase().indexOf(q)!==-1)});if(!lista.length){ct.innerHTML='<div class="empty-state"><i class="fas fa-search"></i><p>Nenhuma oferta encontrada.</p></div>';return}lista.forEach(function(p,i){var c=PROMO_CONFIG[p.tipo]||PROMO_CONFIG['desconto'];var card=document.createElement('div');card.className='promo-card';card.style.animationDelay=(i*0.06)+'s';var u=c.urgent,l=c.isLive,ht=p.tempoRestante>0;var po=p.precoOld>0?'R$ '+p.precoOld.toLocaleString('pt-BR'):'';var pn=p.precoNew>0?'R$ '+p.precoNew.toLocaleString('pt-BR'):'Gratuito';var pd='';if(p.precoOld>0&&p.precoNew>0){var pc=Math.round((1-p.precoNew/p.precoOld)*100);if(pc>0)pd='-'+pc+'%'}var hh='';var hi=MOCK_PRICE_HISTORY[p.id];if(hi&&hi.length){var mx=Math.max.apply(null,hi),mn=Math.min.apply(null,hi);hh='<div class="price-history-mini">';hi.forEach(function(v){var h=3+((v-mn)/(mx-mn+1))*27;var cl=v===hi[hi.length-1]?'#4CAF50':'rgba(255,255,255,0.15)';hh+='<div class="price-bar" style="height:'+h+'px;background:'+cl+';"></div>'});hh+='</div>'}var th='';if(ht)th='<div class="promo-timer urgent" id="timer-'+p.id+'"><i class="fas fa-clock"></i> <span class="timer-value">'+formatarTempo(p.tempoRestante)+'</span></div>';var bc=c.goldAccent||c.color;var bt='Aproveitar';if(p.cupom)bt='Cupom: '+p.cupom;if(l)bt='Assistir Live';var lh=l?'<div class="live-indicator"><div class="live-dot"></div> AO VIVO</div>':'';var sh=p.fonte?'<span class="source-badge" style="background:rgba(255,255,255,0.05);color:var(--text-muted);"><i class="fas fa-rss" style="font-size:0.5rem;"></i> '+p.fonte+'</span>':'';var ih=gerarHTMLIcone(p.tipo,'pequeno');card.innerHTML='<div class="promo-card-accent" style="background:linear-gradient(90deg,'+c.color+','+ajustarBrilho(c.color,-20)+');"></div><div class="promo-card-body"><div class="promo-card-icon" style="background:linear-gradient(135deg,'+c.color+','+ajustarBrilho(c.color,-30)+');">'+ih+(u?'<div class="pulse-ring"></div>':'')+'</div><div class="promo-card-content"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><span class="promo-card-type" style="background:'+ajustarBrilho(c.color,-60)+';color:'+c.color+';">'+c.label+'</span>'+(pd?'<span style="font-size:0.72rem;font-weight:800;color:#4CAF50;">'+pd+'</span>':'')+lh+sh+'</div><div class="promo-card-title">'+p.titulo+'</div><div class="promo-card-desc">'+p.desc+'</div><div class="promo-card-meta">'+(po?'<span class="promo-price-old">'+po+'</span>':'')+'<span class="promo-price-new" style="color:'+(p.precoNew<p.precoOld?'#4CAF50':'var(--text-main)')+';">'+pn+'</span><span class="promo-store"><i class="fas fa-store"></i> '+p.loja+'</span></div>'+hh+'</div></div><div class="promo-card-footer">'+th+'<button class="promo-btn-grab" style="background:linear-gradient(135deg,'+bc+','+ajustarBrilho(bc,-15)+');">'+bt+'</button></div>';ct.appendChild(card);if(p.urlAfiliado)card.addEventListener('click',function(){window.open(p.urlAfiliado,'_blank','noopener')});if(ht)iniciarTimer(p.id,p.tempoRestante)})}
+
+function renderMonitored(){var ct=document.getElementById('feed-container');ct.innerHTML='';if(!monitoredProducts.length){ct.innerHTML='<div class="empty-state"><i class="fas fa-eye-slash"></i><p>Nenhum produto monitorado.<br>Use o menu para adicionar.</p></div>';return}monitoredProducts.forEach(function(p,i){var card=document.createElement('div');card.className='monitored-card';card.style.animationDelay=(i*0.06)+'s';var sc='#4CAF50';if(p.currentPrice>p.targetPrice*1.1)sc='#ff4444';else if(p.currentPrice>p.targetPrice)sc='#FFB300';card.innerHTML='<div class="prod-img" style="color:'+sc+';"><i class="fas fa-box"></i></div><div class="prod-info"><div class="prod-name">'+p.name+'</div><div class="prod-target">Alvo: R$ '+p.targetPrice.toLocaleString('pt-BR')+'</div></div><div class="prod-current" style="color:'+sc+';">R$ '+p.currentPrice.toLocaleString('pt-BR')+'</div><button class="remove-btn" data-idx="'+i+'" title="Remover"><i class="fas fa-trash"></i></button>';ct.appendChild(card);card.querySelector('.remove-btn').addEventListener('click',function(){monitoredProducts.splice(parseInt(this.getAttribute('data-idx')),1);renderMonitored();atualizarBadgeMonitorados();showNotification('Produto removido')})})}
+
+function renderHistory(){var ct=document.getElementById('feed-container');ct.innerHTML='';var pp=MOCK_PROMOS.filter(function(p){return MOCK_PRICE_HISTORY[p.id]});if(!pp.length){ct.innerHTML='<div class="empty-state"><i class="fas fa-chart-line"></i><p>Nenhum historico.</p></div>';return}var ms=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];pp.forEach(function(p,i){var c=PROMO_CONFIG[p.tipo]||PROMO_CONFIG['desconto'];var h=MOCK_PRICE_HISTORY[p.id];var mx=Math.max.apply(null,h),mn=Math.min.apply(null,h);var card=document.createElement('div');card.className='promo-card';card.style.animationDelay=(i*0.06)+'s';var bh='<div style="display:flex;align-items:flex-end;gap:4px;height:80px;padding:10px 0;">';h.forEach(function(v,j){var hi=8+((v-mn)/(mx-mn+1))*65;var cl=j===h.length-1?'#4CAF50':'rgba(255,179,0,0.3)';bh+='<div style="display:flex;flex-direction:column;align-items:center;flex:1;gap:2px;"><div style="width:100%;height:'+hi+'px;background:'+cl+';border-radius:3px 3px 0 0;min-height:4px;"></div><span style="font-size:0.5rem;color:var(--text-muted);">'+ms[j]+'</span></div>'});bh+='</div>';card.innerHTML='<div class="promo-card-accent" style="background:linear-gradient(90deg,'+c.color+','+ajustarBrilho(c.color,-20)+');"></div><div style="padding:14px 16px;"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><span class="promo-card-type" style="background:'+ajustarBrilho(c.color,-60)+';color:'+c.color+';">'+c.label+'</span><span style="font-weight:700;font-size:0.9rem;">'+p.titulo+'</span></div><div style="display:flex;gap:16px;font-size:0.8rem;margin-bottom:4px;"><span style="color:var(--text-muted);">Maior: R$ '+mx.toLocaleString('pt-BR')+'</span><span style="color:#4CAF50;">Menor: R$ '+mn.toLocaleString('pt-BR')+'</span></div>'+bh+'</div>';ct.appendChild(card)})}
+
+function renderCompare(){var ct=document.getElementById('feed-container');ct.innerHTML='';var pk=Object.keys(MOCK_COMPARE);if(!pk.length){ct.innerHTML='<div class="empty-state"><i class="fas fa-balance-scale"></i><p>Nenhum produto para comparar.</p></div>';return}pk.forEach(function(nm,i){var ls=MOCK_COMPARE[nm].slice().sort(function(a,b){return a.preco-b.preco});var ml=ls[0].preco;var card=document.createElement('div');card.className='promo-card';card.style.animationDelay=(i*0.06)+'s';var rh='';ls.forEach(function(l){var ib=l.preco===ml;rh+='<div class="compare-row"><span class="compare-store"><i class="fas fa-store" style="margin-right:6px;color:'+(ib?'#4CAF50':'var(--text-muted)')+';"></i>'+l.loja+(ib?' <span style="font-size:0.65rem;font-weight:800;color:#4CAF50;">MELHOR PRECO</span>':'')+'</span><span class="compare-price '+(ib?'compare-best':'')+'">R$ '+l.preco.toLocaleString('pt-BR')+'</span></div>'});card.innerHTML='<div class="promo-card-accent" style="background:linear-gradient(90deg,#4CAF50,#2E7D32);"></div><div style="padding:14px 16px;"><div style="font-weight:700;font-size:0.95rem;margin-bottom:12px;"><i class="fas fa-balance-scale" style="margin-right:8px;color:#4CAF50;"></i>'+nm+'</div>'+rh+'</div>';ct.appendChild(card)})}
+
+function renderFilters(){var st=document.getElementById('filter-strip');st.innerHTML='';var ca=document.createElement('button');ca.className='filter-chip'+(!filtroAtivo?' active':'');ca.innerHTML='<i class="fas fa-th"></i> Todos';ca.addEventListener('click',function(){filtroAtivo=null;renderFilters();renderCurrentTab()});st.appendChild(ca);['flash','cupom','frete_gratis','cashback','leve_pague','blackfriday','saldao','outlet','desconto','brinde','progressivo','combo','parcela','live','misterio','sorteio'].forEach(function(t){var c=PROMO_CONFIG[t];if(!c)return;var ch=document.createElement('button');ch.className='filter-chip'+(filtroAtivo===t?' active':'');ch.innerHTML='<span class="chip-dot" style="background:'+c.color+';"></span> '+c.label;ch.addEventListener('click',function(){filtroAtivo=filtroAtivo===t?null:t;renderFilters();renderCurrentTab()});st.appendChild(ch)})}
+
+function renderPromoTypesGrid(){var g=document.getElementById('promo-types-grid');g.innerHTML='';Object.keys(PROMO_CONFIG).forEach(function(t){var c=PROMO_CONFIG[t];var it=document.createElement('div');it.className='promo-type-item';it.innerHTML='<div class="promo-type-dot" style="background:'+c.color+';"></div><div class="promo-type-label">'+c.emoji+' '+c.label+'</div>';g.appendChild(it)})}
+
+function renderCurrentTab(){if(tabAtiva==='feed')renderFeed();else if(tabAtiva==='monitored')renderMonitored();else if(tabAtiva==='history')renderHistory();else if(tabAtiva==='compare')renderCompare()}
+
+function atualizarBadgeMonitorados(){var b=document.getElementById('monitored-count');if(monitoredProducts.length>0){b.style.display='flex';b.textContent=monitoredProducts.length}else{b.style.display='none'}}
+
+/* ── MENU ───────────────────────────────────────── */
+function toggleMenu(){menuAberto=!menuAberto;var d=document.getElementById('menu-dropdown');var t=document.getElementById('btn-menu-toggle');if(menuAberto){d.classList.add('open');t.classList.add('active')}else{d.classList.remove('open');t.classList.remove('active')}}
+function fecharMenu(){if(!menuAberto)return;menuAberto=false;document.getElementById('menu-dropdown').classList.remove('open');document.getElementById('btn-menu-toggle').classList.remove('active')}
+
+/* ── DONATE ─────────────────────────────────────── */
+function detectarIconeDoacao(titulo){if(!titulo)return DONATE_ICONS['default'];var t=titulo.toLowerCase().trim();if(t.indexOf('apoia')!==-1)return DONATE_ICONS['apoia.se'];if(t.indexOf('ko-fi')!==-1||t.indexOf('kofi')!==-1)return DONATE_ICONS['ko-fi'];if(t.indexOf('picpay')!==-1)return DONATE_ICONS['picpay'];if(t.indexOf('mercado')!==-1)return DONATE_ICONS['mercadopago'];if(t.indexOf('padrim')!==-1)return DONATE_ICONS['padrim'];if(t.indexOf('ethereum')!==-1||t.indexOf('eth')!==-1)return DONATE_ICONS['ethereum'];if(t.indexOf('bitcoin')!==-1||t.indexOf('btc')!==-1)return DONATE_ICONS['bitcoin'];if(t.indexOf('cripto')!==-1)return DONATE_ICONS['criptomoeda'];if(t.indexOf('pix')!==-1)return DONATE_ICONS['pix'];if(t.indexOf('paypal')!==-1)return DONATE_ICONS['paypal'];return DONATE_ICONS['default']}
+
+async function carregarOpcoesDoacao(){var container=document.getElementById('donate-options-list');if(!container)return;if(donateOptionsCache){renderizarOpcoesDoacao(donateOptionsCache);return}container.innerHTML='<div class="donate-loading"><i class="fas fa-spinner fa-spin"></i> Carregando...</div>';try{var response=await fetch(DONATE_API_URL);if(!response.ok)throw new Error('HTTP '+response.status);var data=await response.json();var lista=Array.isArray(data)?data:null;if(!lista){var chaves=['doacoes','opcoes','donate_options','options','data','items'];for(var i=0;i<chaves.length;i++){if(Array.isArray(data[chaves[i]])){lista=data[chaves[i]];break}}}if(!lista||!lista.length)throw new Error('vazia');donateOptionsCache=lista;renderizarOpcoesDoacao(lista)}catch(err){renderizarOpcoesDoacao([{titulo:'PIX',descricao:'seabhra@gmail.com',tipo:'pix',acao:'copy',valor:'seabhra@gmail.com'},{titulo:'Apoia.se',descricao:'Apoio mensal recorrente',tipo:'apoia.se',acao:'link',url:'#'}])}}
+
+function renderizarOpcoesDoacao(lista){var container=document.getElementById('donate-options-list');if(!container)return;container.innerHTML='';lista.forEach(function(opt,i){var ic=detectarIconeDoacao(opt.titulo||opt.nome||opt.title||'');var titulo=opt.titulo||opt.title||opt.nome||opt.name||'Doar';var desc=opt.descricao||opt.desc||opt.description||'';var url=opt.url||opt.link||'#';var acao=opt.acao||'link';var valorCopy=opt.valor||opt.chave||titulo;var el=document.createElement('div');el.className='donate-option-link';el.style.animation='cardSlideIn 0.35s ease-out '+(i*0.06)+'s both';el.innerHTML='<div class="donate-option-icon-wrap" style="background:'+ic.bg+';color:'+ic.color+';"><i class="'+ic.icon+'"></i></div><div class="donate-option-text"><div class="do-title">'+titulo+'</div>'+(desc?'<div class="do-desc">'+desc+'</div>':'')+'</div><i class="fas fa-external-link-alt" style="color:var(--text-muted);font-size:0.7rem;margin-left:auto;flex-shrink:0;"></i>';(function(a,u,v,tit){el.addEventListener('click',function(){if(a==='copy'||a==='copiar'){if(navigator.clipboard){navigator.clipboard.writeText(v).then(function(){showNotification(tit+': copiado!')})}else{fallbackCopy(v);showNotification(tit+': copiado!')}}else if(u&&u!=='#'){window.open(u,'_blank','noopener');showNotification('Abrindo '+tit+'...')}})})(acao,url,valorCopy,titulo);container.appendChild(el)})}
+
+/* ── PIX: GERADOR BR CODE ───────────────────────── */
+function gerarPixCopiaCola(chave,nome,cidade,valor,descricao){
+  function campo(id,val){return id+String(val.length).padStart(2,'0')+val}
+  function crc16(str){var crc=0xFFFF;for(var i=0;i<str.length;i++){crc^=str.charCodeAt(i)<<8;for(var j=0;j<8;j++){crc=(crc&0x8000)?(crc<<1)^0x1021:crc<<1}}return(crc&0xFFFF).toString(16).toUpperCase().padStart(4,'0')}
+  var nomeClean=(nome||'').substring(0,25).toUpperCase();
+  var cidadeClean=(cidade||'').substring(0,15).toUpperCase();
+  var descClean=(descricao||'').substring(0,72);
+  var valorStr=Number(valor).toFixed(2);
+  var merchantAcc=campo('26',campo('00','BR.GOV.BCB.PIX')+campo('01',chave)+(descClean?campo('02',descClean):''));
+  var addData=campo('62',campo('05','***'));
+  var payload='000201'+'010212'+merchantAcc+'52040000'+'5303986'+'54'+String(valorStr.length).padStart(2,'0')+valorStr+'5802BR'+'59'+String(nomeClean.length).padStart(2,'0')+nomeClean+'60'+String(cidadeClean.length).padStart(2,'0')+cidadeClean+addData+'6304';
+  return payload+crc16(payload)
+}
+
+/* ── PIX: QR CODE ───────────────────────────────── */
+function renderizarQRCode(texto){
+  var canvas=document.getElementById('pix-qr-canvas');if(!canvas)return;
+  var ctx=canvas.getContext('2d');ctx.clearRect(0,0,180,180);
+  if(typeof QRCode!=='undefined'){
+    var tmpDiv=document.createElement('div');document.body.appendChild(tmpDiv);
+    try{new QRCode(tmpDiv,{text:texto,width:180,height:180,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
+    setTimeout(function(){var img=tmpDiv.querySelector('img');if(img){var i=new Image();i.onload=function(){ctx.drawImage(i,0,0,180,180)};i.src=img.src}if(tmpDiv.parentNode)document.body.removeChild(tmpDiv)},150)}
+    catch(e){if(tmpDiv.parentNode)document.body.removeChild(tmpDiv);_qrFallback(ctx)}
+  }else{_qrFallback(ctx)}
+}
+function _qrFallback(ctx){ctx.fillStyle='#fff';ctx.fillRect(0,0,180,180);ctx.fillStyle='#444';ctx.font='13px Inter,sans-serif';ctx.textAlign='center';ctx.fillText('Use Copia e Cola',90,80);ctx.fillText('abaixo ↓',90,100)}
+
+/* ── PIX: COUNTDOWN ─────────────────────────────── */
+function iniciarCountdownPix(){
+  clearInterval(pixCountdownInterval);var segundos=600;
+  pixCountdownInterval=setInterval(function(){
+    segundos--;
+    var m=Math.floor(segundos/60);var s=segundos%60;
+    var countEl=document.getElementById('pix-countdown');if(countEl)countEl.textContent=m+':'+String(s).padStart(2,'0');
+    if(segundos<=60){var timerEl=document.getElementById('pix-timer-box');if(timerEl)timerEl.classList.add('urgente')}
+    if(segundos<=0){clearInterval(pixCountdownInterval);_setStatusPix('erro','<i class="fas fa-times-circle"></i> QR expirado. Volte e gere novamente.')}
+  },1000)
+}
+function _setStatusPix(tipo,html){var el=document.getElementById('pix-status-msg');if(!el)return;el.className='pix-status-msg '+tipo;el.innerHTML=html}
+
+/* ── PIX: SALVAR LOJA ───────────────────────────── */
+async function salvarLojaNoSupabase(form,status){
+  var payload={loja_nome:form.nome,loja_url:form.url,loja_categoria:form.categoria,loja_email:form.email,plano_dias:parseInt(form.dias),valor_pago:parseFloat(form.valor),data_expiracao:calcularExpiracao(form.dias),pix_txid:pixTxid||('MANUAL_'+Date.now()),status:status||'aguardando_validacao',modo_pagamento:'pix_manual'};
+  try{var r=await fetch('/api/salvar-loja',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});if(!r.ok)throw new Error('HTTP '+r.status);return await r.json()}
+  catch(e){console.error('[Max Promo] salvarLoja:',e);try{var key='maxpromo_lojas_pendentes';var pending=JSON.parse(localStorage.getItem(key)||'[]');pending.push(Object.assign({},payload,{tentativa_em:new Date().toISOString()}));localStorage.setItem(key,JSON.stringify(pending))}catch(_){}return null}
+}
+
+/* ── PIX: AVANÇO PARA STEP 3 ───────────────────── */
+function confirmarPagamentoEAvancar(statusFinal){
+  clearInterval(pixPollingInterval);clearInterval(pixCountdownInterval);
+  salvarLojaNoSupabase(storeFormData,statusFinal||'aguardando_validacao');
+  var resumo=document.getElementById('store-step3-resumo');
+  if(resumo){resumo.innerHTML='<div><strong>Loja:</strong> '+storeFormData.nome+'</div><div><strong>URL:</strong> '+storeFormData.url+'</div><div><strong>Plano:</strong> '+storeFormData.label+' ('+formatarDinheiro(storeFormData.valor)+')</div><div><strong>Válido até:</strong> '+calcularExpiracao(storeFormData.dias)+'</div><div><strong>Status:</strong> <span style="color:#4CAF50;">✔ Solicitação recebida — publicação em até 24h</span></div>'}
+  document.getElementById('store-step-2').style.display='none';
+  document.getElementById('store-step-3').style.display='block'
+}
+
+/* ── PIX: SELEÇÃO DE PLANO (global — usada pelo onclick HTML) ── */
+function selecionarPlano(el){
+  document.querySelectorAll('.plano-card').forEach(function(c){c.classList.remove('selected')});
+  el.classList.add('selected');
+  var dias=el.getAttribute('data-dias');var valor=parseFloat(el.getAttribute('data-valor'));
+  planoSelecionado={dias:dias,valor:valor,label:PLANOS[dias].label};
+  var btn=document.getElementById('btn-store-step1-next');if(btn)btn.disabled=false
+}
+
+/* ── PIX: LIMPAR MODAL ──────────────────────────── */
+function limparModalLoja(){
+  clearInterval(pixCountdownInterval);clearInterval(pixPollingInterval);
+  planoSelecionado=null;storeFormData={};pixTxid=null;
+  ['input-store-name','input-store-url','input-store-email'].forEach(function(id){var el=document.getElementById(id);if(el)el.value=''});
+  var btnNext=document.getElementById('btn-store-step1-next');if(btnNext)btnNext.disabled=true;
+  var countdown=document.getElementById('pix-countdown');if(countdown)countdown.textContent='10:00';
+  var timerBox=document.getElementById('pix-timer-box');if(timerBox)timerBox.classList.remove('urgente');
+  _setStatusPix('aguardando','<i class="fas fa-hourglass-half" style="color:var(--accent-color);"></i> Aguardando confirmação do pagamento...');
+  document.querySelectorAll('.plano-card').forEach(function(c){c.classList.remove('selected')});
+  document.getElementById('store-step-1').style.display='block';
+  document.getElementById('store-step-2').style.display='none';
+  document.getElementById('store-step-3').style.display='none'
+}
+
+/* ─────────────────────────────────────────────────
+   [EFI] POLLING AUTOMÁTICO — aguardando aprovação do banco
+   Descomente quando o txid Efi Bank estiver liberado.
+
+function iniciarPollingEfi(txid){
+  clearInterval(pixPollingInterval);
+  pixPollingInterval=setInterval(async function(){
+    try{var r=await fetch('/api/verificar-pagamento-pix?txid='+txid);if(!r.ok)return;var d=await r.json();if(d.pago)confirmarPagamentoEAvancar('pago')}
+    catch(e){console.warn('[Efi] polling:',e)}
+  },5000)
+}
+
+async function criarCobrancaEfi(valor,descricao){
+  var r=await fetch('/api/criar-cobranca-pix',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({valor:Number(valor).toFixed(2),descricao:descricao})});
+  if(!r.ok)throw new Error('Efi HTTP '+r.status);
+  return await r.json();
+  // retorna: { txid, pixCopiaECola, qrCodeBase64, expiracao }
+}
+───────────────────────────────────────────────── */
+
+/* ═══════════════════════════════════════════════
+   DOMContentLoaded — único bloco de eventos
+   ═══════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', function() {
+
+  preTestarTodosIcones();
+  setTimeout(function(){document.getElementById('loading-fullscreen').classList.add('fade-out')},1200);
+  setTimeout(function(){document.getElementById('loading-fullscreen').style.display='none'},1800);
+
+  /* ── Menu ── */
+  document.getElementById('btn-menu-toggle').addEventListener('click',function(e){e.stopPropagation();toggleMenu()});
+  document.addEventListener('click',function(e){if(!e.target.closest('#btn-menu-toggle')&&!e.target.closest('#menu-dropdown'))fecharMenu()});
+  document.getElementById('menu-info').addEventListener('click',function(){openModal('modal-info')});
+  document.getElementById('menu-donate').addEventListener('click',function(){carregarOpcoesDoacao();openModal('modal-donate')});
+  document.getElementById('menu-promo-types').addEventListener('click',function(){renderPromoTypesGrid();openModal('modal-promo-types')});
+  document.getElementById('menu-monitorar').addEventListener('click',function(){openModal('modal-add-product')});
+  document.getElementById('menu-inserir-loja').addEventListener('click',function(){openModal('modal-add-store')});
+
+  /* ── Fechar modais ── */
+  document.getElementById('btn-info-close').addEventListener('click',function(){closeModal('modal-info')});
+  document.getElementById('btn-donate-close').addEventListener('click',function(){closeModal('modal-donate')});
+  document.getElementById('btn-types-close').addEventListener('click',function(){closeModal('modal-promo-types')});
+  document.getElementById('btn-modal-cancel').addEventListener('click',function(){closeModal('modal-add-product')});
+  document.getElementById('btn-compare-close').addEventListener('click',function(){closeModal('modal-compare')});
+  document.querySelectorAll('.modal-overlay').forEach(function(o){o.addEventListener('click',function(e){if(e.target===o)o.classList.remove('active')})});
+
+  /* ── Monitorar produto ── */
+  document.getElementById('btn-modal-confirm').addEventListener('click',function(){
+    var nm=document.getElementById('input-prod-name').value.trim();
+    var tg=parseFloat(document.getElementById('input-prod-target').value);
+    if(!nm){showNotification('Digite o nome do produto');return}
+    if(!tg||tg<=0){showNotification('Digite um preco alvo valido');return}
+    monitoredProducts.push({name:nm,targetPrice:tg,currentPrice:Math.round(tg*(1+Math.random()*0.4)*100)/100,category:document.getElementById('input-prod-category').value});
+    document.getElementById('input-prod-name').value='';document.getElementById('input-prod-target').value='';
+    closeModal('modal-add-product');atualizarBadgeMonitorados();showNotification('Produto adicionado a monitoracao');if(tabAtiva==='monitored')renderMonitored()
+  });
+
+  /* ── Modal Inserir Loja ── */
+  document.getElementById('btn-store-cancel').addEventListener('click',function(){limparModalLoja();closeModal('modal-add-store')});
+  document.getElementById('btn-store-step2-back').addEventListener('click',function(){clearInterval(pixCountdownInterval);clearInterval(pixPollingInterval);document.getElementById('store-step-2').style.display='none';document.getElementById('store-step-1').style.display='block'});
+  document.getElementById('btn-store-step3-close').addEventListener('click',function(){limparModalLoja();closeModal('modal-add-store')});
+
+  document.getElementById('btn-store-step1-next').addEventListener('click',function(){
+    var nome=document.getElementById('input-store-name').value.trim();
+    var url=document.getElementById('input-store-url').value.trim();
+    var cat=document.getElementById('input-store-cat').value;
+    var email=document.getElementById('input-store-email').value.trim();
+    if(!nome){showNotification('Digite o nome da loja');return}
+    if(!url){showNotification('Digite a URL da loja');return}
+    if(!planoSelecionado){showNotification('Selecione um plano');return}
+    storeFormData={nome:nome,url:url,categoria:cat,email:email,dias:planoSelecionado.dias,valor:planoSelecionado.valor,label:planoSelecionado.label};
+    pixTxid='MAXPROMO_'+Date.now();
+
+    /* MODO MANUAL — gera payload PIX localmente */
+    var pixCode=gerarPixCopiaCola(PIX_CONFIG.chave,PIX_CONFIG.nome,PIX_CONFIG.cidade,planoSelecionado.valor,PIX_CONFIG.descricao+' '+planoSelecionado.label);
+    document.getElementById('pix-key-display').value=pixCode;
+    renderizarQRCode(pixCode);
+    /* [EFI] substitua o bloco acima por criarCobrancaEfi(...).then(...) quando o txid estiver aprovado */
+
+    var vf=formatarDinheiro(planoSelecionado.valor);
+    document.getElementById('pix-valor-label').textContent=vf;
+    document.getElementById('pix-dias-label').textContent=planoSelecionado.label;
+    document.getElementById('instrucao-valor').textContent=vf;
+    document.getElementById('dev-bar-teste').style.display=MODO_TESTE?'flex':'none';
+    iniciarCountdownPix();
+    document.getElementById('store-step-1').style.display='none';
+    document.getElementById('store-step-2').style.display='block'
+  });
+
+  document.getElementById('btn-copy-pix').addEventListener('click',function(){
+    var val=document.getElementById('pix-key-display').value;
+    if(!val){showNotification('Código não disponível');return}
+    if(navigator.clipboard){navigator.clipboard.writeText(val).then(function(){showNotification('Chave PIX copiada!')}).catch(function(){fallbackCopy(val);showNotification('Chave PIX copiada!')})}
+    else{fallbackCopy(val);showNotification('Chave PIX copiada!')}
+  });
+
+  document.getElementById('btn-store-step2-paguei').addEventListener('click',function(){
+    var btn=this;btn.disabled=true;
+    btn.innerHTML='<i class="fas fa-spinner fa-spin" style="margin-right:5px;"></i> Verificando...';
+    _setStatusPix('aguardando','<i class="fas fa-spinner fa-spin" style="color:var(--accent-color);"></i> Registrando solicitação...');
+
+    /* MODO MANUAL — registra e avança */
+    setTimeout(function(){
+      confirmarPagamentoEAvancar('aguardando_validacao');
+      btn.disabled=false;
+      btn.innerHTML='<i class="fas fa-check-circle" style="font-size:.8rem;margin-right:5px;"></i> Já Paguei'
+    },1200);
+    /* [EFI] substitua o setTimeout por fetch('/api/verificar-pagamento-pix?txid='+pixTxid)... */
+  });
+
+  document.getElementById('btn-dev-simular').addEventListener('click',function(){
+    if(!MODO_TESTE)return;
+    showNotification('🧪 Pagamento simulado!');
+    setTimeout(function(){confirmarPagamentoEAvancar('pago_simulado')},500)
+  });
+
+  /* ── Tabs ── */
+  document.querySelectorAll('.tab-btn').forEach(function(b){b.addEventListener('click',function(){document.querySelectorAll('.tab-btn').forEach(function(x){x.classList.remove('active')});this.classList.add('active');tabAtiva=this.getAttribute('data-tab');renderCurrentTab();document.getElementById('filter-strip').style.display=tabAtiva==='feed'?'flex':'none'})});
+
+  /* ── Busca ── */
+  var sb=document.getElementById('search-bar');var sf=document.getElementById('btn-search-toggle');
+  sf.addEventListener('click',function(){searchActive=!searchActive;sb.classList.toggle('active',searchActive);sf.classList.toggle('hidden-fab',searchActive);if(searchActive)document.getElementById('search-query').focus()});
+  document.getElementById('btn-search').addEventListener('click',function(){if(tabAtiva==='feed')renderFeed();showNotification('Busca atualizada')});
+  document.getElementById('search-query').addEventListener('keydown',function(e){if(e.key==='Enter'){if(tabAtiva==='feed')renderFeed();showNotification('Busca atualizada')}});
+
+  /* ── Alerta ── */
+  document.getElementById('alert-close-btn').addEventListener('click',function(){esconderAlertaVisual()});
+
+  /* ── Render inicial ── */
+  renderFilters();
+  renderFeed();
+});
+</script>
+</body>
+</html>
+
+
+
+
+

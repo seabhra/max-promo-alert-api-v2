@@ -1,0 +1,32 @@
+{
+  "name": "max-promo-alert-api",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node src/app.js",
+    "scraper": "node api/scraper.js",
+    "build": "echo Build concluido",
+    "vercel-build": "echo Vercel Build concluido",
+    "dev": "nodemon src/app.js",
+    "worker": "node src/workers/normalize.worker.js",
+    "collect:awin": "node src/collectors/awin.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.108.1",
+    "@upstash/redis": "^1.38.0",
+    "axios": "^1.17.0",
+    "bullmq": "^5.78.0",
+    "cors": "^2.8.6",
+    "dotenv": "^16.6.1",
+    "express": "^4.22.2",
+    "ioredis": "^5.11.1",
+    "mongoose": "^9.7.0",
+    "openai": "^4.28.0",
+    "pg": "^8.23.0",
+    "rss-parser": "^3.13.0",
+    "socket.io": "^4.8.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}

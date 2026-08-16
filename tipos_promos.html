@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Max Promo - Tipos de Alertas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root{--bg-color:#0c0e12;--panel-color:#14171e;--card-color:#1a1e27;--accent-color:#FFB300;--accent-glow:rgba(255,179,0,0.15);--alert-color:#ff3333;--text-main:#f0f0f0;--text-muted:#7a7f8a;--sidebar-width:64px;--btn-size:48px;--radius-sm:8px;--radius-md:12px;--radius-lg:18px;--radius-full:50px}
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+        body{font-family:'Inter',sans-serif;background-color:var(--bg-color);color:var(--text-main);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+        
+        header{background:linear-gradient(135deg,var(--panel-color) 0%,#1c2030 100%);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--accent-color);box-shadow:0 4px 20px rgba(255,179,0,0.12);z-index:1000;flex-shrink:0}
+       
+        .header-left{display:flex;align-items:center;gap:10px}
+        
+        .app-icon{width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,#FFB300,#FF8F00);display:flex;align-items:center;justify-content:center;font-size:20px;color:#000;font-weight:900; overflow:hidden;}
+        
+        h1{font-size:1.15rem;font-weight:900;letter-spacing:1.5px;text-transform:uppercase}
+        h1 span{color:var(--accent-color);text-shadow:0 0 20px rgba(255,179,0,0.3)}
+        .header-right{display:flex;align-items:center;gap:10px}
+        .savings-badge{display:flex;align-items:center;gap:6px;background:rgba(255,179,0,0.1);border:1px solid rgba(255,179,0,0.3);border-radius:var(--radius-full);padding:6px 12px;font-size:0.75rem;font-weight:700;color:var(--accent-color)}
+        .savings-badge i{font-size:0.85rem}
+        .status-dot{width:8px;height:8px;border-radius:50%;background:#4CAF50;animation:statusPulse 2s ease-in-out infinite}
+        .status-dot.offline{background:#ff4444}
+        @keyframes statusPulse{0%,100%{box-shadow:0 0 0 0 rgba(76,175,80,0.5)}50%{box-shadow:0 0 0 6px rgba(76,175,80,0)}}
+        
+        .main-content{flex:1;overflow:hidden;position:relative;display:flex;flex-direction:column}
+        .feed-container{flex:1;overflow-y:auto;overflow-x:hidden;padding:12px;scroll-behavior:smooth}
+        .feed-container::-webkit-scrollbar{width:4px}
+        .feed-container::-webkit-scrollbar-track{background:transparent}
+        .feed-container::-webkit-scrollbar-thumb{background:rgba(255,179,0,0.2);border-radius:4px}
+
+        .promo-card{background:var(--card-color);border-radius:var(--radius-lg);margin-bottom:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.04);transition:all 0.25s ease;animation:cardSlideIn 0.4s ease-out both;position:relative;cursor:pointer}
+        .promo-card:hover{border-color:rgba(255,255,255,0.08);transform:translateY(-2px);box-shadow:0 8px 25px rgba(0,0,0,0.4)}
+        @keyframes cardSlideIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+        
+        .promo-card-accent{height:4px;width:100%}
+        .promo-card-body{padding:14px 16px;display:flex;gap:14px}
+        
+        /* Estrutura de Ícone Híbrida (Imagem + Fallback FontAwesome) */
+        .promo-card-icon{width:52px;height:52px;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;position:relative;overflow:hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.3)}
+        .promo-card-icon img.promo-icon-img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:10px;z-index:2; background-color: transparent;}
+        .promo-card-icon .fa-fallback{position:relative;z-index:1; opacity: 1; transition: opacity 0.2s;}
+        .promo-card-icon img.promo-icon-img.img-loaded + .fa-fallback{opacity: 0;} /* Esconde o FA quando a imagem carrega */
+        
+        .promo-card-content{flex:1;min-width:0}
+        .promo-card-type{display:inline-flex;align-items:center;gap:4px;font-size:0.65rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:4px;margin-bottom:6px}
+        .promo-card-title{font-size:0.95rem;font-weight:700;line-height:1.3;margin-bottom:4px}
+        .promo-card-desc{font-size:0.8rem;color:var(--text-muted);line-height:1.4}
+        
+        .promo-card-footer{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-top:1px solid rgba(255,255,255,0.04)}
+        .promo-timer{display:flex;align-items:center;gap:5px;font-size:0.75rem;font-weight:700;font-family:'Rajdhani',sans-serif;letter-spacing:0.5px;color: var(--text-muted)}
+        
+        .promo-btn-grab{padding:8px 20px;border-radius:var(--radius-full);border:none;font-family:'Inter',sans-serif;font-size:0.75rem;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;cursor:pointer;color:#000;transition:all 0.2s ease}
+        .promo-btn-grab:active{transform:scale(0.93)}
+        .promo-btn-grab:hover{filter:brightness(1.1);box-shadow:0 4px 15px rgba(0,0,0,0.3)}
+        
+        .live-indicator{display:inline-flex;align-items:center;gap:5px;font-size:0.65rem;font-weight:800;color:#ff3333;text-transform:uppercase;letter-spacing:1px}
+        .live-dot{width:8px;height:8px;background:#ff3333;border-radius:50%;animation:livePulse 1.2s ease-in-out infinite}
+        @keyframes livePulse{0%,100%{box-shadow:0 0 0 0 rgba(255,51,51,0.6)}50%{box-shadow:0 0 0 6px rgba(255,51,51,0)}}
+
+        .text-gold{color: #FFD700;}
+
+        @media(max-width:380px){h1{font-size:1rem}.savings-badge{display:none}.promo-card-body{gap:10px;padding:12px}.promo-card-icon{width:42px;height:42px;font-size:1.1rem}}
+        @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:0.01ms!important;transition-duration:0.01ms!important}}
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-left">
+            
+			<div class="app-icon" style="width: 42px; height: 42px; padding: 4px;">
+				<img src="./imagens_app/ic_icon_app.png" alt="MAX PROMO" style="width:42px;height:42px;border-radius:10px;object-fit:contain;">
+			</div>
+
+            <h1>MAX <span>PROMO</span></h1>
+            <div class="status-dot"></div>
+        </div>
+        <div class="header-right">
+            <div class="savings-badge">
+                <i class="fas fa-tags"></i>
+                20 Tipos de Alertas
+            </div>
+        </div>
+    </header>
+
+    <div class="main-content">
+        <div class="feed-container">
+            
+            <!-- 1. Desconto Direto -->
+            <div class="promo-card" style="animation-delay: 0.05s">
+                <div class="promo-card-accent" style="background: #2E7D32;"></div>
+                <div class="promo-card-body">
+                    <div class="promo-card-icon" style="background: #2E7D32; color: #fff;">
+                        <img src="./imagens_promo/ic_promo_desconto.png" class="promo-icon-img" onerror="this.classList.add('img-failed')" onload="this.classList.add('img-loaded')">
+                        <i class="fas fa-percent fa-fallback"></i>
+                    </div>
+                    <div class="promo-card-content">
+                        <div class="promo-card-type" style="background: rgba(46,125,50,0.15); color: #4CAF50;">Desconto Direto</div>
+                        <div class="promo-card-title">-30% em todos os produtos</div>
+                        <div class="promo-card-desc">Etiqueta de preço com % ou seta para baixo.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Saldão / Liquidação -->
+            <div class="promo-card" style="animation-delay: 0.1s">
+                <div class="promo-card-accent" style="background: #E65100;"></div>
+                <div class="promo-card-body">
+                    <div class="promo-card-icon" style="background: #E65100; color: #fff;">
+                        <img src="./imagens_promo/ic_promo_saldao.png" class="promo-icon-img" onerror="this.classList.add('img-failed')" onload="this.classList.add('img-loaded')">
+                        <i class="fas fa-tags fa-fallback"></i>
+                    </div>
+                    <div class="promo-card-content">
+                        <div class="promo-card-type" style="background: rgba(230,81,0,0.15); color: #FF7043;">Saldão / Liquidação</div>
+                        <div class="promo-card-title">Saldão de Inverno — até 70% OFF</div>
+                        <div class="promo-card-desc">Etiqueta com faísca ou explosão de preço.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Outlet -->
+            <div class="promo-card" style="animation-delay: 0.15s">
+                <div class="promo-card-accent" style="background: #6A1B9A;"></div>
+                <div class="promo-card-body">
+                    <div class="promo-card-icon" style="background: #6A1B9A; color: #fff;">
+                        <img src="./imagens_promo/ic_promo_outlet.png" class="promo-icon-img" onerror="this.classList.add('img-failed')" onload="this.classList.add('img-loaded')">
+                        <i class="fas fa-store fa-fallback"></i>
+                    </div>
+                    <div class="promo-card-content">
+                        <div class="promo-card-type" style="background: rgba(106,27,154,0.15); color: #BA68C8;">Outlet</div>
+                        <div class="promo-card-title">Outlet de Fábrica — peças de coleção passada</div>
+                        <div class="promo-card-desc">Sacola de compras com tag de desconto.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. Oferta Relâmpago -->
+            <div class="promo-card" style="animation-delay: 0.2s">
+                <div class="promo-card-accent" style="background: #FBC02D;"></div>
+                <div class="promo-card-body">
+                    <div class="promo-card-icon" style="background: #FBC02D; color: #000;">
+                        <img src="./imagens_promo/ic_promo_flash.png" class="promo-icon-img" onerror="this.classList.add('img-failed')" onload="this.classList.add('img-loaded')">
+                        <i class="fas fa-bolt fa-fallback"></i>
+                    </div>
+                    <div class="promo-card-content">
+                        <div class="promo-card-type" style="background: rgba(251,192,45,0.15); color: #FDD835;">Flash Sale • FOMO</div>
+                        <div class="promo-card-title">⚡ Flash Sale: 50% OFF por 2 horas apenas!</div>
+                        <div class="promo-card-desc">Raio/relâmpago com relógio. Baseado em urgência e escassez.</div>
+                    </div>
+                </div>
+                <div class="promo-card-footer">
+                    <div class="promo-timer" style="color: #FBC02D;"><i class="fas fa-clock"></i> 01:59:43 restantes</div>
+                    <button class="promo-btn-grab" style="background: #FBC02D; color: #000;">Acessar</button>
+                </div>
+            </div>
+
+            <!-- 5. Frete Grátis -->
+            <div class="promo-card" style="animation-delay: 0.25s">
+                <div class="promo-card-accent" style="background: #0288D1;"></div>
+                <div class="promo-card-body">
+                    <div class="promo-card-icon" style="background: #0288D1; color: #fff;">
+                        <img src="./imagens_promo/ic_promo_frete.png" class="promo-icon-img" onerror="this.classList.add('img-failed')" onload="this.classList.add('img-loaded')">
+                        <i class="fas fa-truck fa-fallback"></i>
+                    </div>
+                    <div class="promo-card-content">
+                        <div class="promo-card-type" style="background: rgba(2,136,209,0.15); color: #29B6F6;">Frete Grátis</div>
+                        <div class="promo-card-title">Frete Grátis em compras acima de R$ 99</div>
+                        <div class="promo-card-desc">Caminhão de entrega com check verde.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. Cupom de Desconto -->
+            <div class="promo-card" style="animation-delay: 0.3s">
+                <div class="promo-card-accent" style="background: #C2185B;"></div>
+                <div class="promo-card-body">
+                    <div class="promo-card-icon" style="background: #C2185B; color: #fff;">
+                        <img src="./imagens_promo/ic_promo_cupom.png" class="promo-icon-img" onerror="this.classList.add('img-failed')" onload="this.classList.add('img-loaded')">
+                        <i class="fas fa-ticket fa-fallback"></i>
+                    </div>
+                    <div class="promo-card-content">
+                        <div class="promo-card-type" style="background: rgba(194,24,91,0.15); color: #F06292;">Cupom de Desconto</div>
+                        <div class="promo-card-title">Use o cupom RADAR10 e ganhe 10% OFF</div>
+                        <div class="promo-card-desc">Ticket/cupom com código de barras.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 7. Compre X Leve Y -->
+            <div class="promo-card" style="animation-delay: 0.35s">
+                <div class="promo-card-accent" style="background: #00796B;"></div>
+                <div class="promo-card-body">
+                    <div class="promo-card-icon" style="background: #00796B; color: #fff;">
+                        <img src="./imagens_promo/ic_promo_leve.png" class="promo-icon-img" onerror="this.classList.add('img-failed')" onload="this.classList.add('img-loaded')">
+                        <i class="fas fa-gift fa-fallback"></i>
+                    </div>
+                    <div class="promo-card-content">
+                        <div class="promo-card-type" style="background: rgba(0,121,107,0.15); color: #26A69A;">Compre X Leve Y</div>
+                        <div class="promo-card-title">Compre 2, Leve 3 — Pague 2!</div>
+                        <div class="promo-card-desc">Duas caixas com sinal de "+".</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 8. Cashback -->
+            <div class="promo-card" style="animation-delay: 0.4s">
+                <div class="promo-card-accent" style="background: #F9A825;"></div>
+                <div class="promo-card-body">
+                    <div class="promo-card-icon" style="background: #F9A825; color: #000;">
+                        <img src="./imagens_promo/ic_promo_cashback.png" class="promo-icon-img" onerror="this.classList.add('img-failed')" onload="this.classList.add('img-loaded')">
+                        <i class="fas fa-coins fa-fallback"></i>
+                    </div>
+                    <div class="promo-card-content">
+                        <div class="promo-card-type" style="background: rgba(249,168,37,0.15); color: #FDD835;">Cashback • Retenção</div>
+                        <div class="promo-card-title">10% de Cashback na sua carteira digital</div>
+                        <div class="promo-card-desc">Moeda com seta de retorno. Aumenta o LTV.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 9. Black Friday -->
+            <div class="promo-card" style="animation-delay: 0.45s; border: 1px solid rgba(255,215,0,0.2);">
+                <div class="promo-card-accent" style="background: linear-gradient(90deg, #212121 50%, #FFD700 50%);"></div>
+                <div class="promo-card-body">
+                    <div class="promo-card-icon" style="background: #6bd4eb; color: #FFD700; border: 1px solid #FFD700;">
+                        <img src="./imagens_promo/ic_promo_blackfriday.png" class="promo-icon-img" onerror="this.classList.add('img-failed')" onload="this.classList.add('img-loaded')">
+                        <i class="fas fa-calendar-minus fa-fallback"></i>
+                    </div>
+                    <div class="promo-card-content">
+                        <div class="promo-card-type text-gold" style="background: rgba(255,215,0,0.1); color: #FFD700;">Black Friday</div>
+                        <div class="promo-card-title text-gold">🖤 Black Friday: Maiores descontos do ano!</div>
+                        <div class="promo-card-desc">Tag preta com porcentagem dourada.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 10. Brinde Grátis -->
+            <div class="promo-card" style="animation-delay: 0.5s">
+                <div class="promo-card-accent" style="background: #EC407A;"></div>
+                <div class="promo-card-body">
+                    <div class="promo-card-icon" style="background: #EC407A; color: #fff;">
+                        <img src="./imagens_promo/ic_promo_brinde.png" class="promo-icon-img" onerror="this.classList.add('img-failed')" onload="this.classList.add('img-loaded')">
+                        <i class="fas fa-gift fa-fallback"></i>
+                    </div>
+                    <div class="promo-card-content">
+                        <div class="promo-card-type" style="background: rgba(236,64,122,0.15); color: #F48FB1;">Brinde Grátis</div>
+                        <div class="promo-card-title">Ganhe um brinde exclusivo na compra acima de R$ 150</div>
+                        <div class="promo-card-desc">Caixa de presente com laço.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 11. Desconto Progressivo -->
+            <div class="promo-card" style="animation-delay: 0.55s">
+                <div class="promo-card-accent" style="background: #689F38;"></div>
+                <div class="promo-card-body">
+                    <div class="promo-card-icon" style="background: #689F38; color: #fff;">
+                        <img src="./imagens_promo/ic_promo_progressivo.png" class="promo-icon-img" onerror="this.classList.add('img-failed')" onload="this.classList.add('img-loaded')">
+                        <i class="fas fa-chart-line fa-fallback"></i>
+                    </div>
+                    <div class="promo-card-content">
+                        <div class="promo-card-type" style="background: rgba(104,159,56,0.15); color: #9CCC65;">Desconto Progressivo • Gamificação</div>
+                        <div class="promo-card-title">Compre 2 = 10% | 3 = 20% | 4 = 30% OFF</div>
+                        <div class="promo-card-desc">Escada ou gráfico subindo com %.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 12. Primeira Compra -->
+            <div class="promo-card" style="animation-delay: 0.6s">
+                <div class="promo-card-accent" style="background: #1565C0;"></div>
+                <div class="promo-card-body">
+                    <div class="promo-card-icon" style="background: #1565C0; color: #fff;">
+                        <img src="./imagens_promo/ic_promo_primeira.png" class="promo-icon-img" onerror="this.classList.add('img-failed')" onload="this.classList.add('img-loaded')">
+                        <i class="fas fa-star fa-fallback"></i>
+                    </div>
+                    <div class="promo-card-content">
+                        <div class="promo-card-type" style="background: rgba(21,101,192,0.15); color: #42A5F5;">Primeira Compra</div>
+                        <div class="promo-card-title">20% OFF na sua primeira compra!</div>
+                        <div class="promo-card-desc">Estrela ou badge "NEW".</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 13. Programa de Fidelidade -->
+            <div class="promo-card" style="animation-delay: 0.65s">
+                <div class="promo-card-accent" style="background: #FFB300;"></div>
+                <div class="promo-card-body">
+                    <div class="promo-card-icon" style="background: #FFB300; color: #000;">
+                        <img src="./imagens_promo/ic_promo_fidelidade.png" class="promo-icon-img" onerror="this.classList.add('img-failed')" onload="this.classList.add('img-loaded')">
+                        <i class="fas fa-award fa-fallback"></i>
+                    </div>
+                    <div class="promo-card-content">
+                        <div class="promo-card-type" style="background: rgba(255,179,0,0.15); color: #FFD54F;">Fidelidade / Pontos</div>
+                        <div class="promo-card-title">Ganhe pontos duplos nesta compra!</div>
+                        <div class="promo-card-desc">Estrela dourada ou cartão de membro.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 14. Caixa Misteriosa -->
+            <div class="promo-card" style="animation-delay: 0.7s">
+                <div class="promo-card-accent" style="background: #4527A0;"></div>
+                <div class="promo-card-body">
+                    <div class="promo-card-icon" style="background: #4527A0; color: #fff;">
+                        <img src="./imagens_promo/ic_promo_misterio.png" class="promo-icon-img" onerror="this.classList.add('img-failed')" onload="this.classList.add('img-loaded')">
+                        <i class="fas fa-box-open fa-fallback"></i>
+                    </div>
+                    <div class="promo-card-content">
+                        <div class="promo-card-type" style="background: rgba(69,39,160,0.15); color: #9575CD;">Caixa Misteriosa • Buzz</div>
+                        <div class="promo-card-title">Caixa Misteriosa por R$49 — Valor garantido de R$ 150!</div>
+                        <div class="promo-card-desc">Caixa com ponto de interrogação. Cria curiosidade.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 15. Bilhete Dourado -->
+            <div class="promo-card" style="animation-delay: 0.75s; border: 1px solid rgba(255,215,0,0.3); box-shadow: 0 0 15px rgba(255,215,0,0.05);">
+                <div class="promo-card-accent" style="background: #FFD700;"></div>
+                <div class="promo-card-body">
+                    <div class="promo-card-icon" style="background: #212121; color: #FFD700; border: 2px solid #FFD700;">
+                        <img src="./imagens_promo/ic_promo_bilhete.png" class="promo-icon-img" onerror="this.classList.add('img-failed')" onload="this.classList.add('img-loaded')">
+                        <i class="fas fa-ticket fa-fallback"></i>
+                    </div>
+                    <div class="promo-card-content">
+                        <div class="promo-card-type text-gold" style="background: rgba(255,215,0,0.1); color: #FFD700;">Bilhete Dourado • Exclusividade</div>
+                        <div class="promo-card-title text-gold">🎫 Você encontrou um Bilhete Dourado! Prêmio exclusivo!</div>
+                        <div class="promo-card-desc">Ticket dourado brilhante com fundo escuro.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 16. Live Commerce -->
+            <div class="promo-card" style="animation-delay: 0.8s">
+                <div class="promo-card-accent" style="background: #D32F2F;"></div>
+                <div class="promo-card-body">
+                    <div class="promo-card-icon" style="background: #D32F2F; color: #fff;">
+                        <img src="./imagens_promo/ic_promo_live.png" class="promo-icon-img" onerror="this.classList.add('img-failed')" onload="this.classList.add('img-loaded')">
+                        <i class="fas fa-video fa-fallback"></i>
+                    </div>
+                    <div class="promo-card-content">
+                        <div class="promo-card-type" style="color: #D32F2F; background: rgba(211,47,47,0.1);">
+                            <span class="live-dot"></span> Live Commerce
+                        </div>
+                        <div class="promo-card-title">🔴 AO VIVO agora: Ofertas exclusivas na live!</div>
+                        <div class="promo-card-desc">Vendas em tempo real com influenciadores.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 17. Combo / Kit -->
+            <div class="promo-card" style="animation-delay: 0.85s">
+                <div class="promo-card-accent" style="background: #EF6C00;"></div>
+                <div class="promo-card-body">
+                    <div class="promo-card-icon" style="background: #EF6C00; color: #fff;">
+                        <img src="./imagens_promo/ic_promo_combo.png" class="promo-icon-img" onerror="this.classList.add('img-failed')" onload="this.classList.add('img-loaded')">
+                        <i class="fas fa-boxes-stacked fa-fallback"></i>
+                    </div>
+                    <div class="promo-card-content">
+                        <div class="promo-card-type" style="background: rgba(239,108,0,0.15); color: #FF9800;">Combo / Kit Promocional</div>
+                        <div class="promo-card-title">Kit Completo: 3 produtos por R$99 (economize R$ 50)</div>
+                        <div class="promo-card-desc">Caixas empilhadas com preço único.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 18. Parcelamento Especial -->
+            <div class="promo-card" style="animation-delay: 0.9s">
+                <div class="promo-card-accent" style="background: #00695C;"></div>
+                <div class="promo-card-body">
+                    <div class="promo-card-icon" style="background: #00695C; color: #fff;">
+                        <img src="./imagens_promo/ic_promo_parcela.png" class="promo-icon-img" onerror="this.classList.add('img-failed')" onload="this.classList.add('img-loaded')">
+                        <i class="fas fa-credit-card fa-fallback"></i>
+                    </div>
+                    <div class="promo-card-content">
+                        <div class="promo-card-type" style="background: rgba(0,105,92,0.15); color: #26A69A;">Parcelamento Especial</div>
+                        <div class="promo-card-title">12x sem juros em todos os produtos!</div>
+                        <div class="promo-card-desc">Cartão de crédito com "12x".</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 19. Cross-selling -->
+            <div class="promo-card" style="animation-delay: 0.95s">
+                <div class="promo-card-accent" style="background: #42A5F5;"></div>
+                <div class="promo-card-body">
+                    <div class="promo-card-icon" style="background: #42A5F5; color: #000;">
+                        <img src="./imagens_promo/ic_promo_cross.png" class="promo-icon-img" onerror="this.classList.add('img-failed')" onload="this.classList.add('img-loaded')">
+                        <i class="fas fa-link fa-fallback"></i>
+                    </div>
+                    <div class="promo-card-content">
+                        <div class="promo-card-type" style="background: rgba(66,165,245,0.15); color: #90CAF9;">Cross-selling • Ticket Médio</div>
+                        <div class="promo-card-title">Leve junto com 20% OFF: Capinha + Película</div>
+                        <div class="promo-card-desc">Dois produtos conectados com seta. Venda cruzada.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 20. Sorteio / Concurso -->
+            <div class="promo-card" style="animation-delay: 1s">
+                <div class="promo-card-accent" style="background: #7B1FA2;"></div>
+                <div class="promo-card-body">
+                    <div class="promo-card-icon" style="background: #7B1FA2; color: #fff;">
+                        <img src="./imagens_promo/ic_promo_sorteio.png" class="promo-icon-img" onerror="this.classList.add('img-failed')" onload="this.classList.add('img-loaded')">
+                        <i class="fas fa-trophy fa-fallback"></i>
+                    </div>
+                    <div class="promo-card-content">
+                        <div class="promo-card-type" style="background: rgba(123,31,162,0.15); color: #CE93D8;">Sorteio / Concurso</div>
+                        <div class="promo-card-title">Participe do sorteio de um iPhone 16!</div>
+                        <div class="promo-card-desc">Roleta da sorte ou troféu.</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Script que gerencia a transição suave entre o ícone imagem e o fallback FontAwesome -->
+    <script>
+        // Adiciona um pequeno atraso para verificar imagens quebradas antes do carregamento completo 
+        // (útil em conexões lentas onde o evento onload pode demorar)
+        window.addEventListener('load', () => {
+            document.querySelectorAll('img.promo-icon-img').forEach(img => {
+                // Se após a página toda carregar a imagem ainda não tiver classe 'img-loaded' e nem 'img-failed'
+                if (!img.complete) {
+                    img.classList.add('img-failed');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

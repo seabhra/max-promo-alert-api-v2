@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>Max Promo — Alerta Inteligente de Promoções</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+<style>
+  :root {
+    --bg-color: #0c0e12;
+    --panel-color: #14171e;
+    --card-color: #1a1e27;
+    --accent-color: #FFB300;
+    --accent-glow: rgba(255, 179, 0, 0.15);
+    --alert-color: #ff3333;
+    --text-main: #f0f0f0;
+    --text-muted: #7a7f8a;
+    --sidebar-width: 64px;
+    --btn-size: 48px;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 18px;
+    --radius-full: 50px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: 'Inter', sans-serif; background-color: var(--bg-color); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+  header { background: linear-gradient(135deg, var(--panel-color) 0%, #1c2030 100%); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid var(--accent-color); box-shadow: 0 4px 20px rgba(255, 179, 0, 0.12); z-index: 1000; flex-shrink: 0; }
+  .header-left { display: flex; align-items: center; gap: 10px; }
+  .app-icon { width: 42px; height: 42px; border-radius: 10px; background: linear-gradient(135deg, #FFB300, #FF8F00); display: flex; align-items: center; justify-content: center; font-size: 20px; color: #000; font-weight: 900; }
+  h1 { font-size: 1.15rem; font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase; }
+  h1 span { color: var(--accent-color); text-shadow: 0 0 20px rgba(255, 179, 0, 0.3); }
+  .header-right { display: flex; align-items: center; gap: 10px; }
+  .savings-badge { display: flex; align-items: center; gap: 6px; background: rgba(255, 179, 0, 0.1); border: 1px solid rgba(255, 179, 0, 0.3); border-radius: var(--radius-full); padding: 6px 12px; font-size: 0.75rem; font-weight: 700; color: var(--accent-color); }
+  .savings-badge i { font-size: 0.85rem; }
+  .btn-menu-toggle { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; background: none; border: 1.5px solid rgba(255, 179, 0, 0.3); border-radius: 10px; padding: 8px 14px 6px; cursor: pointer; transition: all 0.25s ease; user-select: none; }
+  .btn-menu-toggle:hover { border-color: var(--accent-color); background: rgba(255, 179, 0, 0.06); }
+  .btn-menu-toggle:active { transform: scale(0.93); }
+  .menu-hamburger { display: flex; flex-direction: column; gap: 4px; width: 22px; }
+  .menu-hamburger span { display: block; height: 2.5px; width: 100%; background-color: var(--accent-color); border-radius: 2px; transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1); transform-origin: center; }
+  .btn-menu-toggle.active .menu-hamburger span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
+  .btn-menu-toggle.active .menu-hamburger span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+  .btn-menu-toggle.active .menu-hamburger span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
+  .menu-label { font-size: 0.55rem; font-weight: 700; letter-spacing: 1.5px; color: var(--accent-color); text-transform: uppercase; line-height: 1; margin-top: 2px; }
+  .tab-bar { display: flex; background: var(--panel-color); border-bottom: 1px solid rgba(255, 255, 255, 0.05); flex-shrink: 0; overflow-x: auto; scrollbar-width: none; }
+  .tab-bar::-webkit-scrollbar { display: none; }
+  .tab-btn { flex: 1; min-width: 0; padding: 12px 8px; background: none; border: none; color: var(--text-muted); font-family: 'Inter', sans-serif; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; cursor: pointer; transition: all 0.25s ease; position: relative; white-space: nowrap; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .tab-btn i { font-size: 1rem; }
+  .tab-btn.active { color: var(--accent-color); }
+  .tab-btn.active::after { content: ''; position: absolute; bottom: 0; left: 20%; right: 20%; height: 3px; background: var(--accent-color); border-radius: 3px 3px 0 0; }
+  .tab-btn .badge-count { position: absolute; top: 6px; right: calc(50% - 20px); background: #ff3333; color: #fff; font-size: 0.6rem; font-weight: 800; width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+  .main-content { flex: 1; overflow: hidden; position: relative; display: flex; flex-direction: column; }
+  .feed-container { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 12px; scroll-behavior: smooth; }
+  .feed-container::-webkit-scrollbar { width: 4px; }
+  .feed-container::-webkit-scrollbar-track { background: transparent; }
+  .feed-container::-webkit-scrollbar-thumb { background: rgba(255, 179, 0, 0.2); border-radius: 4px; }
+  .search-container { position: absolute; top: 0; left: 0; width: 100%; background-color: rgba(20, 23, 30, 0.98); backdrop-filter: blur(8px); display: flex; gap: 10px; z-index: 800; max-height: 0; overflow: hidden; opacity: 0; padding: 0 12px; border-bottom: 1px solid transparent; transition: all 0.3s ease; align-items: center; }
+  .search-container.active { max-height: 80px; opacity: 1; padding: 12px; border-bottom: 1px solid rgba(255, 179, 0, 0.2); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); }
+  .search-container input { flex: 1; padding: 12px 18px; border-radius: var(--radius-full); border: 1px solid #333; background-color: #0a0c10; color: #fff; font-size: 0.9rem; outline: none; font-family: 'Inter', sans-serif; }
+  .search-container input:focus { border-color: var(--accent-color); box-shadow: 0 0 0 2px rgba(255, 179, 0, 0.15); }
+  .btn-search-action { flex-shrink: 0; width: 44px; height: 44px; border-radius: 50%; border: none; cursor: pointer; background: linear-gradient(135deg, #FFB300, #FF8F00); color: #000; font-size: 1rem; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; }
+  .btn-search-action:active { transform: scale(0.9); }
+  .sidebar-controls { position: absolute; top: 0; right: 0; height: 100%; width: var(--sidebar-width); z-index: 500; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 12px 0; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); transform: translateX(0); }
+  .sidebar-controls.retracted { transform: translateX(calc(var(--sidebar-width) + 10px)); }
+  .sidebar-controls .map-btn { width: 44px; height: 44px; opacity: 1; transition: opacity 0.25s ease, transform 0.2s ease; }
+  .sidebar-controls.retracted .map-btn { opacity: 0; pointer-events: none; }
+  .map-btn { width: var(--btn-size); height: var(--btn-size); display: flex; align-items: center; justify-content: center; border-radius: 50%; cursor: pointer; background: rgba(20, 20, 25, 0.92); border: 1px solid rgba(255, 179, 0, 0.2); box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5); transition: all 0.2s ease; flex-shrink: 0; color: var(--accent-color); font-size: 1rem; }
+  .map-btn:hover { transform: scale(1.08); border-color: var(--accent-color); background: rgba(255, 179, 0, 0.08); }
+  .map-btn:active { transform: scale(0.92); }
+  .promo-card { background: var(--card-color); border-radius: var(--radius-lg); margin-bottom: 12px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.04); transition: all 0.25s ease; animation: cardSlideIn 0.4s ease-out both; position: relative; }
+  .promo-card:hover { border-color: rgba(255, 255, 255, 0.08); transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4); }
+  @keyframes cardSlideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  .promo-card-accent { height: 4px; width: 100%; }
+  .promo-card-body { padding: 14px 16px; display: flex; gap: 14px; }
+  .promo-card-icon { width: 52px; height: 52px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; color: #fff; flex-shrink: 0; position: relative; overflow: hidden; }
+  .promo-card-icon img.promo-icon-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; padding: 8px; }
+  .promo-card-icon .fa-fallback { position: relative; z-index: 2; }
+  .promo-card-icon .pulse-ring { position: absolute; inset: -4px; border-radius: var(--radius-md); border: 2px solid currentColor; opacity: 0; animation: pulseRing 2s ease-out infinite; }
+  @keyframes pulseRing { 0% { transform: scale(0.8); opacity: 0.6; } 100% { transform: scale(1.3); opacity: 0; } }
+  .promo-card-content { flex: 1; min-width: 0; }
+  .promo-card-type { display: inline-flex; align-items: center; gap: 4px; font-size: 0.65rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; padding: 3px 8px; border-radius: 4px; margin-bottom: 6px; }
+  .promo-card-title { font-size: 0.95rem; font-weight: 700; line-height: 1.3; margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .promo-card-desc { font-size: 0.8rem; color: var(--text-muted); line-height: 1.4; margin-bottom: 8px; }
+  .promo-card-meta { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .promo-price-old { font-size: 0.8rem; color: var(--text-muted); text-decoration: line-through; }
+  .promo-price-new { font-size: 1.1rem; font-weight: 900; font-family: 'Rajdhani', sans-serif; }
+  .promo-store { font-size: 0.72rem; color: var(--text-muted); display: flex; align-items: center; gap: 4px; }
+  .promo-card-footer { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; border-top: 1px solid rgba(255, 255, 255, 0.04); }
+  .promo-timer { display: flex; align-items: center; gap: 5px; font-size: 0.75rem; font-weight: 700; font-family: 'Rajdhani', sans-serif; letter-spacing: 0.5px; }
+  .promo-timer.urgent { color: #ff4444; animation: blink 1s ease-in-out infinite; }
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+  .promo-btn-grab { padding: 8px 20px; border-radius: var(--radius-full); border: none; font-family: 'Inter', sans-serif; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; color: #000; transition: all 0.2s ease; }
+  .promo-btn-grab:active { transform: scale(0.93); }
+  .promo-btn-grab:hover { filter: brightness(1.1); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); }
+  .live-indicator { display: inline-flex; align-items: center; gap: 5px; font-size: 0.65rem; font-weight: 800; color: #ff3333; text-transform: uppercase; letter-spacing: 1px; }
+  .live-dot { width: 8px; height: 8px; background: #ff3333; border-radius: 50%; animation: livePulse 1.2s ease-in-out infinite; }
+  @keyframes livePulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(255, 51, 51, 0.6); } 50% { box-shadow: 0 0 0 6px rgba(255, 51, 51, 0); } }
+  .price-history-mini { display: flex; align-items: flex-end; gap: 2px; height: 30px; margin-top: 6px; }
+  .price-bar { width: 6px; border-radius: 2px 2px 0 0; transition: height 0.3s ease; min-height: 3px; }
+  .monitored-card { background: var(--card-color); border-radius: var(--radius-lg); padding: 14px 16px; margin-bottom: 10px; border: 1px solid rgba(255, 179, 0, 0.1); display: flex; align-items: center; gap: 12px; animation: cardSlideIn 0.4s ease-out both; }
+  .monitored-card .prod-img { width: 50px; height: 50px; border-radius: var(--radius-sm); background: rgba(255, 255, 255, 0.05); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; }
+  .monitored-card .prod-info { flex: 1; min-width: 0; }
+  .monitored-card .prod-name { font-size: 0.85rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .monitored-card .prod-target { font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; }
+  .monitored-card .prod-current { font-family: 'Rajdhani', sans-serif; font-size: 1rem; font-weight: 700; }
+  .monitored-card .remove-btn { width: 32px; height: 32px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.08); background: none; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; transition: all 0.2s ease; }
+  .monitored-card .remove-btn:hover { border-color: #ff4444; color: #ff4444; background: rgba(255, 68, 68, 0.08); }
+  #alert-container { position: absolute; bottom: 0; left: 0; width: 100%; z-index: 1000; display: none; animation: slideUp 0.35s ease-out; pointer-events: auto; }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  @keyframes alertPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.01); } }
+  .alert-bar { color: white; padding: 16px 18px; display: flex; align-items: center; gap: 14px; box-shadow: 0 -5px 25px rgba(0, 0, 0, 0.5); border-top: 2px solid rgba(255, 255, 255, 0.15); transition: all 0.3s ease; }
+  .alert-bar-critico { animation: alertPulse 0.8s ease-in-out infinite; }
+  .alert-icon-box { width: 46px; height: 46px; flex-shrink: 0; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; color: #fff; position: relative; overflow: hidden; }
+  .alert-icon-box img.alert-icon-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; padding: 6px; }
+  .alert-icon-box .fa-fallback { position: relative; z-index: 2; }
+  .alert-info { flex: 1; min-width: 0; }
+  .alert-info h3 { font-size: 1rem; margin-bottom: 3px; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px; }
+  .alert-info p { font-size: 0.85rem; opacity: 0.92; line-height: 1.3; }
+  .alert-close-btn { width: 34px; height: 34px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.2); background: rgba(255, 255, 255, 0.08); color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; transition: all 0.2s ease; flex-shrink: 0; }
+  .alert-close-btn:hover { background: rgba(255, 255, 255, 0.15); }
+  .toast-notification { position: absolute; top: 20px; left: 50%; transform: translateX(-50%) translateY(-20px); background: rgba(20, 23, 30, 0.96); color: var(--text-main); padding: 12px 24px; border-radius: var(--radius-full); border: 1px solid rgba(255, 179, 0, 0.3); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7); z-index: 2000; opacity: 0; font-size: 0.85rem; font-weight: 600; text-align: center; pointer-events: none; transition: opacity 0.3s ease, transform 0.3s ease; white-space: nowrap; backdrop-filter: blur(8px); }
+  .toast-notification.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.75); z-index: 3000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+  .modal-overlay.active { display: flex; }
+  .modal-box { background: var(--panel-color); border: 1px solid rgba(255, 179, 0, 0.2); border-radius: var(--radius-lg); padding: 24px; width: 90%; max-width: 400px; animation: modalIn 0.3s ease-out; }
+  @keyframes modalIn { from { opacity: 0; transform: scale(0.9) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+  .modal-box h2 { font-size: 1.1rem; font-weight: 800; margin-bottom: 6px; }
+  .modal-box p { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 18px; }
+  .modal-box label { display: block; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 6px; }
+  .modal-box input, .modal-box select { width: 100%; padding: 12px 16px; border-radius: var(--radius-sm); border: 1px solid #333; background: #0a0c10; color: #fff; font-size: 0.9rem; font-family: 'Inter', sans-serif; outline: none; margin-bottom: 14px; }
+  .modal-box input:focus, .modal-box select:focus { border-color: var(--accent-color); }
+  .modal-actions { display: flex; gap: 10px; margin-top: 6px; }
+  .modal-actions button { flex: 1; padding: 12px; border-radius: var(--radius-sm); border: none; font-family: 'Inter', sans-serif; font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: all 0.2s ease; }
+  .modal-actions button:active { transform: scale(0.96); }
+  .btn-cancel { background: rgba(255, 255, 255, 0.06); color: var(--text-muted); border: 1px solid rgba(255, 255, 255, 0.08) !important; }
+  .btn-confirm { background: linear-gradient(135deg, #FFB300, #FF8F00); color: #000; }
+  .filter-strip { display: flex; gap: 8px; padding: 10px 12px; overflow-x: auto; scrollbar-width: none; flex-shrink: 0; border-bottom: 1px solid rgba(255, 255, 255, 0.03); }
+  .filter-strip::-webkit-scrollbar { display: none; }
+  .filter-chip { padding: 6px 14px; border-radius: var(--radius-full); border: 1px solid rgba(255, 255, 255, 0.08); background: rgba(255, 255, 255, 0.03); color: var(--text-muted); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; white-space: nowrap; transition: all 0.2s ease; display: flex; align-items: center; gap: 5px; }
+  .filter-chip:hover { border-color: rgba(255, 255, 255, 0.15); background: rgba(255, 255, 255, 0.05); }
+  .filter-chip.active { border-color: var(--accent-color); background: rgba(255, 179, 0, 0.1); color: var(--accent-color); }
+  .filter-chip .chip-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; text-align: center; opacity: 0.6; }
+  .empty-state i { font-size: 3rem; margin-bottom: 16px; color: var(--accent-color); opacity: 0.4; }
+  .empty-state p { font-size: 0.9rem; color: var(--text-muted); }
+  .fab-add { position: absolute; bottom: 24px; right: 24px; width: 56px; height: 56px; border-radius: 50%; border: none; background: linear-gradient(135deg, #FFB300, #FF8F00); color: #000; font-size: 1.5rem; cursor: pointer; box-shadow: 0 6px 25px rgba(255, 179, 0, 0.35); transition: all 0.25s ease; z-index: 600; display: flex; align-items: center; justify-content: center; }
+  .fab-add:hover { transform: scale(1.08); box-shadow: 0 8px 30px rgba(255, 179, 0, 0.5); }
+  .fab-add:active { transform: scale(0.93); }
+  .loading-fullscreen { position: fixed; inset: 0; background-color: var(--bg-color); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; transition: opacity 0.5s ease, visibility 0.5s ease; }
+  .loading-fullscreen.fade-out { opacity: 0; visibility: hidden; }
+  .spinner-ring { width: 56px; height: 56px; border-radius: 50%; position: relative; margin-bottom: 24px; }
+  .spinner-ring::before, .spinner-ring::after { content: ''; position: absolute; inset: 0; border-radius: 50%; border: 4px solid transparent; }
+  .spinner-ring::before { border-top-color: var(--accent-color); border-right-color: var(--accent-color); animation: spinRing 1s cubic-bezier(0.68, -0.15, 0.27, 1.15) infinite; }
+  .spinner-ring::after { inset: 10px; border-bottom-color: #ff3333; border-left-color: #ff3333; animation: spinRing 1.4s cubic-bezier(0.68, -0.15, 0.27, 1.15) infinite reverse; }
+  @keyframes spinRing { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  .loading-text { font-size: 1.1rem; font-weight: 700; letter-spacing: 0.5px; text-align: center; }
+  .loading-text span { color: var(--accent-color); }
+  .loading-sub { margin-top: 8px; font-size: 0.8rem; color: #555; animation: pulseText 1.8s ease-in-out infinite; }
+  @keyframes pulseText { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+  .demo-panel { position: absolute; top: 12px; right: 76px; z-index: 700; display: flex; gap: 6px; }
+  .demo-btn { padding: 7px 14px; border-radius: var(--radius-full); border: 1px solid rgba(255, 179, 0, 0.25); background: rgba(20, 23, 30, 0.92); color: var(--accent-color); font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; backdrop-filter: blur(8px); transition: all 0.2s ease; }
+  .demo-btn:hover { background: rgba(255, 179, 0, 0.1); border-color: var(--accent-color); }
+  .demo-btn:active { transform: scale(0.95); }
+  .demo-btn.active-demo { background: rgba(255, 179, 0, 0.15); border-color: var(--accent-color); box-shadow: 0 0 12px rgba(255, 179, 0, 0.15); }
+  .compare-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.04); }
+  .compare-row:last-child { border-bottom: none; }
+  .compare-store { font-size: 0.85rem; font-weight: 600; }
+  .compare-price { font-family: 'Rajdhani', sans-serif; font-size: 1.05rem; font-weight: 700; }
+  .compare-best { color: #4CAF50; }
+  img.promo-icon-img, img.alert-icon-img { border: none; outline: none; }
+  img.promo-icon-img.img-failed, img.alert-icon-img.img-failed { display: none !important; }
+  @media (max-width: 380px) { h1 { font-size: 1rem; } .savings-badge { display: none; } .promo-card-body { gap: 10px; padding: 12px; } .promo-card-icon { width: 42px; height: 42px; font-size: 1.1rem; } }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
+</style>
+</head>
+<body>
+
+  <div class="loading-fullscreen" id="loading-fullscreen">
+    <div class="spinner-ring"></div>
+    <div class="loading-text">Iniciando <span>Max Promo</span></div>
+    <div class="loading-sub">Buscando as melhores ofertas...</div>
+  </div>
+
+  <header>
+    <div class="header-left">
+      <div class="app-icon" aria-hidden="true">M</div>
+      <h1>MAX <span>PROMO</span></h1>
+    </div>
+    <div class="header-right">
+      <div class="savings-badge" id="savings-badge" title="Total economizado">
+        <i class="fas fa-piggy-bank"></i>
+        <span id="savings-total">R$ 0</span>
+      </div>
+      <button class="btn-menu-toggle" id="btn-menu-toggle" aria-label="Abrir menu de controles">
+        <div class="menu-hamburger"><span></span><span></span><span></span></div>
+        <div class="menu-label">MENU</div>
+      </button>
+    </div>
+  </header>
+
+  <nav class="tab-bar" id="tab-bar" role="tablist">
+    <button class="tab-btn active" data-tab="feed" role="tab" aria-selected="true"><i class="fas fa-fire"></i> Em Alta</button>
+    <button class="tab-btn" data-tab="monitored" role="tab" aria-selected="false"><i class="fas fa-eye"></i> Monitorados<span class="badge-count" id="monitored-count" style="display:none;">0</span></button>
+    <button class="tab-btn" data-tab="history" role="tab" aria-selected="false"><i class="fas fa-chart-line"></i> Historico</button>
+    <button class="tab-btn" data-tab="compare" role="tab" aria-selected="false"><i class="fas fa-balance-scale"></i> Comparar</button>
+  </nav>
+
+  <div class="main-content">
+    <div class="search-container" id="search-bar">
+      <input type="text" id="search-query" placeholder="Buscar produto, loja ou tipo de promoção..." aria-label="Buscar promoções">
+      <button class="btn-search-action" id="btn-search" title="Buscar" aria-label="Buscar"><i class="fas fa-search"></i></button>
+    </div>
+
+    <div class="filter-strip" id="filter-strip" role="group" aria-label="Filtros de promoção"></div>
+    <div class="feed-container" id="feed-container"></div>
+
+    <div class="sidebar-controls" id="sidebar-controls">
+      <button class="map-btn" id="btn-search-toggle" title="Buscar"><i class="fas fa-search"></i></button>
+      <button class="map-btn" id="btn-alert-toggle" title="Ligar/Desligar Alertas"><i class="fas fa-bell" id="alert-toggle-icon"></i></button>
+      <button class="map-btn" id="btn-filter-flash" title="Flash Sales" style="color:#FBC02D;"><i class="fas fa-bolt"></i></button>
+      <button class="map-btn" id="btn-filter-cupom" title="Cupons" style="color:#C2185B;"><i class="fas fa-ticket"></i></button>
+      <button class="map-btn" id="btn-filter-frete" title="Frete Gratis" style="color:#0288D1;"><i class="fas fa-truck"></i></button>
+      <button class="map-btn" id="btn-filter-cashback" title="Cashback" style="color:#F9A825;"><i class="fas fa-coins"></i></button>
+      <button class="map-btn" id="btn-refresh-feed" title="Atualizar Ofertas"><i class="fas fa-sync-alt"></i></button>
+      <button class="map-btn" id="btn-demo-alert" title="Alerta Demo" style="color:#ff4444;"><i class="fas fa-vial"></i></button>
+    </div>
+
+    <div class="demo-panel" id="demo-panel">
+      <button class="demo-btn" id="btn-demo-auto">Auto Demo</button>
+    </div>
+
+    <button class="fab-add" id="fab-add" title="Monitorar novo produto" aria-label="Adicionar produto para monitorar"><i class="fas fa-plus"></i></button>
+
+    <div id="alert-container">
+      <div class="alert-bar" id="alert-bar">
+        <div class="alert-icon-box" id="alert-icon-box">
+          <img class="alert-icon-img" id="alert-icon-img" src="" alt="" style="display:none;">
+          <i class="fas fa-tags fa-fallback" id="alert-icon-fa"></i>
+        </div>
+        <div class="alert-info">
+          <h3 id="alert-title">PROMOCAO!</h3>
+          <p id="alert-text">Oferta detectada</p>
+        </div>
+        <button class="alert-close-btn" id="alert-close-btn" aria-label="Fechar alerta"><i class="fas fa-times"></i></button>
+      </div>
+    </div>
+
+    <div class="toast-notification" id="toast-msg"></div>
+  </div>
+
+  <div class="modal-overlay" id="modal-add-product">
+    <div class="modal-box">
+      <h2>Monitorar Produto</h2>
+      <p>Adicione um produto para receber alertas quando o preco cair.</p>
+      <label for="input-prod-name">Nome do Produto</label>
+      <input type="text" id="input-prod-name" placeholder="Ex: iPhone 15 128GB">
+      <label for="input-prod-target">Preco Alvo (R$)</label>
+      <input type="number" id="input-prod-target" placeholder="Ex: 4999" min="0" step="0.01">
+      <label for="input-prod-category">Categoria</label>
+      <select id="input-prod-category">
+        <option value="eletronicos">Eletronicos</option>
+        <option value="moda">Moda</option>
+        <option value="casa">Casa e Decoracao</option>
+        <option value="beleza">Beleza e Saude</option>
+        <option value="esporte">Esporte e Lazer</option>
+        <option value="games">Games</option>
+        <option value="livros">Livros</option>
+        <option value="outro">Outro</option>
+      </select>
+      <div class="modal-actions">
+        <button class="btn-cancel" id="btn-modal-cancel">Cancelar</button>
+        <button class="btn-confirm" id="btn-modal-confirm">Monitorar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-compare">
+    <div class="modal-box">
+      <h2 id="compare-title">Comparar Precos</h2>
+      <p id="compare-subtitle">Mesmo produto em diferentes lojas</p>
+      <div id="compare-list"></div>
+      <div class="modal-actions">
+        <button class="btn-cancel" id="btn-compare-close">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <audio id="alert-sound" preload="auto"></audio>
+
+<script>
+  // ===================================================================
+  // CONFIG
+  // ===================================================================
+  var API_BASE_URL = '/promos';
+
+  var PROMO_CONFIG = {
+    'desconto': { icon: '/imagens_promo/ic_promo_desconto.png', faIcon: 'fas fa-percent', color: '#2E7D32', label: 'DESCONTO', emoji: '🏷️' },
+    'saldao': { icon: '/imagens_promo/ic_promo_saldao.png', faIcon: 'fas fa-tags', color: '#E65100', label: 'SALDAO', emoji: '🔥' },
+    'outlet': { icon: '/imagens_promo/ic_promo_outlet.png', faIcon: 'fas fa-store', color: '#6A1B9A', label: 'OUTLET', emoji: '🏪' },
+    'flash': { icon: '/imagens_promo/ic_promo_flash.png', faIcon: 'fas fa-bolt', color: '#FBC02D', label: 'FLASH SALE', emoji: '⚡', urgent: true },
+    'frete_gratis': { icon: '/imagens_promo/ic_promo_frete.png', faIcon: 'fas fa-truck', color: '#0288D1', label: 'FRETE GRATIS', emoji: '🚚' },
+    'cupom': { icon: '/imagens_promo/ic_promo_cupom.png', faIcon: 'fas fa-ticket', color: '#C2185B', label: 'CUPOM', emoji: '🎟️' },
+    'leve_pague': { icon: '/imagens_promo/ic_promo_leve.png', faIcon: 'fas fa-gift', color: '#00796B', label: 'COMPRE X LEVE Y', emoji: '🎁' },
+    'cashback': { icon: '/imagens_promo/ic_promo_cashback.png', faIcon: 'fas fa-coins', color: '#F9A825', label: 'CASHBACK', emoji: '💰' },
+    'blackfriday': { icon: '/imagens_promo/ic_promo_blackfriday.png', faIcon: 'fas fa-calendar-minus', color: '#212121', label: 'BLACK FRIDAY', emoji: '🖤', goldAccent: '#FFD700' },
+    'brinde': { icon: '/imagens_promo/ic_promo_brinde.png', faIcon: 'fas fa-gift', color: '#EC407A', label: 'BRINDE', emoji: '🎀' },
+    'progressivo': { icon: '/imagens_promo/ic_promo_progressivo.png', faIcon: 'fas fa-chart-line', color: '#689F38', label: 'DESCONTO PROGRESSIVO', emoji: '📈' },
+    'primeira': { icon: '/imagens_promo/ic_promo_primeira.png', faIcon: 'fas fa-star', color: '#1565C0', label: 'PRIMEIRA COMPRA', emoji: '🆕' },
+    'fidelidade': { icon: '/imagens_promo/ic_promo_fidelidade.png', faIcon: 'fas fa-award', color: '#FFB300', label: 'FIDELIDADE', emoji: '⭐' },
+    'misterio': { icon: '/imagens_promo/ic_promo_misterio.png', faIcon: 'fas fa-box-open', color: '#4527A0', label: 'CAIXA MISTERIOSA', emoji: '🎲' },
+    'bilhete': { icon: '/imagens_promo/ic_promo_bilhete.png', faIcon: 'fas fa-ticket', color: '#FFD700', label: 'BILHETE DOURADO', emoji: '🎫', goldAccent: '#FFD700' },
+    'live': { icon: '/imagens_promo/ic_promo_live.png', faIcon: 'fas fa-video', color: '#D32F2F', label: 'LIVE SALE', emoji: '📱', isLive: true },
+    'combo': { icon: '/imagens_promo/ic_promo_combo.png', faIcon: 'fas fa-boxes-stacked', color: '#EF6C00', label: 'COMBO', emoji: '📦' },
+    'parcela': { icon: '/imagens_promo/ic_promo_parcela.png', faIcon: 'fas fa-credit-card', color: '#00695C', label: 'PARCELAMENTO', emoji: '💳' },
+    'cross': { icon: '/imagens_promo/ic_promo_cross.png', faIcon: 'fas fa-link', color: '#42A5F5', label: 'COMPRE JUNTO', emoji: '🔗' },
+    'sorteio': { icon: '/imagens_promo/ic_promo_sorteio.png', faIcon: 'fas fa-trophy', color: '#7B1FA2', label: 'SORTEIO', emoji: '🎰' }
+  };
+
+  // ===================================================================
+  // ESTADO
+  // ===================================================================
+  var LIVE_PROMOS = [];
+  var MOCK_PRICE_HISTORY = {};
+  var MOCK_COMPARE = {};
+  var iconCache = {};
+  var sidebarAberta = true;
+  var searchActive = false;
+  var alertasAtivados = true;
+  var alertTimeout = null;
+  var tabAtiva = 'feed';
+  var filtroAtivo = null;
+  var monitoredProducts = [];
+  var savingsTotal = 0;
+  var demoInterval = null;
+  var flashTimers = {};
+
+  // ===================================================================
+  // API
+  // ===================================================================
+  async function fetchPromos() {
+    try {
+      var response = await fetch(API_BASE_URL);
+      if (!response.ok) throw new Error('HTTP ' + response.status);
+      var data = await response.json();
+      LIVE_PROMOS = data;
+      localStorage.setItem('max_promo_cache', JSON.stringify(data));
+      gerarDadosAuxiliares(data);
+      console.log('✅ API OK:', data.length, 'promoções');
+      return data;
+    } catch (error) {
+      console.warn('❌ API falhou:', error.message);
+      var cache = localStorage.getItem('max_promo_cache');
+      if (cache) {
+        try {
+          LIVE_PROMOS = JSON.parse(cache);
+          gerarDadosAuxiliares(LIVE_PROMOS);
+          console.log('✅ Cache restaurado:', LIVE_PROMOS.length);
+          return LIVE_PROMOS;
+        } catch(e) {}
+      }
+      LIVE_PROMOS = [];
+      return [];
+    }
+  }
+
+  function gerarDadosAuxiliares(promos) {
+    MOCK_PRICE_HISTORY = {};
+    MOCK_COMPARE = {};
+    promos.forEach(function(p) {
+      if (p.preconew > 0 && p.precoold > 0) {
+        var bars = [];
+        for (var i = 0; i < 12; i++) {
+          var v = p.precoold + (p.preconew - p.precoold) * (i / 11) + (Math.random() - 0.5) * (p.precoold - p.preconew) * 0.3;
+          bars.push(Math.max(p.preconew * 0.9, Math.min(p.precoold * 1.1, v)));
+        }
+        bars[11] = p.preconew;
+        MOCK_PRICE_HISTORY[p.id] = bars;
+        if (Math.random() > 0.6) {
+          MOCK_COMPARE[p.titulo] = [
+            { loja: p.loja, preco: p.preconew },
+            { loja: 'Concorrente A', preco: Math.round(p.preconew * (1 + Math.random() * 0.15)) },
+            { loja: 'Concorrente B', preco: Math.round(p.preconew * (1 - Math.random() * 0.05)) }
+          ];
+        }
+      }
+    });
+  }
+
+  // ===================================================================
+  // ÍCONES
+  // ===================================================================
+  function preTestarTodosIcones() {
+    Object.keys(PROMO_CONFIG).forEach(function(tipo) {
+      var src = PROMO_CONFIG[tipo].icon;
+      if (iconCache.hasOwnProperty(src)) return;
+      var img = new Image();
+      img.onload = function() { iconCache[src] = true; };
+      img.onerror = function() { iconCache[src] = false; };
+      img.src = src;
+    });
+  }
+
+  function gerarHTMLIcone(tipo, tamanho) {
+    var config = PROMO_CONFIG[tipo] || PROMO_CONFIG['desconto'];
+    var sizeClass = tamanho === 'grande' ? 'alert-icon-img' : 'promo-icon-img';
+    if (iconCache[config.icon] === true) {
+      return '<img class="' + sizeClass + '" src="' + config.icon + '" alt="' + config.label + '">' +
+             '<i class="' + config.faIcon + ' fa-fallback" style="display:none;"></i>';
+    }
+    if (iconCache[config.icon] === false) {
+      return '<i class="' + config.faIcon + ' fa-fallback"></i>';
+    }
+    return '<img class="' + sizeClass + '" src="' + config.icon + '" alt="' + config.label + '"' +
+           ' onerror="this.classList.add(\'img-failed\');this.style.display=\'none\';var fa=this.nextElementSibling;if(fa)fa.style.display=\'\';"' +
+           ' onload="var fa=this.nextElementSibling;if(fa)fa.style.display=\'none\';">' +
+           '<i class="' + config.faIcon + ' fa-fallback"></i>';
+  }
+
+  // ===================================================================
+  // UTILITÁRIOS
+  // ===================================================================
+  function ajustarBrilho(hex, percent) {
+    var num = parseInt(hex.replace('#', ''), 16);
+    var amt = Math.round(2.55 * percent);
+    var R = (num >> 16) + amt;
+    var G = (num >> 8 & 0x00FF) + amt;
+    var B = (num & 0x0000FF) + amt;
+    return '#' + (0x1000000 + (R<255?R<1?0:R:255)*0x10000 + (G<255?G<1?0:G:255)*0x100 + (B<255?B<1?0:B:255)).toString(16).slice(1);
+  }
+
+  function formatarTempo(seg) {
+    if (seg <= 0) return 'Encerrado';
+    var h = Math.floor(seg / 3600);
+    var m = Math.floor((seg % 3600) / 60);
+    var s = seg % 60;
+    if (h > 0) return h + 'h ' + String(m).padStart(2, '0') + 'm';
+    if (m > 0) return m + 'm ' + String(s).padStart(2, '0') + 's';
+    return s + 's';
+  }
+
+  var toastTimer = null;
+  function showNotification(msg) {
+    var toast = document.getElementById('toast-msg');
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function() { toast.classList.remove('show'); }, 2800);
+  }
+
+  function atualizarSavings() {
+    savingsTotal += Math.floor(Math.random() * 80) + 20;
+    document.getElementById('savings-total').textContent = 'R$ ' + savingsTotal.toLocaleString('pt-BR');
+  }
+
+  function atualizarBadgeMonitorados() {
+    var badge = document.getElementById('monitored-count');
+    if (monitoredProducts.length > 0) { badge.textContent = monitoredProducts.length; badge.style.display = 'flex'; }
+    else { badge.style.display = 'none'; }
+  }
+
+  // ===================================================================
+  // ALERTAS
+  // ===================================================================
+  var DEMO_MSGS = {
+    'desconto':'-30% em todos os produtos!','saldao':'Saldao de Inverno — 70% OFF!','outlet':'Outlet de Fabrica','flash':'Flash Sale: 50% OFF por 2h!',
+    'frete_gratis':'Frete Gratis acima de R$99','cupom':'Use MAXPROMO20 — 20% OFF','leve_pague':'Compre 2, Leve 3!','cashback':'10% Cashback!',
+    'blackfriday':'Black Friday — Maiores descontos!','brinde':'Brinde exclusivo acima de R$150','progressivo':'Ate 30% OFF progressivo',
+    'primeira':'20% OFF primeira compra!','fidelidade':'Pontos duplos nesta compra!','misterio':'Caixa Misteriosa R$49 — valor R$150!',
+    'bilhete':'Bilhete Dourado encontrado!','live':'AO VIVO agora — ofertas exclusivas!','combo':'Kit por R$199 — economize R$150',
+    'parcela':'12x sem juros!','cross':'Leve junto com 20% OFF','sorteio':'Concorra ao sorteio do iPhone 16!'
+  };
+
+  function dispararAlertaPromocaoIA(mensagem, tipoPromo) {
+    if (!alertasAtivados) return;
+    var bar = document.getElementById('alert-bar');
+    bar.classList.remove('alert-bar-critico');
+    bar.style.background = '';
+    bar.style.color = '';
+    bar.style.borderTopColor = '';
+    var config = PROMO_CONFIG[tipoPromo] || PROMO_CONFIG['desconto'];
+    document.getElementById('alert-title').textContent = config.emoji + ' ' + config.label + '!';
+    document.getElementById('alert-text').textContent = mensagem;
+    var iconBox = document.getElementById('alert-icon-box');
+    iconBox.style.background = 'linear-gradient(135deg,' + config.color + ',' + ajustarBrilho(config.color, -25) + ')';
+    iconBox.innerHTML = gerarHTMLIcone(tipoPromo, 'grande');
+    if (config.urgent || tipoPromo === 'blackfriday') bar.classList.add('alert-bar-critico');
+    if (tipoPromo === 'flash') { bar.style.background = 'linear-gradient(90deg,' + config.color + ',' + ajustarBrilho(config.color, -20) + ')'; bar.style.color = '#000'; }
+    else if (tipoPromo === 'blackfriday') { bar.style.background = 'linear-gradient(90deg,#212121,#111)'; bar.style.borderTopColor = '#FFD700'; bar.style.color = '#FFD700'; }
+    else if (tipoPromo === 'bilhete') { bar.style.background = 'linear-gradient(90deg,#1a1a2e,#16213e)'; bar.style.borderTopColor = '#FFD700'; bar.style.color = '#FFD700'; }
+    else { bar.style.background = 'linear-gradient(90deg,' + config.color + ',' + ajustarBrilho(config.color, -20) + ')'; bar.style.color = '#fff'; }
+    var container = document.getElementById('alert-container');
+    if (container.style.display !== 'block') { container.style.display = 'block'; container.style.animation = 'none'; container.offsetHeight; container.style.animation = 'slideUp 0.35s ease-out'; }
+    clearTimeout(alertTimeout);
+    alertTimeout = setTimeout(function() { esconderAlertaVisual(); }, 6000);
+    atualizarSavings();
+  }
+
+  function esconderAlertaVisual() {
+    document.getElementById('alert-container').style.display = 'none';
+    var bar = document.getElementById('alert-bar');
+    bar.classList.remove('alert-bar-critico');
+    bar.style.color = '';
+    bar.style.borderTopColor = '';
+  }
+
+  function dispararAlertaAleatorio() {
+    var tipos = Object.keys(PROMO_CONFIG);
+    var tipo = tipos[Math.floor(Math.random() * tipos.length)];
+    dispararAlertaPromocaoIA(DEMO_MSGS[tipo] || PROMO_CONFIG[tipo].label + ' ativado!', tipo);
+  }
+
+  // ===================================================================
+  // RENDER FEED — usa dados da API (LIVE_PROMOS)
+  // ===================================================================
+  function renderFeed() {
+    var container = document.getElementById('feed-container');
+    container.innerHTML = '';
+    var lista = LIVE_PROMOS.slice();
+
+    if (filtroAtivo) lista = lista.filter(function(p) { return p.tipo === filtroAtivo; });
+
+    var q = document.getElementById('search-query').value.trim().toLowerCase();
+    if (q.length >= 2) {
+      lista = lista.filter(function(p) {
+        return (p.titulo && p.titulo.toLowerCase().indexOf(q) !== -1) ||
+               (p.descricao && p.descricao.toLowerCase().indexOf(q) !== -1) ||
+               (p.loja && p.loja.toLowerCase().indexOf(q) !== -1) ||
+               (PROMO_CONFIG[p.tipo] && PROMO_CONFIG[p.tipo].label.toLowerCase().indexOf(q) !== -1);
+      });
+    }
+
+    if (lista.length === 0) {
+      container.innerHTML = '<div class="empty-state"><i class="fas fa-search"></i><p>Nenhuma oferta encontrada.</p></div>';
+      return;
+    }
+
+    lista.forEach(function(promo, idx) {
+      var config = PROMO_CONFIG[promo.tipo] || PROMO_CONFIG['desconto'];
+      var card = document.createElement('div');
+      card.className = 'promo-card';
+      card.style.animationDelay = (idx * 0.06) + 's';
+
+      var isUrgent = config.urgent;
+      var isLive = config.isLive;
+      var hasTimer = promo.temporestante > 0;
+
+      var priceOldStr = promo.precoold > 0 ? 'R$ ' + promo.precoold.toLocaleString('pt-BR') : '';
+      var priceNewStr = promo.preconew > 0 ? 'R$ ' + promo.preconew.toLocaleString('pt-BR') : 'Gratuito';
+
+      var pctDesc = '';
+      if (promo.precoold > 0 && promo.preconew > 0 && promo.preconew < promo.precoold) {
+        var pct = Math.round((1 - promo.preconew / promo.precoold) * 100);
+        if (pct > 0) pctDesc = '-' + pct + '%';
+      }
+
+      var histHTML = '';
+      var hist = MOCK_PRICE_HISTORY[promo.id];
+      if (hist && hist.length > 0) {
+        var maxH = Math.max.apply(null, hist);
+        var minH = Math.min.apply(null, hist);
+        histHTML = '<div class="price-history-mini" title="Historico de precos (12 meses)">';
+        hist.forEach(function(v) {
+          var h = 3 + ((v - minH) / (maxH - minH + 1)) * 27;
+          var c = v === hist[hist.length - 1] ? '#4CAF50' : 'rgba(255,255,255,0.15)';
+          histHTML += '<div class="price-bar" style="height:' + h + 'px;background:' + c + ';"></div>';
+        });
+        histHTML += '</div>';
+      }
+
+      var timerHTML = '';
+      if (hasTimer) {
+        timerHTML = '<div class="promo-timer urgent" id="timer-' + promo.id + '">' +
+          '<i class="fas fa-clock"></i> <span class="timer-value">' + formatarTempo(promo.temporestante) + '</span></div>';
+      }
+
+      var btnColor = config.goldAccent || config.color;
+      var btnText = 'Aproveitar';
+      if (promo.cupom) btnText = 'Cupom: ' + promo.cupom;
+      if (isLive) btnText = 'Assistir Live';
+
+      var liveHTML = isLive ? '<div class="live-indicator"><div class="live-dot"></div> AO VIVO</div>' : '';
+      var iconHTML = gerarHTMLIcone(promo.tipo, 'pequeno');
+
+      card.innerHTML =
+        '<div class="promo-card-accent" style="background:linear-gradient(90deg,' + config.color + ',' + ajustarBrilho(config.color, -20) + ');"></div>' +
+        '<div class="promo-card-body">' +
+          '<div class="promo-card-icon" style="background:linear-gradient(135deg,' + config.color + ',' + ajustarBrilho(config.color, -30) + ');">' +
+            iconHTML + (isUrgent ? '<div class="pulse-ring"></div>' : '') +
+          '</div>' +
+          '<div class="promo-card-content">' +
+            '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">' +
+              '<span class="promo-card-type" style="background:' + ajustarBrilho(config.color, -60) + ';color:' + config.color + ';">' + config.label + '</span>' +
+              (pctDesc ? '<span style="font-size:0.72rem;font-weight:800;color:#4CAF50;">' + pctDesc + '</span>' : '') +
+              liveHTML +
+            '</div>' +
+            '<div class="promo-card-title">' + (promo.titulo || 'Sem titulo') + '</div>' +
+            '<div class="promo-card-desc">' + (promo.descricao || '') + '</div>' +
+            '<div class="promo-card-meta">' +
+              (priceOldStr ? '<span class="promo-price-old">' + priceOldStr + '</span>' : '') +
+              '<span class="promo-price-new" style="color:' + (promo.preconew < promo.precoold ? '#4CAF50' : 'var(--text-main)') + ';">' + priceNewStr + '</span>' +
+              '<span class="promo-store"><i class="fas fa-store"></i> ' + (promo.loja || 'Loja') + '</span>' +
+            '</div>' + histHTML +
+          '</div>' +
+        '</div>' +
+        '<div class="promo-card-footer">' +
+          (timerHTML || '<span></span>') +
+          '<button class="promo-btn-grab" style="background:linear-gradient(135deg,' + btnColor + ',' + ajustarBrilho(btnColor, -15) + ');"' +
+            (promo.preconew > 0 ? ' data-compare="' + (promo.titulo || '').replace(/"/g, '&quot;') + '"' : '') +
+            '>' + btnText + '</button>' +
+        '</div>';
+
+      container.appendChild(card);
+      if (hasTimer) iniciarTimer(promo.id, promo.temporestante);
+
+      card.querySelector('.promo-btn-grab').addEventListener('click', function() {
+        var compKey = this.getAttribute('data-compare');
+        if (compKey && MOCK_COMPARE[compKey]) { abrirComparacao(compKey); }
+        else { showNotification('Oferta aberta na loja!'); dispararAlertaPromocaoIA('Voce acessou: ' + (promo.titulo || 'Oferta'), promo.tipo); }
+      });
+    });
+  }
+
+  function iniciarTimer(promoId, segundos) {
+    var remaining = segundos;
+    clearInterval(flashTimers[promoId]);
+    flashTimers[promoId] = setInterval(function() {
+      remaining--;
+      var el = document.getElementById('timer-' + promoId);
+      if (!el) { clearInterval(flashTimers[promoId]); return; }
+      if (remaining <= 0) { el.querySelector('.timer-value').textContent = 'Encerrado'; el.classList.add('urgent'); clearInterval(flashTimers[promoId]); return; }
+      el.querySelector('.timer-value').textContent = formatarTempo(remaining);
+      if (remaining < 600) el.classList.add('urgent');
+    }, 1000);
+  }
+
+  // ===================================================================
+  // RENDER MONITORED
+  // ===================================================================
+  function renderMonitored() {
+    var container = document.getElementById('feed-container');
+    container.innerHTML = '';
+    if (monitoredProducts.length === 0) {
+      container.innerHTML = '<div class="empty-state"><i class="fas fa-eye-slash"></i><p>Nenhum produto monitorado.<br>Toque no botao + para adicionar.</p></div>';
+      return;
+    }
+    monitoredProducts.forEach(function(prod, idx) {
+      var card = document.createElement('div');
+      card.className = 'monitored-card';
+      card.style.animationDelay = (idx * 0.06) + 's';
+      var statusColor = prod.currentPrice <= prod.targetPrice ? '#4CAF50' : prod.currentPrice > prod.targetPrice * 1.1 ? '#ff4444' : '#FFB300';
+      card.innerHTML =
+        '<div class="prod-img" style="color:' + statusColor + ';"><i class="fas fa-box"></i></div>' +
+        '<div class="prod-info"><div class="prod-name">' + prod.name + '</div><div class="prod-target">Alvo: R$ ' + prod.targetPrice.toLocaleString('pt-BR') + '</div></div>' +
+        '<div class="prod-current" style="color:' + statusColor + ';">R$ ' + prod.currentPrice.toLocaleString('pt-BR') + '</div>' +
+        '<button class="remove-btn" data-idx="' + idx + '" title="Remover"><i class="fas fa-trash"></i></button>';
+      container.appendChild(card);
+      card.querySelector('.remove-btn').addEventListener('click', function() {
+        monitoredProducts.splice(parseInt(this.getAttribute('data-idx')), 1);
+        renderMonitored(); atualizarBadgeMonitorados(); showNotification('Produto removido');
+      });
+    });
+  }
+
+  // ===================================================================
+  // RENDER HISTORY
+  // ===================================================================
+  function renderHistory() {
+    var container = document.getElementById('feed-container');
+    container.innerHTML = '';
+    var promosComHist = LIVE_PROMOS.filter(function(p) { return MOCK_PRICE_HISTORY[p.id]; });
+    if (promosComHist.length === 0) {
+      container.innerHTML = '<div class="empty-state"><i class="fas fa-chart-line"></i><p>Nenhum historico disponivel.</p></div>';
+      return;
+    }
+    var meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+    promosComHist.forEach(function(promo, idx) {
+      var config = PROMO_CONFIG[promo.tipo] || PROMO_CONFIG['desconto'];
+      var hist = MOCK_PRICE_HISTORY[promo.id];
+      var maxH = Math.max.apply(null, hist);
+      var minH = Math.min.apply(null, hist);
+      var card = document.createElement('div');
+      card.className = 'promo-card';
+      card.style.animationDelay = (idx * 0.06) + 's';
+      var barsHTML = '<div style="display:flex;align-items:flex-end;gap:4px;height:80px;padding:10px 0;">';
+      hist.forEach(function(v, i) {
+        var h = 8 + ((v - minH) / (maxH - minH + 1)) * 65;
+        var c = i === hist.length - 1 ? '#4CAF50' : 'rgba(255,179,0,0.3)';
+        barsHTML += '<div style="display:flex;flex-direction:column;align-items:center;flex:1;gap:2px;"><div style="width:100%;height:' + h + 'px;background:' + c + ';border-radius:3px 3px 0 0;min-height:4px;"></div><span style="font-size:0.5rem;color:var(--text-muted);">' + meses[i] + '</span></div>';
+      });
+      barsHTML += '</div>';
+      card.innerHTML =
+        '<div class="promo-card-accent" style="background:linear-gradient(90deg,' + config.color + ',' + ajustarBrilho(config.color, -20) + ');"></div>' +
+        '<div style="padding:14px 16px;"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><span class="promo-card-type" style="background:' + ajustarBrilho(config.color, -60) + ';color:' + config.color + ';">' + config.label + '</span><span style="font-weight:700;font-size:0.9rem;">' + promo.titulo + '</span></div>' +
+        '<div style="display:flex;gap:16px;font-size:0.8rem;margin-bottom:4px;"><span style="color:var(--text-muted);">Maior: R$ ' + maxH.toLocaleString('pt-BR') + '</span><span style="color:#4CAF50;">Menor: R$ ' + minH.toLocaleString('pt-BR') + '</span></div>' + barsHTML + '</div>';
+      container.appendChild(card);
+    });
+  }
+
+  // ===================================================================
+  // RENDER COMPARE
+  // ===================================================================
+  function renderCompare() {
+    var container = document.getElementById('feed-container');
+    container.innerHTML = '';
+    var produtosComComp = Object.keys(MOCK_COMPARE);
+    if (produtosComComp.length === 0) {
+      container.innerHTML = '<div class="empty-state"><i class="fas fa-balance-scale"></i><p>Nenhum produto para comparar.</p></div>';
+      return;
+    }
+    produtosComComp.forEach(function(nome, idx) {
+      var lojas = MOCK_COMPARE[nome].slice().sort(function(a, b) { return a.preco - b.preco; });
+      var melhor = lojas[0].preco;
+      var card = document.createElement('div');
+      card.className = 'promo-card';
+      card.style.animationDelay = (idx * 0.06) + 's';
+      var rowsHTML = '';
+      lojas.forEach(function(l) {
+        var isBest = l.preco === melhor;
+        rowsHTML += '<div class="compare-row"><span class="compare-store"><i class="fas fa-store" style="margin-right:6px;color:' + (isBest ? '#4CAF50' : 'var(--text-muted)') + ';"></i>' + l.loja + (isBest ? ' <span style="font-size:0.65rem;font-weight:800;color:#4CAF50;margin-left:6px;">MELHOR PRECO</span>' : '') + '</span><span class="compare-price ' + (isBest ? 'compare-best' : '') + '">R$ ' + l.preco.toLocaleString('pt-BR') + '</span></div>';
+      });
+      card.innerHTML = '<div class="promo-card-accent" style="background:linear-gradient(90deg,#4CAF50,#2E7D32);"></div><div style="padding:14px 16px;"><div style="font-weight:700;font-size:0.95rem;margin-bottom:12px;"><i class="fas fa-balance-scale" style="margin-right:8px;color:#4CAF50;"></i>' + nome + '</div>' + rowsHTML + '</div>';
+      container.appendChild(card);
+    });
+  }
+
+  // ===================================================================
+  // FILTROS
+  // ===================================================================
+  function renderFilters() {
+    var strip = document.getElementById('filter-strip');
+    strip.innerHTML = '';
+    var chipAll = document.createElement('button');
+    chipAll.className = 'filter-chip' + (!filtroAtivo ? ' active' : '');
+    chipAll.innerHTML = '<i class="fas fa-th"></i> Todos';
+    chipAll.addEventListener('click', function() { filtroAtivo = null; renderFilters(); renderCurrentTab(); });
+    strip.appendChild(chipAll);
+    ['flash','cupom','frete_gratis','cashback','leve_pague','blackfriday','saldao','outlet','desconto','brinde','progressivo','combo','parcela','live','misterio','sorteio'].forEach(function(tipo) {
+      var config = PROMO_CONFIG[tipo];
+      if (!config) return;
+      var chip = document.createElement('button');
+      chip.className = 'filter-chip' + (filtroAtivo === tipo ? ' active' : '');
+      chip.innerHTML = '<span class="chip-dot" style="background:' + config.color + ';"></span> ' + config.label;
+      chip.addEventListener('click', function() { filtroAtivo = filtroAtivo === tipo ? null : tipo; renderFilters(); renderCurrentTab(); });
+      strip.appendChild(chip);
+    });
+  }
+
+  function abrirComparacao(titulo) {
+    var lojas = MOCK_COMPARE[titulo];
+    if (!lojas) { showNotification('Comparacao indisponivel'); return; }
+    document.getElementById('compare-title').textContent = titulo;
+    document.getElementById('compare-subtitle').textContent = 'Precos em diferentes lojas';
+    var listEl = document.getElementById('compare-list');
+    listEl.innerHTML = '';
+    var sorted = lojas.slice().sort(function(a, b) { return a.preco - b.preco; });
+    var melhor = sorted[0].preco;
+    sorted.forEach(function(l) {
+      var isBest = l.preco === melhor;
+      var row = document.createElement('div');
+      row.className = 'compare-row';
+      row.innerHTML = '<span class="compare-store"><i class="fas fa-store" style="margin-right:6px;color:' + (isBest ? '#4CAF50' : 'var(--text-muted)') + ';"></i>' + l.loja + (isBest ? ' <span style="font-size:0.65rem;font-weight:800;color:#4CAF50;">MELHOR</span>' : '') + '</span><span class="compare-price ' + (isBest ? 'compare-best' : '') + '">R$ ' + l.preco.toLocaleString('pt-BR') + '</span>';
+      listEl.appendChild(row);
+    });
+    document.getElementById('modal-compare').classList.add('active');
+  }
+
+  function renderCurrentTab() {
+    switch (tabAtiva) {
+      case 'feed': renderFeed(); break;
+      case 'monitored': renderMonitored(); break;
+      case 'history': renderHistory(); break;
+      case 'compare': renderCompare(); break;
+    }
+  }
+
+  // ===================================================================
+  // INIT
+  // ===================================================================
+  async function initApp() {
+    await fetchPromos();
+
+    setTimeout(function() {
+      document.getElementById('loading-fullscreen').classList.add('fade-out');
+    }, 1200);
+
+    preTestarTodosIcones();
+    renderFilters();
+    renderFeed();
+
+    // MENU
+    document.getElementById('btn-menu-toggle').addEventListener('click', function() {
+      sidebarAberta = !sidebarAberta;
+      var sidebar = document.getElementById('sidebar-controls');
+      if (sidebarAberta) { sidebar.classList.remove('retracted'); this.classList.remove('active'); }
+      else { sidebar.classList.add('retracted'); this.classList.add('active'); if (searchActive) { searchActive = false; document.getElementById('search-bar').classList.remove('active'); } }
+    });
+
+    // TABS
+    document.querySelectorAll('.tab-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
+        this.classList.add('active'); this.setAttribute('aria-selected', 'true');
+        tabAtiva = this.getAttribute('data-tab');
+        document.getElementById('fab-add').style.display = (tabAtiva === 'feed' || tabAtiva === 'monitored') ? 'flex' : 'none';
+        renderCurrentTab();
+      });
+    });
+
+    // BUSCA
+    document.getElementById('btn-search-toggle').addEventListener('click', function() {
+      searchActive = !searchActive;
+      var bar = document.getElementById('search-bar');
+      if (searchActive) { bar.classList.add('active'); setTimeout(function() { document.getElementById('search-query').focus(); }, 300); }
+      else { bar.classList.remove('active'); document.getElementById('search-query').value = ''; renderCurrentTab(); }
+    });
+    document.getElementById('btn-search').addEventListener('click', function() { renderCurrentTab(); showNotification('Busca realizada'); });
+    document.getElementById('search-query').addEventListener('keypress', function(e) { if (e.key === 'Enter') { renderCurrentTab(); showNotification('Busca realizada'); } });
+    document.getElementById('search-query').addEventListener('input', function() { if (tabAtiva === 'feed') renderFeed(); });
+
+    // ALERTAS
+    document.getElementById('btn-alert-toggle').addEventListener('click', function() {
+      alertasAtivados = !alertasAtivados;
+      var icon = document.getElementById('alert-toggle-icon');
+      if (alertasAtivados) { icon.className = 'fas fa-bell'; this.style.borderColor = ''; this.style.color = 'var(--accent-color)'; showNotification('Alertas ativados'); }
+      else { icon.className = 'fas fa-bell-slash'; this.style.borderColor = '#ff4444'; this.style.color = '#ff4444'; showNotification('Alertas desativados'); }
+    });
+    document.getElementById('alert-close-btn').addEventListener('click', esconderAlertaVisual);
+
+    // FILTROS SIDEBAR
+    function ativarFiltroSidebar(tipo) {
+      filtroAtivo = filtroAtivo === tipo ? null : tipo;
+      tabAtiva = 'feed';
+      document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+      document.querySelector('[data-tab="feed"]').classList.add('active');
+      renderFilters(); renderFeed();
+      showNotification(filtroAtivo ? 'Filtrando: ' + PROMO_CONFIG[tipo].label : 'Filtro removido');
+    }
+    document.getElementById('btn-filter-flash').addEventListener('click', function() { ativarFiltroSidebar('flash'); });
+    document.getElementById('btn-filter-cupom').addEventListener('click', function() { ativarFiltroSidebar('cupom'); });
+    document.getElementById('btn-filter-frete').addEventListener('click', function() { ativarFiltroSidebar('frete_gratis'); });
+    document.getElementById('btn-filter-cashback').addEventListener('click', function() { ativarFiltroSidebar('cashback'); });
+
+    // REFRESH
+    document.getElementById('btn-refresh-feed').addEventListener('click', async function() {
+      var icon = this.querySelector('i');
+      icon.style.transition = 'transform 0.5s ease';
+      icon.style.transform = 'rotate(360deg)';
+      setTimeout(function() { icon.style.transform = ''; }, 600);
+      filtroAtivo = null;
+      document.getElementById('search-query').value = '';
+      iconCache = {};
+      await fetchPromos();
+      preTestarTodosIcones();
+      renderFilters();
+      renderCurrentTab();
+      showNotification('Ofertas atualizadas');
+    });
+
+    // DEMO
+    document.getElementById('btn-demo-alert').addEventListener('click', dispararAlertaAleatorio);
+    document.getElementById('btn-demo-auto').addEventListener('click', function() {
+      if (demoInterval) { clearInterval(demoInterval); demoInterval = null; this.classList.remove('active-demo'); this.textContent = 'Auto Demo'; showNotification('Demo desativado'); }
+      else { this.classList.add('active-demo'); this.textContent = 'Parar Demo'; showNotification('Demo automatico — alertas a cada 5s'); demoInterval = setInterval(dispararAlertaAleatorio, 5000); }
+    });
+
+    // FAB
+    document.getElementById('fab-add').addEventListener('click', function() {
+      if (tabAtiva !== 'monitored') { tabAtiva = 'monitored'; document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); }); document.querySelector('[data-tab="monitored"]').classList.add('active'); renderMonitored(); }
+      document.getElementById('modal-add-product').classList.add('active');
+    });
+
+    // MODAIS
+    document.getElementById('btn-modal-cancel').addEventListener('click', function() { document.getElementById('modal-add-product').classList.remove('active'); });
+    document.getElementById('btn-modal-confirm').addEventListener('click', function() {
+      var name = document.getElementById('input-prod-name').value.trim();
+      var target = parseFloat(document.getElementById('input-prod-target').value);
+      if (name.length < 2) { showNotification('Digite o nome do produto'); return; }
+      if (!target || target <= 0) { showNotification('Digite um preco alvo valido'); return; }
+      var current = Math.round(target * (1.15 + Math.random() * 0.25));
+      monitoredProducts.push({ name: name, targetPrice: target, currentPrice: current, category: document.getElementById('input-prod-category').value });
+      document.getElementById('modal-add-product').classList.remove('active');
+      document.getElementById('input-prod-name').value = '';
+      document.getElementById('input-prod-target').value = '';
+      atualizarBadgeMonitorados(); renderMonitored();
+      showNotification('Produto adicionado ao monitoramento!');
+      dispararAlertaPromocaoIA('Monitorando: ' + name, 'fidelidade');
+    });
+    document.getElementById('btn-compare-close').addEventListener('click', function() { document.getElementById('modal-compare').classList.remove('active'); });
+    document.querySelectorAll('.modal-overlay').forEach(function(overlay) {
+      overlay.addEventListener('click', function(e) { if (e.target === overlay) overlay.classList.remove('active'); });
+    });
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') { document.querySelectorAll('.modal-overlay.active').forEach(function(m) { m.classList.remove('active'); }); if (searchActive) { searchActive = false; document.getElementById('search-bar').classList.remove('active'); } esconderAlertaVisual(); }
+    });
+
+    // SIMULAÇÃO PREÇO
+    setInterval(function() {
+      if (monitoredProducts.length > 0) {
+        var idx = Math.floor(Math.random() * monitoredProducts.length);
+        var prod = monitoredProducts[idx];
+        var change = (Math.random() - 0.6) * prod.targetPrice * 0.05;
+        prod.currentPrice = Math.max(Math.round(prod.targetPrice * 0.8), Math.round(prod.currentPrice + change));
+        if (prod.currentPrice <= prod.targetPrice) dispararAlertaPromocaoIA(prod.name + ' atingiu seu preco alvo! R$ ' + prod.currentPrice.toLocaleString('pt-BR'), 'desconto');
+        if (tabAtiva === 'monitored') renderMonitored();
+      }
+    }, 8000);
+  }
+
+  window.onload = initApp;
+</script>
+</body>
+</html>
