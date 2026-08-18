@@ -2,24 +2,34 @@
   "version": 2,
   "builds": [
     {
+      "src": "api-test.js",
+      "use": "@vercel/node"
+    },
+    {
       "src": "api/**/*.js",
       "use": "@vercel/node"
     },
     {
       "src": "*.html",
       "use": "@vercel/static"
+    },
+    {
+      "src": "public/**/*",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
     {
+      "src": "/api-test",
+      "dest": "/api-test.js"
+    },
+    {
       "src": "/api/(.*)",
-      "dest": "/api/$1",
-      "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+      "dest": "/api/$1"
     },
     {
       "src": "/(.*)",
-      "dest": "/$1",
-      "continue": true
+      "dest": "/$1"
     }
   ]
 }
