@@ -12,6 +12,7 @@
     "collect:awin": "node src/collectors/awin.js"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.1.0",
     "@supabase/supabase-js": "^2.108.1",
     "@upstash/redis": "^1.38.0",
     "axios": "^1.17.0",
