@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Teste Neon</title>
+</head>
+<body>
+  <h1>Teste de Conexão com Neon</h1>
+  <pre id="resultado">Carregando...</pre>
+  <script>
+    fetch('/api-test.js')
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('resultado').textContent = JSON.stringify(data, null, 2);
+      })
+      .catch(err => {
+        document.getElementById('resultado').textContent = 'Erro: ' + err.message;
+      });
+  </script>
+</body>
+</html>
