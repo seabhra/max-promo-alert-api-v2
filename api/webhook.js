@@ -28,10 +28,19 @@ module.exports = (req, res) => {
     }
   }
 
-  if (req.method === 'POST') {
-    console.log('📨 Webhook POST recebido:', JSON.stringify(req.body));
-    return res.status(200).send('EVENT_RECEIVED');
+if (req.method === 'POST') {
+  const body = req.body;
+  console.log('📨 Evento recebido:', JSON.stringify(body, null, 2));
+  
+  // Processar a mensagem
+  if (body.entry && body.entry[0].changes) {
+    // Lógica para responder mensagens
+    // Exemplo: enviar uma resposta automática
   }
+  
+  return res.status(200).send('EVENT_RECEIVED');
+}
+
 
   res.status(405).send('Method Not Allowed');
 };
