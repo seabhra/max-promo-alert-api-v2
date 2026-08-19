@@ -1,4 +1,4 @@
-// awin-webhook-v2.js - Recebe notificações da Awin (versão corrigida)
+// awin-webhook-v2.js - Recebe notificações da Awin com autenticação
 const { neon } = require('@neondatabase/serverless');
 
 module.exports = async (req, res) => {
@@ -11,6 +11,20 @@ module.exports = async (req, res) => {
   }
 
   try {
+    // ===================================================================
+    // VERIFICAÇÃO DE AUTENTICAÇÃO (segurança)
+    // ===================================================================
+    const token = req.headers['x-awin-signature'] || req.headers['authorization'];
+    const expectedToken = process.env.AWIN_WEBHOOK_SECRET;
+    
+    if (expectedToken && token !== expectedToken) {
+      console.warn('⚠️ Token inválido recebido:', token);
+      return res.status(401).json({ 
+        error: 'Unauthorized',
+        message: 'Token de autenticação inválido'
+      });
+    }
+
     console.log('📨 Webhook da Awin v2 recebido!');
     
     if (req.method === 'GET') {
@@ -51,7 +65,6 @@ module.exports = async (req, res) => {
     let count = 0;
 
     for (const t of transacoes) {
-      // Extrair campos com fallback
       const transactionId = t.id || t.transactionId || t.awin_transaction_id || 'N/A';
       const advertiserId = t.advertiserId || t.merchantId || t.programa_id || null;
       const advertiserName = t.advertiserName || t.merchantName || t.programa_nome || null;
@@ -63,7 +76,6 @@ module.exports = async (req, res) => {
 
       console.log(`💾 Salvando transação ${transactionId}...`);
 
-      // === CORREÇÃO: Removido atualizado_em ===
       await sql`
         INSERT INTO transacoes_awin (
           awin_transaction_id,
