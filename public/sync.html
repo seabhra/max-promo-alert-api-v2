@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head><title>Sincronizar Awin</title></head>
+<body>
+  <h1>🔄 Sincronizando Programas da Awin</h1>
+  <button onclick="sincronizar()">Iniciar Sincronização</button>
+  <pre id="resultado">Clique no botão para começar...</pre>
+
+  <script>
+    async function sincronizar() {
+      const resultado = document.getElementById('resultado');
+      resultado.textContent = '⏳ Sincronizando...';
+      
+      try {
+        const response = await fetch('/sync-awin');
+        const data = await response.json();
+        resultado.textContent = '✅ Concluído!\n\n' + JSON.stringify(data, null, 2);
+      } catch (error) {
+        resultado.textContent = '❌ Erro: ' + error.message;
+      }
+    }
+  </script>
+</body>
+</html>
