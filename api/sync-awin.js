@@ -2,26 +2,12 @@ const { neon } = require('@neondatabase/serverless');
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
 
   try {
     const sql = neon(process.env.DATABASE_URL);
     const AWIN_TOKEN = process.env.AWIN_TOKEN;
     const PUBLISHER_ID = process.env.AWIN_PUBLISHER_ID;
 
-    if (!AWIN_TOKEN || !PUBLISHER_ID) {
-      return res.status(500).json({ 
-        error: 'Variáveis AWIN_TOKEN e AWIN_PUBLISHER_ID são obrigatórias'
-      });
-    }
-
-    console.log('📡 Buscando programas da Awin...');
-    
     const response = await fetch(
       `https://api.awin.com/publishers/${PUBLISHER_ID}/programmes/`,
       {
@@ -32,29 +18,28 @@ module.exports = async (req, res) => {
       }
     );
 
-    if (!response.ok) {
-      throw new Error(`Erro na API da Awin: ${response.status} - ${response.statusText}`);
-    }
-
     const programas = await response.json();
-    console.log(`📊 Encontrados ${programas.length} programas`);
+    
+    // Preparar dados para inserção em massa
+    const valores = programas.map(p => ({
+      awin_id: p.id,
+      nome: p.name || 'Sem nome',
+      descricao: p.description || null,
+      moeda: p.currencyCode || null,
+      regiao: p.primaryRegion?.countryCode || null,
+      setor: p.primaryRegion?.primarySector || null,
+      url_click: p.clickThroughUrl || null,
+      url_logo: p.logoUrl || null
+    }));
 
-    let inseridos = 0;
-    let atualizados = 0;
-
-    for (const p of programas) {
-      const result = await sql`
+    // Inserir todos de uma vez (mais rápido)
+    for (const v of valores) {
+      await sql`
         INSERT INTO programas_awin (
           awin_id, nome, descricao, moeda, regiao, setor, url_click, url_logo
         ) VALUES (
-          ${p.id}, 
-          ${p.name || 'Sem nome'}, 
-          ${p.description || null}, 
-          ${p.currencyCode || null}, 
-          ${p.primaryRegion?.countryCode || null}, 
-          ${p.primaryRegion?.primarySector || null}, 
-          ${p.clickThroughUrl || null}, 
-          ${p.logoUrl || null}
+          ${v.awin_id}, ${v.nome}, ${v.descricao}, ${v.moeda}, 
+          ${v.regiao}, ${v.setor}, ${v.url_click}, ${v.url_logo}
         )
         ON CONFLICT (awin_id) DO UPDATE SET
           nome = EXCLUDED.nome,
@@ -65,29 +50,16 @@ module.exports = async (req, res) => {
           url_click = EXCLUDED.url_click,
           url_logo = EXCLUDED.url_logo,
           atualizado_em = CURRENT_TIMESTAMP
-        RETURNING (xmax = 0) AS inserted
       `;
-      
-      if (result[0]?.inserted) {
-        inseridos++;
-      } else {
-        atualizados++;
-      }
     }
 
     return res.status(200).json({
       success: true,
-      message: 'Sincronização concluída',
-      total: programas.length,
-      inseridos,
-      atualizados
+      message: `${programas.length} programas sincronizados`
     });
 
   } catch (err) {
-    console.error('❌ Erro na sincronização:', err);
-    return res.status(500).json({ 
-      error: err.message,
-      stack: err.stack
-    });
+    console.error('❌ Erro:', err);
+    return res.status(500).json({ error: err.message });
   }
 };
