@@ -23,28 +23,21 @@ module.exports = async (req, res) => {
     const body = req.body;
     console.log('📦 Dados recebidos:', JSON.stringify(body, null, 2));
 
-    // === CORREÇÃO: Identificar transação em diferentes formatos ===
+    // Identificar transação em diferentes formatos
     let transacoes = [];
     
-    // Formato 1: { transaction: { ... } }
     if (body.transaction) {
       transacoes = [body.transaction];
-    }
-    // Formato 2: { transactions: [ ... ] }
-    else if (body.transactions && Array.isArray(body.transactions)) {
+    } else if (body.transactions && Array.isArray(body.transactions)) {
       transacoes = body.transactions;
-    }
-    // Formato 3: Dados diretos (ID, amount, etc.)
-    else if (body.id || body.transactionId) {
+    } else if (body.id || body.transactionId) {
       transacoes = [body];
-    }
-    // Formato 4: Array direto
-    else if (Array.isArray(body)) {
+    } else if (Array.isArray(body)) {
       transacoes = body;
     }
 
     if (transacoes.length === 0) {
-      console.log('⚠️ Nenhuma transação encontrada no formato esperado');
+      console.log('⚠️ Nenhuma transação encontrada');
       return res.status(200).json({
         success: true,
         message: 'Webhook recebido (nenhuma transação identificada)',
@@ -58,7 +51,7 @@ module.exports = async (req, res) => {
     let count = 0;
 
     for (const t of transacoes) {
-      // Extrair campos com fallback para diferentes nomes
+      // Extrair campos com fallback
       const transactionId = t.id || t.transactionId || t.awin_transaction_id || 'N/A';
       const advertiserId = t.advertiserId || t.merchantId || t.programa_id || null;
       const advertiserName = t.advertiserName || t.merchantName || t.programa_nome || null;
@@ -70,6 +63,7 @@ module.exports = async (req, res) => {
 
       console.log(`💾 Salvando transação ${transactionId}...`);
 
+      // === CORREÇÃO: Removido atualizado_em ===
       await sql`
         INSERT INTO transacoes_awin (
           awin_transaction_id,
@@ -93,8 +87,7 @@ module.exports = async (req, res) => {
         ON CONFLICT (awin_transaction_id) DO UPDATE SET
           status = EXCLUDED.status,
           valor = EXCLUDED.valor,
-          comissao = EXCLUDED.comissao,
-          atualizado_em = CURRENT_TIMESTAMP
+          comissao = EXCLUDED.comissao
       `;
       count++;
     }
