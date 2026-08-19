@@ -347,17 +347,20 @@ var PROMO_CONFIG = {
         document.getElementById('status-dot').classList.remove('offline');
         return data.programas.map(function(p){
           return{
-            id:p.awin_id||p.id,
-            tipo:mappearSetorParaTipo(p.setor),
-            titulo:p.nome||'Produto',
-            desc:p.descricao||'Oferta da Awin',
-            loja:p.nome||'Awin',
-            precoOld:0,
-            precoNew:0,
-            cupom:null,
-            tempoRestante:0,
-            fonte:'Awin'
-          };
+  id: p.awin_id || p.id,
+  tipo: mappearSetorParaTipo(p.setor),
+  titulo: p.nome || 'Produto',
+  desc: p.descricao || 'Oferta da Awin',
+  loja: p.nome || 'Awin',
+  precoOld: 0,
+  precoNew: 0,
+  cupom: null,
+  tempoRestante: 0,
+  fonte: 'Awin',
+  clickThroughUrl: p.url_click || '#',  // <-- ADICIONAR ESTA LINHA
+  url: p.url_click || '#'
+};
+
         });
       }
       return null;
@@ -432,34 +435,118 @@ var PROMO_CONFIG = {
   // ===================================================================
   // RENDERIZAR CARDS
   // ===================================================================
-  async function renderFeed(promos){
-    var container=document.getElementById('feed-container');container.innerHTML='';
-    var lista=promos;
-    if(!lista){var neonData=await buscarPromocoesNeon();lista=neonData||MOCK_PROMOS}
-    if(filtroAtivo)lista=lista.filter(function(p){return p.tipo===filtroAtivo});
-    var q=document.getElementById('search-query').value.trim().toLowerCase();
-    if(q.length>=2)lista=lista.filter(function(p){return p.titulo.toLowerCase().indexOf(q)!==-1||p.desc.toLowerCase().indexOf(q)!==-1||p.loja.toLowerCase().indexOf(q)!==-1||(PROMO_CONFIG[p.tipo]&&PROMO_CONFIG[p.tipo].label.toLowerCase().indexOf(q)!==-1)});
-    if(lista.length===0){container.innerHTML='<div class="empty-state"><i class="fas fa-search"></i><p>Nenhuma oferta encontrada.</p></div>';return}
-    lista.forEach(function(promo,idx){
-      var config=PROMO_CONFIG[promo.tipo]||PROMO_CONFIG['desconto'];
-      var card=document.createElement('div');card.className='promo-card';card.style.animationDelay=(idx*0.06)+'s';
-      var isUrgent=config.urgent,isLive=config.isLive,hasTimer=promo.tempoRestante>0;
-      var priceOldStr=promo.precoOld>0?'R$ '+promo.precoOld.toLocaleString('pt-BR'):'';
-      var priceNewStr=promo.precoNew>0?'R$ '+promo.precoNew.toLocaleString('pt-BR'):'';
-      var pctDesc='';if(promo.precoOld>0&&promo.precoNew>0){var pct=Math.round((1-promo.precoNew/promo.precoOld)*100);if(pct>0)pctDesc='-'+pct+'%'}
-      var histHTML='';var hist=MOCK_PRICE_HISTORY[promo.id];
-      if(hist&&hist.length>0){var maxH=Math.max.apply(null,hist);var minH=Math.min.apply(null,hist);histHTML='<div class="price-history-mini">';hist.forEach(function(v){var h=3+((v-minH)/(maxH-minH+1))*27;var c=v===hist[hist.length-1]?'#4CAF50':'rgba(255,255,255,0.15)';histHTML+='<div class="price-bar" style="height:'+h+'px;background:'+c+';"></div>'});histHTML+='</div>'}
-      var timerHTML='';if(hasTimer)timerHTML='<div class="promo-timer urgent" id="timer-'+promo.id+'"><i class="fas fa-clock"></i> <span class="timer-value">'+formatarTempo(promo.tempoRestante)+'</span></div>';
-      var btnColor=config.goldAccent||config.color;var btnText='Aproveitar';if(promo.cupom)btnText='Cupom: '+promo.cupom;if(isLive)btnText='Assistir Live';
-      var liveHTML=isLive?'<div class="live-indicator"><div class="live-dot"></div> AO VIVO</div>':'';
-      var sourceHTML=promo.fonte?'<span class="source-badge" style="background:rgba(255,255,255,0.05);color:var(--text-muted);"><i class="fas fa-rss" style="font-size:0.5rem;"></i> '+promo.fonte+'</span>':'';
-      var iconHTML=gerarHTMLIcone(promo.tipo,'pequeno');
-      card.innerHTML='<div class="promo-card-accent" style="background:linear-gradient(90deg,'+config.color+','+ajustarBrilho(config.color,-20)+');"></div><div class="promo-card-body"><div class="promo-card-icon" style="background:linear-gradient(135deg,'+config.color+','+ajustarBrilho(config.color,-30)+');">'+iconHTML+(isUrgent?'<div class="pulse-ring"></div>':'')+'</div><div class="promo-card-content"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><span class="promo-card-type" style="background:'+ajustarBrilho(config.color,-60)+';color:'+config.color+';">'+config.label+'</span>'+(pctDesc?'<span style="font-size:0.72rem;font-weight:800;color:#4CAF50;">'+pctDesc+'</span>':'')+liveHTML+sourceHTML+'</div><div class="promo-card-title">'+promo.titulo+'</div><div class="promo-card-desc">'+promo.desc+'</div><div class="promo-card-meta">'+(priceOldStr?'<span class="promo-price-old">'+priceOldStr+'</span>':'')+'<span class="promo-price-new" style="color:'+(promo.precoNew<promo.precoOld?'#4CAF50':'var(--text-main)')+';">'+priceNewStr+'</span><span class="promo-store"><i class="fas fa-store"></i> '+promo.loja+'</span></div>'+histHTML+'</div></div><div class="promo-card-footer">'+timerHTML+'<button class="promo-btn-grab" style="background:linear-gradient(135deg,'+btnColor+','+ajustarBrilho(btnColor,-15)+');">'+btnText+'</button></div>';
-      container.appendChild(card);
-      if(hasTimer)iniciarTimer(promo.id,promo.tempoRestante);
+async function renderFeed(promos) {
+  var container = document.getElementById('feed-container');
+  container.innerHTML = '';
+  
+  var lista = promos;
+  if (!lista) {
+    var neonData = await buscarPromocoesNeon();
+    lista = neonData || MOCK_PROMOS;
+  }
+  
+  if (filtroAtivo) {
+    lista = lista.filter(function(p) { return p.tipo === filtroAtivo; });
+  }
+  
+  var q = document.getElementById('search-query').value.trim().toLowerCase();
+  if (q.length >= 2) {
+    lista = lista.filter(function(p) {
+      return p.titulo.toLowerCase().indexOf(q) !== -1 ||
+             p.desc.toLowerCase().indexOf(q) !== -1 ||
+             p.loja.toLowerCase().indexOf(q) !== -1 ||
+             (PROMO_CONFIG[p.tipo] && PROMO_CONFIG[p.tipo].label.toLowerCase().indexOf(q) !== -1);
     });
   }
-
+  
+  if (lista.length === 0) {
+    container.innerHTML = '<div class="empty-state"><i class="fas fa-search"></i><p>Nenhuma oferta encontrada.</p></div>';
+    return;
+  }
+  
+  lista.forEach(function(promo, idx) {
+    var config = PROMO_CONFIG[promo.tipo] || PROMO_CONFIG['desconto'];
+    var card = document.createElement('div');
+    card.className = 'promo-card';
+    card.style.animationDelay = (idx * 0.06) + 's';
+    
+    var isUrgent = config.urgent;
+    var isLive = config.isLive;
+    var hasTimer = promo.tempoRestante > 0;
+    
+    var priceOldStr = promo.precoOld > 0 ? 'R$ ' + promo.precoOld.toLocaleString('pt-BR') : '';
+    var priceNewStr = promo.precoNew > 0 ? 'R$ ' + promo.precoNew.toLocaleString('pt-BR') : '';
+    var pctDesc = '';
+    if (promo.precoOld > 0 && promo.precoNew > 0) {
+      var pct = Math.round((1 - promo.precoNew / promo.precoOld) * 100);
+      if (pct > 0) pctDesc = '-' + pct + '%';
+    }
+    
+    var histHTML = '';
+    var hist = MOCK_PRICE_HISTORY[promo.id];
+    if (hist && hist.length > 0) {
+      var maxH = Math.max.apply(null, hist);
+      var minH = Math.min.apply(null, hist);
+      histHTML = '<div class="price-history-mini">';
+      hist.forEach(function(v) {
+        var h = 3 + ((v - minH) / (maxH - minH + 1)) * 27;
+        var c = v === hist[hist.length - 1] ? '#4CAF50' : 'rgba(255,255,255,0.15)';
+        histHTML += '<div class="price-bar" style="height:' + h + 'px;background:' + c + ';"></div>';
+      });
+      histHTML += '</div>';
+    }
+    
+    var timerHTML = '';
+    if (hasTimer) {
+      timerHTML = '<div class="promo-timer urgent" id="timer-' + promo.id + '"><i class="fas fa-clock"></i> <span class="timer-value">' + formatarTempo(promo.tempoRestante) + '</span></div>';
+    }
+    
+    var btnColor = config.goldAccent || config.color;
+    var btnText = 'Aproveitar';
+    if (promo.cupom) btnText = 'Cupom: ' + promo.cupom;
+    if (isLive) btnText = 'Assistir Live';
+    
+    // ===================================================================
+    // CRIAÇÃO DO BOTÃO COM LINK (CORREÇÃO)
+    // ===================================================================
+    var linkUrl = promo.clickThroughUrl || promo.url || '#';
+    var btnHTML = '<a href="' + linkUrl + '" target="_blank" rel="noopener noreferrer" class="promo-btn-grab" style="background:linear-gradient(135deg,' + btnColor + ',' + ajustarBrilho(btnColor, -15) + ');text-decoration:none;display:inline-block;text-align:center;">' + btnText + '</a>';
+    
+    var liveHTML = isLive ? '<div class="live-indicator"><div class="live-dot"></div> AO VIVO</div>' : '';
+    var sourceHTML = promo.fonte ? '<span class="source-badge" style="background:rgba(255,255,255,0.05);color:var(--text-muted);"><i class="fas fa-rss" style="font-size:0.5rem;"></i> ' + promo.fonte + '</span>' : '';
+    var iconHTML = gerarHTMLIcone(promo.tipo, 'pequeno');
+    
+    card.innerHTML = '<div class="promo-card-accent" style="background:linear-gradient(90deg,' + config.color + ',' + ajustarBrilho(config.color, -20) + ');"></div>' +
+      '<div class="promo-card-body">' +
+        '<div class="promo-card-icon" style="background:linear-gradient(135deg,' + config.color + ',' + ajustarBrilho(config.color, -30) + ');">' + iconHTML + (isUrgent ? '<div class="pulse-ring"></div>' : '') + '</div>' +
+        '<div class="promo-card-content">' +
+          '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">' +
+            '<span class="promo-card-type" style="background:' + ajustarBrilho(config.color, -60) + ';color:' + config.color + ';">' + config.label + '</span>' +
+            (pctDesc ? '<span style="font-size:0.72rem;font-weight:800;color:#4CAF50;">' + pctDesc + '</span>' : '') +
+            liveHTML + sourceHTML +
+          '</div>' +
+          '<div class="promo-card-title">' + promo.titulo + '</div>' +
+          '<div class="promo-card-desc">' + promo.desc + '</div>' +
+          '<div class="promo-card-meta">' +
+            (priceOldStr ? '<span class="promo-price-old">' + priceOldStr + '</span>' : '') +
+            '<span class="promo-price-new" style="color:' + (promo.precoNew < promo.precoOld ? '#4CAF50' : 'var(--text-main)') + ';">' + priceNewStr + '</span>' +
+            '<span class="promo-store"><i class="fas fa-store"></i> ' + promo.loja + '</span>' +
+          '</div>' +
+          histHTML +
+        '</div>' +
+      '</div>' +
+      '<div class="promo-card-footer">' +
+        timerHTML +
+        btnHTML +
+      '</div>';
+    
+    container.appendChild(card);
+    
+    if (hasTimer) {
+      iniciarTimer(promo.id, promo.tempoRestante);
+    }
+  });
+}
   function renderMonitored(){var container=document.getElementById('feed-container');container.innerHTML='';if(monitoredProducts.length===0){container.innerHTML='<div class="empty-state"><i class="fas fa-eye-slash"></i><p>Nenhum produto monitorado.<br>Toque no botao + para adicionar.</p></div>';return}monitoredProducts.forEach(function(prod,idx){var card=document.createElement('div');card.className='monitored-card';card.style.animationDelay=(idx*0.06)+'s';var statusColor='#4CAF50';if(prod.currentPrice>prod.targetPrice*1.1)statusColor='#ff4444';else if(prod.currentPrice>prod.targetPrice)statusColor='#FFB300';card.innerHTML='<div class="prod-img" style="color:'+statusColor+';"><i class="fas fa-box"></i></div><div class="prod-info"><div class="prod-name">'+prod.name+'</div><div class="prod-target">Alvo: R$ '+prod.targetPrice.toLocaleString('pt-BR')+'</div></div><div class="prod-current" style="color:'+statusColor+';">R$ '+prod.currentPrice.toLocaleString('pt-BR')+'</div><button class="remove-btn" data-idx="'+idx+'" title="Remover"><i class="fas fa-trash"></i></button>';container.appendChild(card);card.querySelector('.remove-btn').addEventListener('click',function(){monitoredProducts.splice(parseInt(this.getAttribute('data-idx')),1);renderMonitored();atualizarBadgeMonitorados();showNotification('Produto removido')})})}
 
   function renderHistory(){var container=document.getElementById('feed-container');container.innerHTML='';var promosComHist=MOCK_PROMOS.filter(function(p){return MOCK_PRICE_HISTORY[p.id]});if(promosComHist.length===0){container.innerHTML='<div class="empty-state"><i class="fas fa-chart-line"></i><p>Nenhum historico.</p></div>';return}promosComHist.forEach(function(promo,idx){var config=PROMO_CONFIG[promo.tipo]||PROMO_CONFIG['desconto'];var hist=MOCK_PRICE_HISTORY[promo.id];var maxH=Math.max.apply(null,hist);var minH=Math.min.apply(null,hist);var card=document.createElement('div');card.className='promo-card';card.style.animationDelay=(idx*0.06)+'s';var meses=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];var barsHTML='<div style="display:flex;align-items:flex-end;gap:4px;height:80px;padding:10px 0;">';hist.forEach(function(v,i){var h=8+((v-minH)/(maxH-minH+1))*65;var c=i===hist.length-1?'#4CAF50':'rgba(255,179,0,0.3)';barsHTML+='<div style="display:flex;flex-direction:column;align-items:center;flex:1;gap:2px;"><div style="width:100%;height:'+h+'px;background:'+c+';border-radius:3px 3px 0 0;min-height:4px;"></div><span style="font-size:0.5rem;color:var(--text-muted);">'+meses[i]+'</span></div>'});barsHTML+='</div>';card.innerHTML='<div class="promo-card-accent" style="background:linear-gradient(90deg,'+config.color+','+ajustarBrilho(config.color,-20)+');"></div><div style="padding:14px 16px;"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><span class="promo-card-type" style="background:'+ajustarBrilho(config.color,-60)+';color:'+config.color+';">'+config.label+'</span><span style="font-weight:700;font-size:0.9rem;">'+promo.titulo+'</span></div><div style="display:flex;gap:16px;font-size:0.8rem;margin-bottom:4px;"><span style="color:var(--text-muted);">Maior: R$ '+maxH.toLocaleString('pt-BR')+'</span><span style="color:#4CAF50;">Menor: R$ '+minH.toLocaleString('pt-BR')+'</span></div>'+barsHTML+'</div>';container.appendChild(card)})}
