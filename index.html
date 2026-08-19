@@ -298,23 +298,26 @@ var PROMO_CONFIG = {
   function gerarHTMLIcone(tipo,tamanho){var config=PROMO_CONFIG[tipo]||PROMO_CONFIG['desconto'];var sizeClass=tamanho==='grande'?'alert-icon-img':'promo-icon-img';var faClass='fa-fallback';if(iconCache[config.icon]===true)return'<img class="'+sizeClass+'" src="'+config.icon+'" alt="'+config.label+'"><i class="'+config.faIcon+' '+faClass+'" style="display:none;"></i>';if(iconCache[config.icon]===false)return'<i class="'+config.faIcon+' '+faClass+'"></i>';return'<img class="'+sizeClass+'" src="'+config.icon+'" alt="'+config.label+'" onerror="this.classList.add(\'img-failed\');this.style.display=\'none\';var fa=this.nextElementSibling;if(fa)fa.style.display=\'\';" onload="var fa=this.nextElementSibling;if(fa)fa.style.display=\'none\';"><i class="'+config.faIcon+' '+faClass+'"></i>'}
 
   // ==================== DADOS MOCK (fallback) ====================
-  var MOCK_PROMOS = [
-    {id:1,tipo:'flash',titulo:'Galaxy S24 FE 128GB',desc:'Flash Sale: 50% OFF por 2 horas apenas!',loja:'TechStore',precoOld:3499,precoNew:1749,tempoRestante:7200},
-    {id:2,tipo:'cupom',titulo:'Fone Bluetooth Sony WH-1000XM5',desc:'Use o cupom RADAR10 e ganhe 10% OFF',loja:'SomMax',precoOld:2299,precoNew:2069,cupom:'RADAR10'},
-    {id:3,tipo:'frete_gratis',titulo:'Kit Organizacao Closet 5 pecas',desc:'Frete Grátis em compras acima de R$ 99',loja:'Casa&Estrutura',precoOld:189,precoNew:149},
-    {id:4,tipo:'cashback',titulo:'Perfume Tom Ford Tobacco Vanille 50ml',desc:'10% de Cashback na sua carteira digital',loja:'BelezaVIP',precoOld:1450,precoNew:1299},
-    {id:5,tipo:'leve_pague',titulo:'Camiseta Polo Classic',desc:'Compre 2, Leve 3 — Pague 2!',loja:'ModaFit',precoOld:89,precoNew:59},
-    {id:6,tipo:'blackfriday',titulo:'MacBook Air M3 256GB',desc:'Black Friday: Maiores descontos do ano!',loja:'AppleZone',precoOld:12499,precoNew:9999},
-    {id:7,tipo:'saldao',titulo:'Jaqueta de Couro Legítimo',desc:'Saldão de Inverno — ate 70% OFF',loja:'Couro&Style',precoOld:899,precoNew:269},
-    {id:8,tipo:'outlet',titulo:'Tenis Nike Air Max 90',desc:'Outlet de Fabrica — pecas de colecao passada',loja:'SneakerOutlet',precoOld:749,precoNew:349},
-    {id:9,tipo:'brinde',titulo:'Skincare Coreano Set 7 Steps',desc:'Ganhe um brinde exclusivo na compra acima de R$ 150',loja:'KBeauty',precoOld:280,precoNew:199},
-    {id:10,tipo:'progressivo',titulo:'Vinho Malbec Argentino',desc:'Compre 2 = 10% OFF | 3 = 20% OFF | 4 = 30% OFF',loja:'VinhoPremium',precoOld:89,precoNew:62},
-    {id:11,tipo:'primeira',titulo:'Kindle Paperwhite 11a Geracao',desc:'20% OFF na sua primeira compra!',loja:'LivrariaDigital',precoOld:649,precoNew:519},
-    {id:12,tipo:'live',titulo:'Make Set Profissional 24 pecas',desc:'AO VIVO agora: Ofertas exclusivas na live!',loja:'GlamLive',precoOld:450,precoNew:189},
-    {id:13,tipo:'combo',titulo:'Kit Gamer: Mouse + Teclado + Mousepad',desc:'Kit Completo: 3 produtos por R$ 199',loja:'GameZone',precoOld:349,precoNew:199},
-    {id:14,tipo:'parcela',titulo:'TV LG OLED 55" C4',desc:'12x sem juros em todos os produtos!',loja:'TVWorld',precoOld:6999,precoNew:5499},
-    {id:15,tipo:'misterio',titulo:'Caixa Misteriosa Premium',desc:'Caixa Misteriosa por R$ 49 — Valor garantido de R$ 150!',loja:'SurpriseBox',precoOld:150,precoNew:49}
-  ];
+  
+// ===================================================================
+// MOCK DATA — APENAS BOLSA TIGRESA (manual)
+// ===================================================================
+var MOCK_PROMOS = [
+  // ★ Bolsa Tigresa — Flash Sale da Atelier Sorelle Santos
+  {
+    id: 21,
+    tipo: 'flash',
+    titulo: 'Bolsa Tigresa – edição limitada',
+    desc: 'Flash Sale: 10% OFF por 2 horas apenas!',
+    loja: 'Atelier Sorelle Santos',
+    precoOld: 3499,
+    precoNew: 1749,
+    tempoRestante: 7200,
+    clickThroughUrl: 'https://ateliersorellesantos.vercel.app/',
+    url: 'https://ateliersorellesantos.vercel.app/'
+  }
+];
+
 
   var MOCK_PRICE_HISTORY = {};
   MOCK_PROMOS.forEach(function(p){if(p.precoNew>0){var bars=[];for(var i=0;i<12;i++){var v=p.precoOld+(p.precoNew-p.precoOld)*(i/11)+(Math.random()-0.5)*(p.precoOld-p.precoNew)*0.3;bars.push(Math.max(p.precoNew*0.9,Math.min(p.precoOld*1.1,v)))}bars[11]=p.precoNew;MOCK_PRICE_HISTORY[p.id]=bars}});
@@ -509,8 +512,9 @@ async function renderFeed(promos) {
     // ===================================================================
     // CRIAÇÃO DO BOTÃO COM LINK (CORREÇÃO)
     // ===================================================================
-    var linkUrl = promo.clickThroughUrl || promo.url || '#';
-    var btnHTML = '<a href="' + linkUrl + '" target="_blank" rel="noopener noreferrer" class="promo-btn-grab" style="background:linear-gradient(135deg,' + btnColor + ',' + ajustarBrilho(btnColor, -15) + ');text-decoration:none;display:inline-block;text-align:center;">' + btnText + '</a>';
+    // Na função renderFeed, ao criar o botão:
+var linkUrl = promo.clickThroughUrl || promo.url || '#';
+var btnHTML = '<a href="' + linkUrl + '" target="_blank" rel="noopener noreferrer" class="promo-btn-grab" style="background:linear-gradient(135deg,' + btnColor + ',' + ajustarBrilho(btnColor, -15) + ');text-decoration:none;display:inline-block;text-align:center;">' + btnText + '</a>';
     
     var liveHTML = isLive ? '<div class="live-indicator"><div class="live-dot"></div> AO VIVO</div>' : '';
     var sourceHTML = promo.fonte ? '<span class="source-badge" style="background:rgba(255,255,255,0.05);color:var(--text-muted);"><i class="fas fa-rss" style="font-size:0.5rem;"></i> ' + promo.fonte + '</span>' : '';
