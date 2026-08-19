@@ -6,16 +6,18 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
+  <!-- VERSÃO: 2.0.3 - NEON INTEGRATION CORRIGIDA -->
   <title>Max Promo — Alerta Inteligente de Promoções</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
 <style>
   :root{--bg-color:#0c0e12;--panel-color:#14171e;--card-color:#1a1e27;--accent-color:#FFB300;--accent-glow:rgba(255,179,0,0.15);--alert-color:#ff3333;--text-main:#f0f0f0;--text-muted:#7a7f8a;--sidebar-width:64px;--btn-size:48px;--radius-sm:8px;--radius-md:12px;--radius-lg:18px;--radius-full:50px}
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
   body{font-family:'Inter',sans-serif;background-color:var(--bg-color);color:var(--text-main);height:100vh;display:flex;flex-direction:column;overflow:hidden}
   header{background:linear-gradient(135deg,var(--panel-color) 0%,#1c2030 100%);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--accent-color);box-shadow:0 4px 20px rgba(255,179,0,0.12);z-index:1000;flex-shrink:0}
   .header-left{display:flex;align-items:center;gap:10px}
-  .app-icon{width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,#FFB300,#FF8F00);display:flex;align-items:center;justify-content:center;font-size:20px;color:#000;font-weight:900}
+  .app-icon{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0}
+  .app-icon img{width:100%;height:100%;object-fit:contain}
   h1{font-size:1.15rem;font-weight:900;letter-spacing:1.5px;text-transform:uppercase}
   h1 span{color:var(--accent-color);text-shadow:0 0 20px rgba(255,179,0,0.3)}
   .header-right{display:flex;align-items:center;gap:10px}
@@ -173,7 +175,9 @@
   </div>
   <header>
     <div class="header-left">
-      <div class="app-icon" aria-hidden="true">M</div>
+      <div class="app-icon">
+        <img src="./imagens_app/ic_icon_app.png" alt="MAX PROMO">
+      </div>
       <h1>MAX <span>PROMO</span></h1>
     </div>
     <div class="header-right">
@@ -181,7 +185,7 @@
         <i class="fas fa-piggy-bank"></i>
         <span id="savings-total">R$ 0</span>
       </div>
-      <div class="status-dot" id="status-dot" title="Conectado ao Supabase"></div>
+      <div class="status-dot" id="status-dot" title="Conectado ao Neon"></div>
       <button class="btn-menu-toggle" id="btn-menu-toggle" aria-label="Menu">
         <div class="menu-hamburger"><span></span><span></span><span></span></div>
         <div class="menu-label">MENU</div>
@@ -263,6 +267,7 @@
   </div>
   <audio id="alert-sound" preload="auto"></audio>
 <script>
+  // ==================== CONFIGURAÇÃO DOS ÍCONES ====================
   var PROMO_CONFIG = {
     'desconto':{icon:'/imagens_promo/ic_promo_desconto.png',faIcon:'fas fa-percent',color:'#2E7D32',label:'DESCONTO',emoji:'🏷️'},
     'saldao':{icon:'/imagens_promo/ic_promo_saldao.png',faIcon:'fas fa-tags',color:'#E65100',label:'SALDAO',emoji:'🔥'},
@@ -286,12 +291,13 @@
     'sorteio':{icon:'/imagens_promo/ic_promo_sorteio.png',faIcon:'fas fa-trophy',color:'#7B1FA2',label:'SORTEIO',emoji:'🎰'}
   };
 
+  // ==================== ICONES ====================
   var iconCache = {};
   function testarIconeDisponivel(src,cb){if(iconCache.hasOwnProperty(src)){cb(iconCache[src]);return}var img=new Image();img.onload=function(){iconCache[src]=true;cb(true)};img.onerror=function(){iconCache[src]=false;cb(false)};img.src=src}
   function preTestarTodosIcones(){Object.keys(PROMO_CONFIG).forEach(function(tipo){testarIconeDisponivel(PROMO_CONFIG[tipo].icon,function(){})})}
   function gerarHTMLIcone(tipo,tamanho){var config=PROMO_CONFIG[tipo]||PROMO_CONFIG['desconto'];var sizeClass=tamanho==='grande'?'alert-icon-img':'promo-icon-img';var faClass='fa-fallback';if(iconCache[config.icon]===true)return'<img class="'+sizeClass+'" src="'+config.icon+'" alt="'+config.label+'"><i class="'+config.faIcon+' '+faClass+'" style="display:none;"></i>';if(iconCache[config.icon]===false)return'<i class="'+config.faIcon+' '+faClass+'"></i>';return'<img class="'+sizeClass+'" src="'+config.icon+'" alt="'+config.label+'" onerror="this.classList.add(\'img-failed\');this.style.display=\'none\';var fa=this.nextElementSibling;if(fa)fa.style.display=\'\';" onload="var fa=this.nextElementSibling;if(fa)fa.style.display=\'none\';"><i class="'+config.faIcon+' '+faClass+'"></i>'}
 
-  // DADOS MOCK (fallback)
+  // ==================== DADOS MOCK (fallback) ====================
   var MOCK_PROMOS = [
     {id:1,tipo:'flash',titulo:'Galaxy S24 FE 128GB',desc:'Flash Sale: 50% OFF por 2 horas apenas!',loja:'TechStore',precoOld:3499,precoNew:1749,tempoRestante:7200},
     {id:2,tipo:'cupom',titulo:'Fone Bluetooth Sony WH-1000XM5',desc:'Use o cupom RADAR10 e ganhe 10% OFF',loja:'SomMax',precoOld:2299,precoNew:2069,cupom:'RADAR10'},
@@ -307,12 +313,7 @@
     {id:12,tipo:'live',titulo:'Make Set Profissional 24 pecas',desc:'AO VIVO agora: Ofertas exclusivas na live!',loja:'GlamLive',precoOld:450,precoNew:189},
     {id:13,tipo:'combo',titulo:'Kit Gamer: Mouse + Teclado + Mousepad',desc:'Kit Completo: 3 produtos por R$ 199',loja:'GameZone',precoOld:349,precoNew:199},
     {id:14,tipo:'parcela',titulo:'TV LG OLED 55" C4',desc:'12x sem juros em todos os produtos!',loja:'TVWorld',precoOld:6999,precoNew:5499},
-    {id:15,tipo:'misterio',titulo:'Caixa Misteriosa Premium',desc:'Caixa Misteriosa por R$ 49 — Valor garantido de R$ 150!',loja:'SurpriseBox',precoOld:150,precoNew:49},
-    {id:16,tipo:'desconto',titulo:'Smartwatch Amazfit GTR 4',desc:'-30% em todos os produtos',loja:'WearTech',precoOld:1299,precoNew:909},
-    {id:17,tipo:'fidelidade',titulo:'Cafe Especial 250g — 3 pacotes',desc:'Ganhe pontos duplos nesta compra!',loja:'CafeArtesanal',precoOld:120,precoNew:96},
-    {id:18,tipo:'bilhete',titulo:'Bilhete Dourado — Edicao Limitada',desc:'Voce encontrou um Bilhete Dourado!',loja:'LuxMall',precoOld:500,precoNew:99},
-    {id:19,tipo:'cross',titulo:'iPhone 15 + Capinha + Pelicula',desc:'Leve junto com 20% OFF: Capinha + Pelicula',loja:'iAccess',precoOld:5299,precoNew:4599},
-    {id:20,tipo:'sorteio',titulo:'Sorteio iPhone 16 Pro!',desc:'Compre qualquer produto e concorra!',loja:'MegaSorteio',precoOld:0,precoNew:0}
+    {id:15,tipo:'misterio',titulo:'Caixa Misteriosa Premium',desc:'Caixa Misteriosa por R$ 49 — Valor garantido de R$ 150!',loja:'SurpriseBox',precoOld:150,precoNew:49}
   ];
 
   var MOCK_PRICE_HISTORY = {};
@@ -324,39 +325,81 @@
     'MacBook Air M3 256GB':[{loja:'AppleZone',preco:9999},{loja:'MegaByte',preco:10499},{loja:'iAccess',preco:10299},{loja:'ImportTech',preco:9799}]
   };
 
-  // ESTADO
+  // ==================== ESTADO ====================
   var sidebarAberta=true,searchActive=false,alertasAtivados=true,alertTimeout=null,tabAtiva='feed',filtroAtivo=null;
   var monitoredProducts=[],savingsTotal=0,demoInterval=null,flashTimers={};
-  var supabaseOnline=false,promocoesSupabase=[],autoRefreshInterval=null;
+  var neonOnline=false,promocoesNeon=[],autoRefreshInterval=null;
 
   function ajustarBrilho(hex,percent){var num=parseInt(hex.replace('#',''),16);var amt=Math.round(2.55*percent);var R=(num>>16)+amt;var G=(num>>8&0x00FF)+amt;var B=(num&0x0000FF)+amt;return'#'+(0x1000000+(R<255?R<1?0:R:255)*0x10000+(G<255?G<1?0:G:255)*0x100+(B<255?B<1?0:B:255)).toString(16).slice(1)}
 
   // ===================================================================
-  // BUSCAR PROMOCOES DO SUPABASE VIA API
+  // BUSCAR PROMOCOES DO NEON VIA API /programas
   // ===================================================================
-  async function buscarPromocoesSupabase(){
+  async function buscarPromocoesNeon(){
     try{
-      var url='/api/promocoes?limite=50';
-      if(filtroAtivo)url+='&tipo='+filtroAtivo;
+      var url='/programas?limite=50';
+      if(filtroAtivo)url+='&setor='+encodeURIComponent(filtroAtivo);
       var response=await fetch(url);
-      if(!response.ok)throw new Error('API indisponivel');
+      if(!response.ok)throw new Error('API /programas indisponivel');
       var data=await response.json();
-      if(data.promocoes&&data.promocoes.length>0){
-        supabaseOnline=true;
+      if(data.programas&&data.programas.length>0){
+        neonOnline=true;
         document.getElementById('status-dot').classList.remove('offline');
-        return data.promocoes.map(function(p){
-          return{id:p.id,tipo:p.tipo,titulo:p.titulo,desc:p.descricao||'',loja:p.loja||'Desconhecida',precoOld:p.preco_antigo||0,precoNew:p.preco_novo||0,cupom:p.cupom||null,tempoRestante:p.tempo_restante||0,fonte:p.fonte||''};
+        return data.programas.map(function(p){
+          return{
+            id:p.awin_id||p.id,
+            tipo:mappearSetorParaTipo(p.setor),
+            titulo:p.nome||'Produto',
+            desc:p.descricao||'Oferta da Awin',
+            loja:p.nome||'Awin',
+            precoOld:0,
+            precoNew:0,
+            cupom:null,
+            tempoRestante:0,
+            fonte:'Awin'
+          };
         });
       }
       return null;
     }catch(err){
-      supabaseOnline=false;
+      console.warn('Erro ao buscar do Neon:',err);
+      neonOnline=false;
       document.getElementById('status-dot').classList.add('offline');
       return null;
     }
   }
 
+  function mappearSetorParaTipo(setor){
+    if(!setor)return 'desconto';
+    var s=setor.toLowerCase();
+    if(s.indexOf('eletronic')!==-1||s.indexOf('tech')!==-1)return 'flash';
+    if(s.indexOf('moda')!==-1||s.indexOf('vestuario')!==-1)return 'saldao';
+    if(s.indexOf('casa')!==-1||s.indexOf('decor')!==-1)return 'outlet';
+    if(s.indexOf('beleza')!==-1||s.indexOf('saude')!==-1)return 'cashback';
+    if(s.indexOf('games')!==-1)return 'combo';
+    if(s.indexOf('livros')!==-1)return 'leve_pague';
+    if(s.indexOf('esporte')!==-1)return 'frete_gratis';
+    return 'desconto';
+  }
+
+  // ===================================================================
+  // BUSCAR TRANSACOES DO NEON VIA API /transacoes
+  // ===================================================================
+  async function buscarTransacoesNeon(){
+    try{
+      var response=await fetch('/transacoes?limite=10');
+      if(!response.ok)throw new Error('API /transacoes indisponivel');
+      var data=await response.json();
+      return data.transacoes||[];
+    }catch(err){
+      console.warn('Erro ao buscar transacoes:',err);
+      return [];
+    }
+  }
+
+  // ===================================================================
   // ALERTA
+  // ===================================================================
   function dispararAlertaPromocaoIA(mensagem,tipoPromo){
     if(!alertasAtivados)return;
     var bar=document.getElementById('alert-bar');bar.classList.remove('alert-bar-critico');bar.style.background='';bar.style.color='';bar.style.borderTopColor='';
@@ -387,12 +430,12 @@
   function iniciarTimer(promoId,segundos){var remaining=segundos;clearInterval(flashTimers[promoId]);flashTimers[promoId]=setInterval(function(){remaining--;var el=document.getElementById('timer-'+promoId);if(!el){clearInterval(flashTimers[promoId]);return}if(remaining<=0){el.querySelector('.timer-value').textContent='Encerrado';el.classList.add('urgent');clearInterval(flashTimers[promoId]);return}el.querySelector('.timer-value').textContent=formatarTempo(remaining);if(remaining<600)el.classList.add('urgent')},1000)}
 
   // ===================================================================
-  // RENDERIZAR CARDS — SUPABASE PRIMEIRO, MOCK COMO FALLBACK
+  // RENDERIZAR CARDS
   // ===================================================================
   async function renderFeed(promos){
     var container=document.getElementById('feed-container');container.innerHTML='';
     var lista=promos;
-    if(!lista){var supabaseData=await buscarPromocoesSupabase();lista=supabaseData||MOCK_PROMOS}
+    if(!lista){var neonData=await buscarPromocoesNeon();lista=neonData||MOCK_PROMOS}
     if(filtroAtivo)lista=lista.filter(function(p){return p.tipo===filtroAtivo});
     var q=document.getElementById('search-query').value.trim().toLowerCase();
     if(q.length>=2)lista=lista.filter(function(p){return p.titulo.toLowerCase().indexOf(q)!==-1||p.desc.toLowerCase().indexOf(q)!==-1||p.loja.toLowerCase().indexOf(q)!==-1||(PROMO_CONFIG[p.tipo]&&PROMO_CONFIG[p.tipo].label.toLowerCase().indexOf(q)!==-1)});
@@ -402,7 +445,7 @@
       var card=document.createElement('div');card.className='promo-card';card.style.animationDelay=(idx*0.06)+'s';
       var isUrgent=config.urgent,isLive=config.isLive,hasTimer=promo.tempoRestante>0;
       var priceOldStr=promo.precoOld>0?'R$ '+promo.precoOld.toLocaleString('pt-BR'):'';
-      var priceNewStr=promo.precoNew>0?'R$ '+promo.precoNew.toLocaleString('pt-BR'):'Gratuito';
+      var priceNewStr=promo.precoNew>0?'R$ '+promo.precoNew.toLocaleString('pt-BR'):'';
       var pctDesc='';if(promo.precoOld>0&&promo.precoNew>0){var pct=Math.round((1-promo.precoNew/promo.precoOld)*100);if(pct>0)pctDesc='-'+pct+'%'}
       var histHTML='';var hist=MOCK_PRICE_HISTORY[promo.id];
       if(hist&&hist.length>0){var maxH=Math.max.apply(null,hist);var minH=Math.min.apply(null,hist);histHTML='<div class="price-history-mini">';hist.forEach(function(v){var h=3+((v-minH)/(maxH-minH+1))*27;var c=v===hist[hist.length-1]?'#4CAF50':'rgba(255,255,255,0.15)';histHTML+='<div class="price-bar" style="height:'+h+'px;background:'+c+';"></div>'});histHTML+='</div>'}
@@ -421,7 +464,7 @@
 
   function renderHistory(){var container=document.getElementById('feed-container');container.innerHTML='';var promosComHist=MOCK_PROMOS.filter(function(p){return MOCK_PRICE_HISTORY[p.id]});if(promosComHist.length===0){container.innerHTML='<div class="empty-state"><i class="fas fa-chart-line"></i><p>Nenhum historico.</p></div>';return}promosComHist.forEach(function(promo,idx){var config=PROMO_CONFIG[promo.tipo]||PROMO_CONFIG['desconto'];var hist=MOCK_PRICE_HISTORY[promo.id];var maxH=Math.max.apply(null,hist);var minH=Math.min.apply(null,hist);var card=document.createElement('div');card.className='promo-card';card.style.animationDelay=(idx*0.06)+'s';var meses=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];var barsHTML='<div style="display:flex;align-items:flex-end;gap:4px;height:80px;padding:10px 0;">';hist.forEach(function(v,i){var h=8+((v-minH)/(maxH-minH+1))*65;var c=i===hist.length-1?'#4CAF50':'rgba(255,179,0,0.3)';barsHTML+='<div style="display:flex;flex-direction:column;align-items:center;flex:1;gap:2px;"><div style="width:100%;height:'+h+'px;background:'+c+';border-radius:3px 3px 0 0;min-height:4px;"></div><span style="font-size:0.5rem;color:var(--text-muted);">'+meses[i]+'</span></div>'});barsHTML+='</div>';card.innerHTML='<div class="promo-card-accent" style="background:linear-gradient(90deg,'+config.color+','+ajustarBrilho(config.color,-20)+');"></div><div style="padding:14px 16px;"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><span class="promo-card-type" style="background:'+ajustarBrilho(config.color,-60)+';color:'+config.color+';">'+config.label+'</span><span style="font-weight:700;font-size:0.9rem;">'+promo.titulo+'</span></div><div style="display:flex;gap:16px;font-size:0.8rem;margin-bottom:4px;"><span style="color:var(--text-muted);">Maior: R$ '+maxH.toLocaleString('pt-BR')+'</span><span style="color:#4CAF50;">Menor: R$ '+minH.toLocaleString('pt-BR')+'</span></div>'+barsHTML+'</div>';container.appendChild(card)})}
 
-  function renderCompare(){var container=document.getElementById('feed-container');container.innerHTML='';var produtosComComp=Object.keys(MOCK_COMPARE);if(produtosComComp.length===0){container.innerHTML='<div class="empty-state"><i class="fas fa-balance-scale"></i><p>Nenhum produto para comparar.</p></div>';return}produtosComComp.forEach(function(nome,idx){var lojas=MOCK_COMPARE[nome].slice().sort(function(a,b){return a.preco-b.preco});var melhor=lojas[0].preco;var card=document.createElement('div');card.className='promo-card';card.style.animationDelay=(idx*0.06)+'s';var rowsHTML='';lojas.forEach(function(l){var isBest=l.preco===melhor;rowsHTML+='<div class="compare-row"><span class="compare-store"><i class="fas fa-store" style="margin-right:6px;color:'+(isBest?'#4CAF50':'var(--text-muted)')+';"></i>'+l.loja+(isBest?' <span style="font-size:0.65rem;font-weight:800;color:#4CAF50;">MELHOR PRECO</span>':'')+'</span><span class="compare-price '+(isBest?'compare-best':'')+'">R$ '+l.preco.toLocaleString('pt-BR')+'</span></div>'});card.innerHTML='<div class="promo-card-accent" style="background:linear-gradient(90deg,#4CAF50,#2E7D32);"></div><div style="padding:14px 16px;"><div style="font-weight:700;font-size:0.95rem;margin-bottom:12px;"><i class="fas fa-balance-scale" style="margin-right:8px;color:#4CAF50;"></i>'+nome+'</div>'+rowsHTML+'</div>';container.appendChild(card)})}
+  function renderCompare(){var container=document.getElementById('feed-container');container.innerHTML='';var produtosComComp=Object.keys(MOCK_COMPARE||{});if(produtosComComp.length===0){container.innerHTML='<div class="empty-state"><i class="fas fa-balance-scale"></i><p>Nenhum produto para comparar.</p></div>';return}produtosComComp.forEach(function(nome,idx){var lojas=MOCK_COMPARE[nome].slice().sort(function(a,b){return a.preco-b.preco});var melhor=lojas[0].preco;var card=document.createElement('div');card.className='promo-card';card.style.animationDelay=(idx*0.06)+'s';var rowsHTML='';lojas.forEach(function(l){var isBest=l.preco===melhor;rowsHTML+='<div class="compare-row"><span class="compare-store"><i class="fas fa-store" style="margin-right:6px;color:'+(isBest?'#4CAF50':'var(--text-muted)')+';"></i>'+l.loja+(isBest?' <span style="font-size:0.65rem;font-weight:800;color:#4CAF50;">MELHOR PRECO</span>':'')+'</span><span class="compare-price '+(isBest?'compare-best':'')+'">R$ '+l.preco.toLocaleString('pt-BR')+'</span></div>'});card.innerHTML='<div class="promo-card-accent" style="background:linear-gradient(90deg,#4CAF50,#2E7D32);"></div><div style="padding:14px 16px;"><div style="font-weight:700;font-size:0.95rem;margin-bottom:12px;"><i class="fas fa-balance-scale" style="margin-right:8px;color:#4CAF50;"></i>'+nome+'</div>'+rowsHTML+'</div>';container.appendChild(card)})}
 
   function renderFilters(){var strip=document.getElementById('filter-strip');strip.innerHTML='';var chipAll=document.createElement('button');chipAll.className='filter-chip'+(!filtroAtivo?' active':'');chipAll.innerHTML='<i class="fas fa-th"></i> Todos';chipAll.addEventListener('click',function(){filtroAtivo=null;renderFilters();renderCurrentTab()});strip.appendChild(chipAll);var tiposFiltro=['flash','cupom','frete_gratis','cashback','leve_pague','blackfriday','saldao','outlet','desconto','brinde','progressivo','combo','parcela','live','misterio','sorteio'];tiposFiltro.forEach(function(tipo){var config=PROMO_CONFIG[tipo];if(!config)return;var chip=document.createElement('button');chip.className='filter-chip'+(filtroAtivo===tipo?' active':'');chip.innerHTML='<span class="chip-dot" style="background:'+config.color+';"></span> '+config.label;chip.addEventListener('click',function(){filtroAtivo=filtroAtivo===tipo?null:tipo;renderFilters();renderCurrentTab()});strip.appendChild(chip)})}
 
@@ -434,6 +477,7 @@
   var DEMO_MSGS={'desconto':'-30% em todos os produtos!','saldao':'Saldão de Inverno — ate 70% OFF!','outlet':'Outlet de Fabrica!','flash':'Flash Sale: 50% OFF por 2 horas!','frete_gratis':'Frete Grátis em compras acima de R$ 99','cupom':'Use o cupom MAXPROMO20 e ganhe 20% OFF','leve_pague':'Compre 2, Leve 3 — Pague 2!','cashback':'10% de Cashback!','blackfriday':'Black Friday: Maiores descontos!','brinde':'Ganhe um brinde exclusivo!','progressivo':'Compre 2=10% OFF|3=20% OFF|4=30% OFF','primeira':'20% OFF na primeira compra!','fidelidade':'Ganhe pontos duplos!','misterio':'Caixa Misteriosa por R$ 49!','bilhete':'Bilhete Dourado! Premio exclusivo!','live':'AO VIVO agora: Ofertas exclusivas!','combo':'Kit Completo: 3 produtos por R$ 99','parcela':'12x sem juros!','cross':'Leve junto com 20% OFF','sorteio':'Sorteio iPhone 16 Pro!'};
   function dispararAlertaAleatorio(){var tipos=Object.keys(PROMO_CONFIG);var tipo=tipos[Math.floor(Math.random()*tipos.length)];dispararAlertaPromocaoIA(DEMO_MSGS[tipo]||PROMO_CONFIG[tipo].label+' ativado!',tipo)}
 
+  // ==================== INIT ====================
   function initApp(){
     setTimeout(function(){document.getElementById('loading-fullscreen').classList.add('fade-out')},1500);
     preTestarTodosIcones();renderFilters();renderFeed();
@@ -470,8 +514,25 @@
 
     setInterval(function(){if(monitoredProducts.length>0){var idx=Math.floor(Math.random()*monitoredProducts.length);var prod=monitoredProducts[idx];var change=(Math.random()-0.6)*prod.targetPrice*0.05;prod.currentPrice=Math.max(Math.round(prod.targetPrice*0.8),Math.round(prod.currentPrice+change));if(prod.currentPrice<=prod.targetPrice)dispararAlertaPromocaoIA(prod.name+' atingiu seu preco alvo! R$ '+prod.currentPrice.toLocaleString('pt-BR'),'desconto');if(tabAtiva==='monitored')renderMonitored()}},8000);
 
-    // AUTO-REFRESH: busca novas promocoes do Supabase a cada 30s
+    // ===================================================================
+    // AUTO-REFRESH: busca novas promocoes do Neon a cada 30s
+    // ===================================================================
     autoRefreshInterval=setInterval(function(){if(tabAtiva==='feed')renderFeed()},30000);
+
+    // ===================================================================
+    // EXEMPLO DE USO: buscar programas e transacoes
+    // ===================================================================
+    async function exemploUso() {
+      try {
+        var programas = await fetch('/programas').then(function(r){return r.json()});
+        console.log('📦 Programas da Awin:', programas);
+        var transacoes = await fetch('/transacoes').then(function(r){return r.json()});
+        console.log('💰 Transações:', transacoes);
+      } catch (err) {
+        console.warn('Erro ao buscar dados:', err);
+      }
+    }
+    setTimeout(exemploUso, 3000);
   }
 
   window.onload=initApp;
