@@ -2,7 +2,7 @@ const { neon } = require('@neondatabase/serverless');
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
-
+  
   try {
     const sql = neon(process.env.DATABASE_URL);
     const AWIN_TOKEN = process.env.AWIN_TOKEN;
@@ -19,9 +19,7 @@ module.exports = async (req, res) => {
     );
 
     const programas = await response.json();
-    
-    // Pegar apenas 50 primeiros para garantir que termina rápido
-    const ativos = programas.filter(p => p.status === 'Active').slice(0, 50);
+    const ativos = programas.filter(p => p.status === 'Active').slice(0, 10);
     
     let count = 0;
     for (const p of ativos) {
@@ -47,13 +45,13 @@ module.exports = async (req, res) => {
       count++;
     }
 
-    return res.status(200).json({
-      success: true,
+    res.status(200).json({ 
+      success: true, 
       message: `${count} programas sincronizados`,
       total_disponiveis: programas.filter(p => p.status === 'Active').length
     });
-
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    console.error('Erro:', err);
+    res.status(500).json({ error: err.message });
   }
 };
