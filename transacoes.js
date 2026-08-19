@@ -19,7 +19,7 @@ module.exports = async (req, res) => {
     
     const offset = (pagina - 1) * limite;
     
-    // Montar query dinâmica
+    // Buscar transações
     let query = sql`
       SELECT * FROM transacoes_awin 
       WHERE 1=1

@@ -12,11 +12,13 @@ module.exports = async (req, res) => {
 
   try {
     console.log('📨 Webhook da Awin recebido!');
-    console.log('📦 Método:', req.method);
     
     // Se for GET, retorna confirmação
     if (req.method === 'GET') {
-      return res.status(200).send('Webhook Awin está ativo!');
+      return res.status(200).json({
+        success: true,
+        message: 'Webhook Awin está ativo!'
+      });
     }
 
     // Processar POST (notificação)
