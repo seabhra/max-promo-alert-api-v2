@@ -6,6 +6,10 @@
       "use": "@vercel/node"
     },
     {
+      "src": "programas.js",
+      "use": "@vercel/node"
+    },
+    {
       "src": "api-test.js",
       "use": "@vercel/node"
     },
@@ -22,6 +26,10 @@
     {
       "src": "/sync",
       "dest": "/sync.js"
+    },
+    {
+      "src": "/programas",
+      "dest": "/programas.js"
     },
     {
       "src": "/api-test",

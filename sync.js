@@ -14,9 +14,7 @@ module.exports = async (req, res) => {
 
     if (!AWIN_TOKEN || !PUBLISHER_ID) {
       return res.status(500).json({
-        error: 'Variáveis AWIN_TOKEN e AWIN_PUBLISHER_ID são obrigatórias',
-        AWIN_TOKEN: !!AWIN_TOKEN,
-        AWIN_PUBLISHER_ID: !!PUBLISHER_ID
+        error: 'Variáveis AWIN_TOKEN e AWIN_PUBLISHER_ID são obrigatórias'
       });
     }
 
@@ -37,12 +35,12 @@ module.exports = async (req, res) => {
     const programas = await response.json();
     console.log(`📊 Encontrados ${programas.length} programas`);
 
-    // Filtrar apenas programas ativos e limitar a 10 para evitar timeout
+    // Aumentar limite para 50 programas
     const ativos = programas
       .filter(p => p.status === 'Active')
-      .slice(0, 10);
+      .slice(0, 50);
     
-    console.log(`✅ ${ativos.length} programas ativos (limitado a 10)`);
+    console.log(`✅ ${ativos.length} programas ativos (limitado a 50)`);
 
     let count = 0;
     for (const p of ativos) {
@@ -51,15 +49,10 @@ module.exports = async (req, res) => {
           INSERT INTO programas_awin (
             awin_id, nome, descricao, moeda, regiao, setor, url_click, url_logo, status
           ) VALUES (
-            ${p.id}, 
-            ${p.name || 'Sem nome'}, 
-            ${p.description || null}, 
-            ${p.currencyCode || null}, 
-            ${p.primaryRegion?.countryCode || null}, 
-            ${p.primarySector || null}, 
-            ${p.clickThroughUrl || null}, 
-            ${p.logoUrl || null}, 
-            'active'
+            ${p.id}, ${p.name || 'Sem nome'}, ${p.description || null}, 
+            ${p.currencyCode || null}, ${p.primaryRegion?.countryCode || null}, 
+            ${p.primarySector || null}, ${p.clickThroughUrl || null}, 
+            ${p.logoUrl || null}, 'active'
           )
           ON CONFLICT (awin_id) DO UPDATE SET
             nome = EXCLUDED.nome,
