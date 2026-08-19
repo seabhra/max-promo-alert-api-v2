@@ -2,11 +2,7 @@
   "version": 2,
   "builds": [
     {
-      "src": "debug-awin.js",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "sync-awin.js",
+      "src": "sync.js",
       "use": "@vercel/node"
     },
     {
@@ -24,12 +20,8 @@
   ],
   "routes": [
     {
-      "src": "/debug-awin",
-      "dest": "/debug-awin.js"
-    },
-    {
-      "src": "/sync-awin",
-      "dest": "/sync-awin.js"
+      "src": "/sync",
+      "dest": "/sync.js"
     },
     {
       "src": "/api-test",
