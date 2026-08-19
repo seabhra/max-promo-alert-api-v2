@@ -2,50 +2,22 @@
   "version": 2,
   "builds": [
     {
-      "src": "api/sync-awin.js",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "api/programas.js",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "api-test.js",
+      "src": "sync-awin.js",
       "use": "@vercel/node"
     },
     {
       "src": "api/**/*.js",
       "use": "@vercel/node"
-    },
-    {
-      "src": "*.html",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "public/**/*",
-      "use": "@vercel/static"
     }
   ],
   "routes": [
     {
-      "src": "/api/sync-awin",
-      "dest": "/api/sync-awin.js"
-    },
-    {
-      "src": "/api/programas",
-      "dest": "/api/programas.js"
-    },
-    {
-      "src": "/api-test",
-      "dest": "/api-test.js"
+      "src": "/sync-awin",
+      "dest": "/sync-awin.js"
     },
     {
       "src": "/api/(.*)",
       "dest": "/api/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/$1"
     }
   ]
 }
