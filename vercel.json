@@ -18,7 +18,7 @@
       "use": "@vercel/node"
     },
     {
-      "src": "awin-webhook.js",
+      "src": "awin-webhook-v2.js",
       "use": "@vercel/node"
     },
     {
@@ -53,7 +53,7 @@
     },
     {
       "src": "/awin-webhook",
-      "dest": "/awin-webhook.js"
+      "dest": "/awin-webhook-v2.js"
     },
     {
       "src": "/api-test",
