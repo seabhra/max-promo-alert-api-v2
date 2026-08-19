@@ -6,8 +6,16 @@
       "use": "@vercel/node"
     },
     {
-      "src": "api/**/*.js",
+      "src": "api-test.js",
       "use": "@vercel/node"
+    },
+    {
+      "src": "*.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "public/**/*",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
@@ -16,8 +24,12 @@
       "dest": "/sync-awin.js"
     },
     {
-      "src": "/api/(.*)",
-      "dest": "/api/$1"
+      "src": "/api-test",
+      "dest": "/api-test.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
     }
   ]
 }
