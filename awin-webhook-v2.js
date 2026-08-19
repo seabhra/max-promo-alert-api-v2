@@ -1,4 +1,4 @@
-// awin-webhook-v2.js - Recebe notificações da Awin (versão limpa)
+// awin-webhook-v2.js - Recebe notificações da Awin (versão corrigida)
 const { neon } = require('@neondatabase/serverless');
 
 module.exports = async (req, res) => {
@@ -23,14 +23,53 @@ module.exports = async (req, res) => {
     const body = req.body;
     console.log('📦 Dados recebidos:', JSON.stringify(body, null, 2));
 
-    // Verificar se é uma transação
-    const transacao = body.transaction || body;
+    // === CORREÇÃO: Identificar transação em diferentes formatos ===
+    let transacoes = [];
     
-    if (transacao.id || transacao.transactionId) {
-      const sql = neon(process.env.DATABASE_URL);
-      
-      console.log('💾 Salvando transação:', transacao.id);
-      
+    // Formato 1: { transaction: { ... } }
+    if (body.transaction) {
+      transacoes = [body.transaction];
+    }
+    // Formato 2: { transactions: [ ... ] }
+    else if (body.transactions && Array.isArray(body.transactions)) {
+      transacoes = body.transactions;
+    }
+    // Formato 3: Dados diretos (ID, amount, etc.)
+    else if (body.id || body.transactionId) {
+      transacoes = [body];
+    }
+    // Formato 4: Array direto
+    else if (Array.isArray(body)) {
+      transacoes = body;
+    }
+
+    if (transacoes.length === 0) {
+      console.log('⚠️ Nenhuma transação encontrada no formato esperado');
+      return res.status(200).json({
+        success: true,
+        message: 'Webhook recebido (nenhuma transação identificada)',
+        recebido: body
+      });
+    }
+
+    console.log(`📊 Processando ${transacoes.length} transações...`);
+    
+    const sql = neon(process.env.DATABASE_URL);
+    let count = 0;
+
+    for (const t of transacoes) {
+      // Extrair campos com fallback para diferentes nomes
+      const transactionId = t.id || t.transactionId || t.awin_transaction_id || 'N/A';
+      const advertiserId = t.advertiserId || t.merchantId || t.programa_id || null;
+      const advertiserName = t.advertiserName || t.merchantName || t.programa_nome || null;
+      const amount = t.amount || t.saleAmount || t.valor || null;
+      const commission = t.commissionAmount || t.commission || t.comissao || null;
+      const currency = t.currency || t.moeda || 'GBP';
+      const status = t.status || 'pending';
+      const transactionDate = t.transactionDate || t.date || t.data_transacao || new Date().toISOString();
+
+      console.log(`💾 Salvando transação ${transactionId}...`);
+
       await sql`
         INSERT INTO transacoes_awin (
           awin_transaction_id,
@@ -42,14 +81,14 @@ module.exports = async (req, res) => {
           status,
           data_transacao
         ) VALUES (
-          ${transacao.id || transacao.transactionId || 'N/A'},
-          ${transacao.advertiserId || transacao.merchantId || null},
-          ${transacao.advertiserName || transacao.merchantName || null},
-          ${transacao.amount || transacao.saleAmount || null},
-          ${transacao.commissionAmount || transacao.commission || null},
-          ${transacao.currency || 'GBP'},
-          ${transacao.status || 'pending'},
-          ${transacao.transactionDate || transacao.date || new Date().toISOString()}
+          ${transactionId},
+          ${advertiserId},
+          ${advertiserName},
+          ${amount},
+          ${commission},
+          ${currency},
+          ${status},
+          ${transactionDate}
         )
         ON CONFLICT (awin_transaction_id) DO UPDATE SET
           status = EXCLUDED.status,
@@ -57,60 +96,14 @@ module.exports = async (req, res) => {
           comissao = EXCLUDED.comissao,
           atualizado_em = CURRENT_TIMESTAMP
       `;
-
-      console.log('✅ Transação salva com sucesso!');
-      return res.status(200).json({
-        success: true,
-        message: 'Transação recebida e salva com sucesso! (v2)'
-      });
+      count++;
     }
 
-    // Se for uma lista de transações
-    if (body.transactions && Array.isArray(body.transactions)) {
-      const sql = neon(process.env.DATABASE_URL);
-      let count = 0;
-      
-      for (const t of body.transactions) {
-        await sql`
-          INSERT INTO transacoes_awin (
-            awin_transaction_id,
-            programa_id,
-            programa_nome,
-            valor,
-            comissao,
-            moeda,
-            status,
-            data_transacao
-          ) VALUES (
-            ${t.id || t.transactionId || 'N/A'},
-            ${t.advertiserId || t.merchantId || null},
-            ${t.advertiserName || t.merchantName || null},
-            ${t.amount || t.saleAmount || null},
-            ${t.commissionAmount || t.commission || null},
-            ${t.currency || 'GBP'},
-            ${t.status || 'pending'},
-            ${t.transactionDate || t.date || new Date().toISOString()}
-          )
-          ON CONFLICT (awin_transaction_id) DO UPDATE SET
-            status = EXCLUDED.status,
-            valor = EXCLUDED.valor,
-            comissao = EXCLUDED.comissao,
-            atualizado_em = CURRENT_TIMESTAMP
-        `;
-        count++;
-      }
-      
-      console.log(`✅ ${count} transações salvas com sucesso!`);
-      return res.status(200).json({
-        success: true,
-        message: `${count} transações salvas com sucesso! (v2)`
-      });
-    }
-
+    console.log(`✅ ${count} transações salvas com sucesso!`);
     return res.status(200).json({
       success: true,
-      message: 'Webhook recebido (estrutura não reconhecida)',
-      recebido: body
+      message: `${count} transações salvas com sucesso!`,
+      total: count
     });
 
   } catch (err) {
