@@ -268,6 +268,22 @@
   <audio id="alert-sound" preload="auto"></audio>
 <script>
     // ==================== CONFIGURAÇÃO DOS ÍCONES ====================
+// ===================================================================
+// BOLSA TIGRESA — sempre no topo
+// ===================================================================
+var BOLSA_TIGRESA = {
+  id: 21,
+  tipo: 'flash',
+  titulo: 'Bolsa Tigresa – edição limitada',
+  desc: 'Flash Sale: 10% OFF por 2 horas apenas!',
+  loja: 'Atelier Sorelle Santos',
+  precoOld: 3499,
+  precoNew: 1749,
+  tempoRestante: 7200,
+  clickThroughUrl: 'https://ateliersorellesantos.vercel.app/',
+  url: 'https://ateliersorellesantos.vercel.app/'
+};
+
 var PROMO_CONFIG = {
   'desconto':{icon:'/public/imagens_promo/ic_promo_desconto.png',faIcon:'fas fa-percent',color:'#2E7D32',label:'DESCONTO',emoji:'🏷️'},
   'saldao':{icon:'/public/imagens_promo/ic_promo_saldao.png',faIcon:'fas fa-tags',color:'#E65100',label:'SALDAO',emoji:'🔥'},
@@ -436,6 +452,7 @@ var MOCK_PROMOS = [
   // ===================================================================
   // RENDERIZAR CARDS
   // ===================================================================
+
 async function renderFeed(promos) {
   var container = document.getElementById('feed-container');
   container.innerHTML = '';
@@ -443,16 +460,21 @@ async function renderFeed(promos) {
   var lista = promos;
   if (!lista) {
     var neonData = await buscarPromocoesNeon();
-    lista = neonData || MOCK_PROMOS;
+    lista = neonData || [];
   }
   
+  // ===================================================================
+  // SEMPRE ADICIONAR A BOLSA TIGRESA NO TOPO
+  // ===================================================================
+  var listaCompleta = [BOLSA_TIGRESA, ...lista];
+  
   if (filtroAtivo) {
-    lista = lista.filter(function(p) { return p.tipo === filtroAtivo; });
+    listaCompleta = listaCompleta.filter(function(p) { return p.tipo === filtroAtivo; });
   }
   
   var q = document.getElementById('search-query').value.trim().toLowerCase();
   if (q.length >= 2) {
-    lista = lista.filter(function(p) {
+    listaCompleta = listaCompleta.filter(function(p) {
       return p.titulo.toLowerCase().indexOf(q) !== -1 ||
              p.desc.toLowerCase().indexOf(q) !== -1 ||
              p.loja.toLowerCase().indexOf(q) !== -1 ||
@@ -460,12 +482,12 @@ async function renderFeed(promos) {
     });
   }
   
-  if (lista.length === 0) {
+  if (listaCompleta.length === 0) {
     container.innerHTML = '<div class="empty-state"><i class="fas fa-search"></i><p>Nenhuma oferta encontrada.</p></div>';
     return;
   }
   
-  lista.forEach(function(promo, idx) {
+  listaCompleta.forEach(function(promo, idx) {
     var config = PROMO_CONFIG[promo.tipo] || PROMO_CONFIG['desconto'];
     var card = document.createElement('div');
     card.className = 'promo-card';
@@ -508,18 +530,21 @@ async function renderFeed(promos) {
     if (isLive) btnText = 'Assistir Live';
     
     // ===================================================================
-    // CRIAÇÃO DO BOTÃO COM LINK (CORREÇÃO)
+    // CRIAÇÃO DO BOTÃO COM LINK
     // ===================================================================
-    // Na função renderFeed, ao criar o botão:
-var linkUrl = promo.clickThroughUrl || promo.url || '#';
-var btnHTML = '<a href="' + linkUrl + '" target="_blank" rel="noopener noreferrer" class="promo-btn-grab" style="background:linear-gradient(135deg,' + btnColor + ',' + ajustarBrilho(btnColor, -15) + ');text-decoration:none;display:inline-block;text-align:center;">' + btnText + '</a>';
+    var linkUrl = promo.clickThroughUrl || promo.url || '#';
+    var btnHTML = '<a href="' + linkUrl + '" target="_blank" rel="noopener noreferrer" class="promo-btn-grab" style="background:linear-gradient(135deg,' + btnColor + ',' + ajustarBrilho(btnColor, -15) + ');text-decoration:none;display:inline-block;text-align:center;">' + btnText + '</a>';
     
     var liveHTML = isLive ? '<div class="live-indicator"><div class="live-dot"></div> AO VIVO</div>' : '';
     var sourceHTML = promo.fonte ? '<span class="source-badge" style="background:rgba(255,255,255,0.05);color:var(--text-muted);"><i class="fas fa-rss" style="font-size:0.5rem;"></i> ' + promo.fonte + '</span>' : '';
     var iconHTML = gerarHTMLIcone(promo.tipo, 'pequeno');
     
+    // Destacar a Bolsa Tigresa com uma borda especial
+    var isBolsaTigresa = promo.id === 21;
+    var borderStyle = isBolsaTigresa ? 'border-color: #FFD700; box-shadow: 0 0 20px rgba(255,215,0,0.2);' : '';
+    
     card.innerHTML = '<div class="promo-card-accent" style="background:linear-gradient(90deg,' + config.color + ',' + ajustarBrilho(config.color, -20) + ');"></div>' +
-      '<div class="promo-card-body">' +
+      '<div class="promo-card-body" style="' + borderStyle + '">' +
         '<div class="promo-card-icon" style="background:linear-gradient(135deg,' + config.color + ',' + ajustarBrilho(config.color, -30) + ');">' + iconHTML + (isUrgent ? '<div class="pulse-ring"></div>' : '') + '</div>' +
         '<div class="promo-card-content">' +
           '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">' +
@@ -549,6 +574,7 @@ var btnHTML = '<a href="' + linkUrl + '" target="_blank" rel="noopener noreferre
     }
   });
 }
+
   function renderMonitored(){var container=document.getElementById('feed-container');container.innerHTML='';if(monitoredProducts.length===0){container.innerHTML='<div class="empty-state"><i class="fas fa-eye-slash"></i><p>Nenhum produto monitorado.<br>Toque no botao + para adicionar.</p></div>';return}monitoredProducts.forEach(function(prod,idx){var card=document.createElement('div');card.className='monitored-card';card.style.animationDelay=(idx*0.06)+'s';var statusColor='#4CAF50';if(prod.currentPrice>prod.targetPrice*1.1)statusColor='#ff4444';else if(prod.currentPrice>prod.targetPrice)statusColor='#FFB300';card.innerHTML='<div class="prod-img" style="color:'+statusColor+';"><i class="fas fa-box"></i></div><div class="prod-info"><div class="prod-name">'+prod.name+'</div><div class="prod-target">Alvo: R$ '+prod.targetPrice.toLocaleString('pt-BR')+'</div></div><div class="prod-current" style="color:'+statusColor+';">R$ '+prod.currentPrice.toLocaleString('pt-BR')+'</div><button class="remove-btn" data-idx="'+idx+'" title="Remover"><i class="fas fa-trash"></i></button>';container.appendChild(card);card.querySelector('.remove-btn').addEventListener('click',function(){monitoredProducts.splice(parseInt(this.getAttribute('data-idx')),1);renderMonitored();atualizarBadgeMonitorados();showNotification('Produto removido')})})}
 
   function renderHistory(){var container=document.getElementById('feed-container');container.innerHTML='';var promosComHist=MOCK_PROMOS.filter(function(p){return MOCK_PRICE_HISTORY[p.id]});if(promosComHist.length===0){container.innerHTML='<div class="empty-state"><i class="fas fa-chart-line"></i><p>Nenhum historico.</p></div>';return}promosComHist.forEach(function(promo,idx){var config=PROMO_CONFIG[promo.tipo]||PROMO_CONFIG['desconto'];var hist=MOCK_PRICE_HISTORY[promo.id];var maxH=Math.max.apply(null,hist);var minH=Math.min.apply(null,hist);var card=document.createElement('div');card.className='promo-card';card.style.animationDelay=(idx*0.06)+'s';var meses=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];var barsHTML='<div style="display:flex;align-items:flex-end;gap:4px;height:80px;padding:10px 0;">';hist.forEach(function(v,i){var h=8+((v-minH)/(maxH-minH+1))*65;var c=i===hist.length-1?'#4CAF50':'rgba(255,179,0,0.3)';barsHTML+='<div style="display:flex;flex-direction:column;align-items:center;flex:1;gap:2px;"><div style="width:100%;height:'+h+'px;background:'+c+';border-radius:3px 3px 0 0;min-height:4px;"></div><span style="font-size:0.5rem;color:var(--text-muted);">'+meses[i]+'</span></div>'});barsHTML+='</div>';card.innerHTML='<div class="promo-card-accent" style="background:linear-gradient(90deg,'+config.color+','+ajustarBrilho(config.color,-20)+');"></div><div style="padding:14px 16px;"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><span class="promo-card-type" style="background:'+ajustarBrilho(config.color,-60)+';color:'+config.color+';">'+config.label+'</span><span style="font-weight:700;font-size:0.9rem;">'+promo.titulo+'</span></div><div style="display:flex;gap:16px;font-size:0.8rem;margin-bottom:4px;"><span style="color:var(--text-muted);">Maior: R$ '+maxH.toLocaleString('pt-BR')+'</span><span style="color:#4CAF50;">Menor: R$ '+minH.toLocaleString('pt-BR')+'</span></div>'+barsHTML+'</div>';container.appendChild(card)})}
