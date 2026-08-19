@@ -317,9 +317,7 @@ var MOCK_PROMOS = [
     url: 'https://ateliersorellesantos.vercel.app/'
   }
 ];
-
-
-  var MOCK_PRICE_HISTORY = {};
+ var MOCK_PRICE_HISTORY = {};
   MOCK_PROMOS.forEach(function(p){if(p.precoNew>0){var bars=[];for(var i=0;i<12;i++){var v=p.precoOld+(p.precoNew-p.precoOld)*(i/11)+(Math.random()-0.5)*(p.precoOld-p.precoNew)*0.3;bars.push(Math.max(p.precoNew*0.9,Math.min(p.precoOld*1.1,v)))}bars[11]=p.precoNew;MOCK_PRICE_HISTORY[p.id]=bars}});
 
   var MOCK_COMPARE = {
