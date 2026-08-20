@@ -265,6 +265,8 @@
   opacity: .9;
 }
 
+
+
 /* Botão Continuar com animação */
 #btn-store-step1-next:disabled {
   opacity: 0.5;
@@ -774,9 +776,11 @@
       
       <div class="modal-actions">
         <button class="btn-cancel" id="btn-store-cancel">Cancelar</button>
-        <button class="btn-confirm" id="btn-store-step1-next" disabled>
-          <i class="fas fa-lock" style="font-size:.75rem;margin-right:6px;"></i>Continuar → Pagar PIX
-        </button>
+      
+        <button class="btn-confirm" id="btn-store-step1-next" style="opacity:0.5;cursor:not-allowed;">
+  <i class="fas fa-lock" style="font-size:.75rem;margin-right:6px;"></i>Continuar → Pagar PIX
+</button>
+
       </div>
     </div>
 
@@ -2037,13 +2041,15 @@ function initApp() {
   // ============================================
   // MODAL: INSERIR LOJA (STEP 1)
   // ============================================
-  var btnStoreNext = document.getElementById('btn-store-step1-next');
-  if (btnStoreNext) {
-    btnStoreNext.addEventListener('click', function(e) {
-      if (this.disabled) {
-        showNotification('⚠️ Selecione um plano primeiro');
-        return;
-      }
+var btnStoreNext = document.getElementById('btn-store-step1-next');
+if (btnStoreNext) {
+  btnStoreNext.addEventListener('click', function(e) {
+    if (!planoSelecionado) {
+      showNotification('⚠️ Selecione um plano primeiro');
+      var g = document.querySelector('.planos-grid');
+      if (g) g.scrollIntoView({behavior:'smooth', block:'start'});
+      return;
+    }
       
       var nome = document.getElementById('input-store-name').value.trim();
       var url = document.getElementById('input-store-url').value.trim();
