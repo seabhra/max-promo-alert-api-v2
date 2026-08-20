@@ -53,10 +53,13 @@
   .feed-container::-webkit-scrollbar{width:4px}
   .feed-container::-webkit-scrollbar-track{background:transparent}
   .feed-container::-webkit-scrollbar-thumb{background:rgba(255,179,0,0.2);border-radius:4px}
+  
   .search-container{position:absolute;top:0;left:0;width:100%;background-color:rgba(20,23,30,0.98);backdrop-filter:blur(8px);display:flex;gap:10px;z-index:800;max-height:0;overflow:hidden;opacity:0;padding:0 12px;border-bottom:1px solid transparent;transition:all 0.3s ease;align-items:center}
   .search-container.active{max-height:80px;opacity:1;padding:12px;border-bottom:1px solid rgba(255,179,0,0.2);box-shadow:0 4px 15px rgba(0,0,0,0.5)}
   .search-container input{flex:1;padding:12px 18px;border-radius:var(--radius-full);border:1px solid #333;background-color:#0a0c10;color:#fff;font-size:0.9rem;outline:none;font-family:'Inter',sans-serif}
   .search-container input:focus{border-color:var(--accent-color);box-shadow:0 0 0 2px rgba(255,179,0,0.15)}
+  
+  
   .btn-search-action{flex-shrink:0;width:44px;height:44px;border-radius:50%;border:none;cursor:pointer;background:linear-gradient(135deg,#FFB300,#FF8F00);color:#000;font-size:1rem;display:flex;align-items:center;justify-content:center;transition:all 0.2s ease}
   .btn-search-action:active{transform:scale(0.9)}
   .sidebar-controls{position:absolute;top:0;right:0;height:100%;width:var(--sidebar-width);z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:12px 0;transition:transform 0.4s cubic-bezier(0.4,0,0.2,1);transform:translateX(0)}
@@ -642,9 +645,7 @@
     <div class="search-container" id="search-bar">
       <input type="text" id="search-query" placeholder="Buscar produto, loja ou tipo de promocao..." aria-label="Buscar">
       <button class="btn-search-action" id="btn-search" title="Buscar"><i class="fas fa-search"></i></button>
-    <!-- Botão Flutuante Inserir Loja (VERDE) -->
-     <button class="fab-add-store" id="fab-add-store" title="Inserir Loja"><i class="fas fa-store"></i></button>
-  </div>
+    </div>
 
     <div class="filter-strip" id="filter-strip" role="group" aria-label="Filtros"></div>
     <div class="feed-container" id="feed-container"></div>
@@ -657,8 +658,7 @@
   <button class="map-btn" id="btn-filter-cupom" title="Cupons" style="color:#C2185B;"><i class="fas fa-ticket"></i></button>
   <button class="map-btn" id="btn-filter-frete" title="Frete Gratis" style="color:#0288D1;"><i class="fas fa-truck"></i></button>
   <button class="map-btn" id="btn-filter-cashback" title="Cashback" style="color:#F9A825;"><i class="fas fa-coins"></i></button>
-  <!-- NOVO: Botão Inserir Loja na Sidebar -->
-  <button class="map-btn" id="btn-add-store" title="Inserir Loja" style="color:#4CAF50;border-color:rgba(76,175,80,0.3);"><i class="fas fa-store"></i></button>  
+  <button class="map-btn" id="btn-monitorar-sidebar" title="Monitorar Produtos" style="color:#FFB300;"><i class="fas fa-eye"></i></button>
   <button class="map-btn" id="btn-refresh-feed" title="Atualizar"><i class="fas fa-sync-alt"></i></button>
   <button class="map-btn" id="btn-demo-alert" title="Demo" style="color:#ff4444;"><i class="fas fa-vial"></i></button>
 </div>
@@ -1863,6 +1863,49 @@ function initApp() {
   
   var btnCashback = document.getElementById('btn-filter-cashback');
   if (btnCashback) btnCashback.addEventListener('click', function() { ativarFiltroSidebar('cashback'); });
+
+
+  // ============================================
+  // SIDEBAR FILTERS
+  // ============================================
+  function ativarFiltroSidebar(tipo) {
+    filtroAtivo = filtroAtivo === tipo ? null : tipo;
+    tabAtiva = 'feed';
+    document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+    var feedTab = document.querySelector('[data-tab="feed"]');
+    if (feedTab) feedTab.classList.add('active');
+    renderFilters();
+    renderFeed();
+    showNotification(filtroAtivo ? 'Filtrando: ' + PROMO_CONFIG[tipo].label : 'Filtro removido');
+  }
+
+  var btnFlash = document.getElementById('btn-filter-flash');
+  if (btnFlash) btnFlash.addEventListener('click', function() { ativarFiltroSidebar('flash'); });
+  
+  var btnCupom = document.getElementById('btn-filter-cupom');
+  if (btnCupom) btnCupom.addEventListener('click', function() { ativarFiltroSidebar('cupom'); });
+  
+  var btnFrete = document.getElementById('btn-filter-frete');
+  if (btnFrete) btnFrete.addEventListener('click', function() { ativarFiltroSidebar('frete_gratis'); });
+  
+  var btnCashback = document.getElementById('btn-filter-cashback');
+  if (btnCashback) btnCashback.addEventListener('click', function() { ativarFiltroSidebar('cashback'); });
+
+  // ============================================
+  // MONITORAR PRODUTOS (SIDEBAR)
+  // ============================================
+  var btnMonitorarSidebar = document.getElementById('btn-monitorar-sidebar');
+  if (btnMonitorarSidebar) {
+    btnMonitorarSidebar.addEventListener('click', function() {
+      tabAtiva = 'monitored';
+      document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+      var monitoredTab = document.querySelector('[data-tab="monitored"]');
+      if (monitoredTab) monitoredTab.classList.add('active');
+      renderMonitored();
+      openModal('modal-add-product');
+    });
+  }
+
 
   // ============================================
   // REFRESH
