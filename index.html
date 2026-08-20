@@ -2041,7 +2041,8 @@ function initApp() {
   // ============================================
   // MODAL: INSERIR LOJA (STEP 1)
   // ============================================
-var btnStoreNext = document.getElementById('btn-store-step1-next');
+
+  var btnStoreNext = document.getElementById('btn-store-step1-next');
 if (btnStoreNext) {
   btnStoreNext.addEventListener('click', function(e) {
     if (!planoSelecionado) {
@@ -2050,71 +2051,67 @@ if (btnStoreNext) {
       if (g) g.scrollIntoView({behavior:'smooth', block:'start'});
       return;
     }
-      
-      var nome = document.getElementById('input-store-name').value.trim();
-      var url = document.getElementById('input-store-url').value.trim();
-      var email = document.getElementById('input-store-email').value.trim();
-      
-      if (!nome) {
-        showNotification('⚠️ Digite o nome da loja');
-        document.getElementById('input-store-name').focus();
-        return;
-      }
-      if (!url) {
-        showNotification('⚠️ Digite a URL da loja');
-        document.getElementById('input-store-url').focus();
-        return;
-      }
-      if (!url.startsWith('http://') && !url.startsWith('https://')) {
-        showNotification('⚠️ URL deve começar com http:// ou https://');
-        document.getElementById('input-store-url').focus();
-        return;
-      }
-      if (!planoSelecionado) {
-        showNotification('⚠️ Selecione um plano primeiro');
-        return;
-      }
-      
-      storeFormData = {
-        nome: nome,
-        url: url,
-        categoria: document.getElementById('input-store-cat').value,
-        email: email || 'nao_informado@email.com',
-        dias: planoSelecionado.dias,
-        valor: planoSelecionado.valor,
-        label: planoSelecionado.label,
-        desc: planoSelecionado.desc
-      };
-      
-      pixTxid = 'MAXPROMO_' + Date.now();
-      
-      var pixCode = gerarPixCopiaCola(
-        PIX_CONFIG.chave,
-        PIX_CONFIG.nome,
-        PIX_CONFIG.cidade,
-        planoSelecionado.valor,
-        PIX_CONFIG.descricao + ' ' + planoSelecionado.label
-      );
-      
-      document.getElementById('pix-key-display').value = pixCode;
-      renderizarQRCode(pixCode);
-      
-      var vf = formatarDinheiro(planoSelecionado.valor);
-      document.getElementById('pix-valor-label').textContent = vf;
-      document.getElementById('pix-dias-label').textContent = planoSelecionado.label;
-      document.getElementById('instrucao-valor').textContent = vf;
-      
-      var devBar = document.getElementById('dev-bar-teste');
-      if (devBar) devBar.style.display = MODO_TESTE ? 'flex' : 'none';
-      
-      iniciarCountdownPix();
-      
-      document.getElementById('store-step-1').style.display = 'none';
-      document.getElementById('store-step-2').style.display = 'block';
-      
-      showNotification('💳 Plano ' + planoSelecionado.label + ' - Valor: ' + vf);
-    });
-  }
+
+    var nome = document.getElementById('input-store-name').value.trim();
+    var url = document.getElementById('input-store-url').value.trim();
+    var email = document.getElementById('input-store-email').value.trim();
+
+    if (!nome) {
+      showNotification('⚠️ Digite o nome da loja');
+      document.getElementById('input-store-name').focus();
+      return;
+    }
+    if (!url) {
+      showNotification('⚠️ Digite a URL da loja');
+      document.getElementById('input-store-url').focus();
+      return;
+    }
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      showNotification('⚠️ URL deve começar com http:// ou https://');
+      document.getElementById('input-store-url').focus();
+      return;
+    }
+
+    storeFormData = {
+      nome: nome,
+      url: url,
+      categoria: document.getElementById('input-store-cat').value,
+      email: email || 'nao_informado@email.com',
+      dias: planoSelecionado.dias,
+      valor: planoSelecionado.valor,
+      label: planoSelecionado.label,
+      desc: planoSelecionado.desc
+    };
+
+    pixTxid = 'MAXPROMO_' + Date.now();
+
+    var pixCode = gerarPixCopiaCola(
+      PIX_CONFIG.chave,
+      PIX_CONFIG.nome,
+      PIX_CONFIG.cidade,
+      planoSelecionado.valor,
+      PIX_CONFIG.descricao + ' ' + planoSelecionado.label
+    );
+
+    document.getElementById('pix-key-display').value = pixCode;
+    renderizarQRCode(pixCode);
+
+    var vf = formatarDinheiro(planoSelecionado.valor);
+    document.getElementById('pix-valor-label').textContent = vf;
+    document.getElementById('pix-dias-label').textContent = planoSelecionado.label;
+    document.getElementById('instrucao-valor').textContent = vf;
+
+    var devBar = document.getElementById('dev-bar-teste');
+    if (devBar) devBar.style.display = MODO_TESTE ? 'flex' : 'none';
+
+    iniciarCountdownPix();
+
+    document.getElementById('store-step-1').style.display = 'none';
+    document.getElementById('store-step-2').style.display = 'block';
+
+    showNotification('💳 Plano ' + planoSelecionado.label + ' - Valor: ' + vf);
+  });
+}
 
   // ============================================
   // MODAL: INSERIR LOJA (STEP 2)
