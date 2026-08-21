@@ -686,45 +686,73 @@
 .modal-alert-box i {
   font-size: 1rem;
 }
+/* =====================================================
+   SETA INDICATIVA — ÍCONE VERMELHO / TEXTO BRANCO
+   ===================================================== */
 
-/* Seta indicativa */
 .hint-arrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  color: var(--accent-color);
-  font-size: 0.75rem;
-  font-weight: 700;
-  animation: arrowBounce 1.2s ease-in-out infinite;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+
+    /* Texto */
+    color: #ffffff;
+
+    font-size: 0.75rem;
+    font-weight: 700;
+
+    animation: arrowBounce 1.2s ease-in-out infinite;
 }
 
+/* Ícone da seta */
 .hint-arrow i {
-  font-size: 0.7rem;
+    color: #ff3b3b; /* vermelho */
+    font-size: 0.9rem;
 }
 
+/* Movimento vertical da seta */
 @keyframes arrowBounce {
-  0%, 100% { transform: translateX(0); }
-  50% { transform: translateX(6px); }
+    0%, 100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-5px);
+    }
 }
 
-/* Aviso abaixo dos planos */
+
+/* =====================================================
+   AVISO ABAIXO DOS PLANOS
+   ===================================================== */
+
 .plano-hint {
-  display: none;
-  align-items: center;
-  gap: 6px;
-  color: #ff6b6b;
-  font-size: 0.7rem;
-  font-weight: 600;
-  margin-top: 4px;
-  padding: 6px 10px;
-  background: rgba(255, 107, 107, 0.06);
-  border-radius: var(--radius-sm);
+    display: none;
+    align-items: center;
+    gap: 6px;
+
+    /* Texto branco */
+    color: #ffffff;
+
+    font-size: 0.7rem;
+    font-weight: 600;
+
+    margin-top: 4px;
+    padding: 6px 10px;
+
+    background: rgba(255, 59, 59, 0.08);
+    border-radius: var(--radius-sm);
 }
 
 .plano-hint.show {
-  display: flex;
+    display: flex;
 }
 
+/* Ícone do aviso em vermelho */
+.plano-hint i {
+    color: #ff3b3b;
+    font-size: 0.85rem;
+}
 
 </style>
 </head>
@@ -836,11 +864,7 @@
      ============================================ -->
 <div class="modal-overlay" id="modal-add-store">
   <div class="modal-box">
-    <!-- ALERTA GLOBAL -->
-    <div class="modal-alert-box" id="modal-store-alert">
-      <i class="fas fa-exclamation-circle"></i>
-      <span id="modal-store-alert-text">Preencha todos os campos obrigatórios</span>
-    </div>
+   
 
     <div id="store-error" class="form-error" style="display:none;"></div>
 
