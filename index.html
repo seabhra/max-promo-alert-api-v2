@@ -610,6 +610,122 @@
   }
 }
 
+
+/* ================================================================================
+   ALERTAS DE PREENCHIMENTOFORMULÁRIO INSERÇÃO LOJAS/PRODUTOS - CAMPOS OBRIGATÓRIOS
+   ============================================================================== */
+
+/* Mensagem de erro inline */
+.field-error {
+  color: #ff6b6b;
+  font-size: 0.7rem;
+  font-weight: 600;
+  margin-top: -8px;
+  margin-bottom: 10px;
+  display: none;
+  align-items: center;
+  gap: 6px;
+}
+
+.field-error i {
+  font-size: 0.65rem;
+}
+
+.field-error.show {
+  display: flex;
+}
+
+/* Inputs com erro */
+.input-error {
+  border-color: #ff6b6b !important;
+  box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.2) !important;
+}
+
+/* Plano não selecionado - destaque */
+.planos-grid .plano-card.required-miss {
+  border-color: #ff6b6b;
+  background: rgba(255, 107, 107, 0.05);
+  animation: shakePlan 0.5s ease;
+}
+
+@keyframes shakePlan {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+
+/* Plano com erro - pulse */
+.planos-grid .plano-card.error-pulse {
+  animation: pulseBorder 0.8s ease-in-out 2;
+}
+
+@keyframes pulseBorder {
+  0%, 100% { border-color: rgba(255, 107, 107, 0.4); }
+  50% { border-color: #ff6b6b; }
+}
+
+/* Alerta global no topo do modal */
+.modal-alert-box {
+  background: rgba(255, 107, 107, 0.1);
+  border: 1px solid rgba(255, 107, 107, 0.25);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  display: none;
+  align-items: center;
+  gap: 10px;
+  color: #ff6b6b;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.modal-alert-box.show {
+  display: flex;
+}
+
+.modal-alert-box i {
+  font-size: 1rem;
+}
+
+/* Seta indicativa */
+.hint-arrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--accent-color);
+  font-size: 0.75rem;
+  font-weight: 700;
+  animation: arrowBounce 1.2s ease-in-out infinite;
+}
+
+.hint-arrow i {
+  font-size: 0.7rem;
+}
+
+@keyframes arrowBounce {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(6px); }
+}
+
+/* Aviso abaixo dos planos */
+.plano-hint {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  color: #ff6b6b;
+  font-size: 0.7rem;
+  font-weight: 600;
+  margin-top: 4px;
+  padding: 6px 10px;
+  background: rgba(255, 107, 107, 0.06);
+  border-radius: var(--radius-sm);
+}
+
+.plano-hint.show {
+  display: flex;
+}
+
+
 </style>
 </head>
 
@@ -720,6 +836,12 @@
      ============================================ -->
 <div class="modal-overlay" id="modal-add-store">
   <div class="modal-box">
+    <!-- ALERTA GLOBAL -->
+    <div class="modal-alert-box" id="modal-store-alert">
+      <i class="fas fa-exclamation-circle"></i>
+      <span id="modal-store-alert-text">Preencha todos os campos obrigatórios</span>
+    </div>
+
     <div id="store-error" class="form-error" style="display:none;"></div>
 
     <!-- STEP 1: Escolher plano e dados -->
@@ -729,7 +851,13 @@
       <p>Preencha os dados e escolha o plano. O pagamento é via PIX, único e sem renovação automática.</p>
       
       <div class="section-label"><i class="fas fa-layer-group"></i> Escolha o plano</div>
-      <div class="planos-grid">
+        <div class="planos-grid">
+         <!-- Alerta de plano não selecionado -->
+<div class="plano-hint" id="plano-hint">
+  <i class="fas fa-hand-point-right"></i>
+  <span>Selecione um plano para continuar</span>
+</div> 
+
         <div class="plano-card" data-dias="30" data-valor="9.90" onclick="selecionarPlano(this)">
           <div class="plano-dias">📅 30 dias</div>
           <div class="plano-valor">R$ 9,90</div>
@@ -755,10 +883,24 @@
       </div>
 
       <div class="section-label"><i class="fas fa-pencil"></i> Dados da loja</div>
-      <label for="input-store-name">Nome da Loja</label>
-      <input type="text" id="input-store-name" placeholder="Ex: Minha Loja">
-      <label for="input-store-url">Site / URL</label>
-      <input type="url" id="input-store-url" placeholder="https://minhaloja.com.br">
+      
+       <!-- Inserir nome da loja -->
+      <label for="input-store-name">Nome da Loja <span style="color:#ff6b6b;">*</span></label>
+<input type="text" id="input-store-name" placeholder="Ex: Minha Loja">
+<div class="field-error" id="error-store-name">
+  <i class="fas fa-exclamation-circle"></i>
+  <span>Por favor, insira o nome da loja</span>
+</div>
+
+<!-- Inserir URL do site -->
+     <label for="input-store-url">Site / URL <span style="color:#ff6b6b;">*</span></label>
+<input type="url" id="input-store-url" placeholder="https://minhaloja.com.br">
+<div class="field-error" id="error-store-url">
+  <i class="fas fa-exclamation-circle"></i>
+  <span>Por favor, insira uma URL válida (deve começar com http:// ou https://)</span>
+</div>
+
+<!-- Inserir tipo de promoção -->
       <label for="input-store-cat">Tipo de Promoção Principal</label>
       <select id="input-store-cat">
         <option value="desconto">Desconto</option>
@@ -771,14 +913,20 @@
         <option value="live">Live Sale</option>
         <option value="sorteio">Sorteio</option>
       </select>
+      
       <label for="input-store-email">Seu E-mail (para recibo)</label>
       <input type="email" id="input-store-email" placeholder="seuemail@exemplo.com">
       
       <div class="modal-actions">
         <button class="btn-cancel" id="btn-store-cancel">Cancelar</button>
-      
-        <button class="btn-confirm" id="btn-store-step1-next" style="opacity:0.5;cursor:not-allowed;">
-  <i class="fas fa-lock" style="font-size:.75rem;margin-right:6px;"></i>Continuar → Pagar PIX
+    
+        <!-- Inserir forma de pagamento -->
+      <button class="btn-confirm" id="btn-store-step1-next" style="opacity:0.5;cursor:not-allowed;">
+  <i class="fas fa-lock" style="font-size:.75rem;margin-right:6px;"></i>
+  Continuar → Pagar PIX
+  <span class="hint-arrow" id="btn-hint-arrow" style="display:none;margin-left:8px;">
+    <i class="fas fa-arrow-right"></i> Clique aqui
+  </span>
 </button>
 
       </div>
@@ -787,6 +935,7 @@
     <!-- STEP 2: Pagamento PIX -->
     <div id="store-step-2" style="display:none;">
       <div class="step-pix-header">
+
         <h2><i class="fas fa-qrcode" style="color:#4CAF50;margin-right:8px;"></i>Pague via PIX</h2>
         <p>Escaneie o QR Code ou copie a chave.<br>Após o pagamento, clique em <strong>"Já Paguei"</strong>.</p>
       </div>
@@ -1054,6 +1203,17 @@ function gerarHTMLIcone(tipo, tamanho) {
 // FUNÇÕES PIX
 // ============================================
 function selecionarPlano(el) {
+
+   // Resetar erros visuais
+  document.querySelectorAll('.plano-card').forEach(function(c) {
+    c.classList.remove('required-miss', 'error-pulse');
+  });
+  var planoHint = document.getElementById('plano-hint');
+  if (planoHint) planoHint.classList.remove('show');
+  var alertBox = document.getElementById('modal-store-alert');
+  if (alertBox) alertBox.classList.remove('show');
+
+
   document.querySelectorAll('.plano-card').forEach(function(c) {
     c.classList.remove('selected');
   });
@@ -2042,35 +2202,102 @@ function initApp() {
   // MODAL: INSERIR LOJA (STEP 1)
   // ============================================
 
-  var btnStoreNext = document.getElementById('btn-store-step1-next');
+ var btnStoreNext = document.getElementById('btn-store-step1-next');
 if (btnStoreNext) {
   btnStoreNext.addEventListener('click', function(e) {
+    var hasError = false;
+    var alertText = document.getElementById('modal-store-alert-text');
+    var alertBox = document.getElementById('modal-store-alert');
+    var planoHint = document.getElementById('plano-hint');
+    var btnHintArrow = document.getElementById('btn-hint-arrow');
+
+    // Resetar erros visuais
+    document.querySelectorAll('.field-error').forEach(function(el) { el.classList.remove('show'); });
+    document.querySelectorAll('.input-error').forEach(function(el) { el.classList.remove('input-error'); });
+    document.querySelectorAll('.plano-card').forEach(function(el) { el.classList.remove('required-miss', 'error-pulse'); });
+    if (planoHint) planoHint.classList.remove('show');
+    if (alertBox) alertBox.classList.remove('show');
+
+    // 1. VALIDAR PLANO
     if (!planoSelecionado) {
-      showNotification('⚠️ Selecione um plano primeiro');
-      var g = document.querySelector('.planos-grid');
-      if (g) g.scrollIntoView({behavior:'smooth', block:'start'});
-      return;
+      hasError = true;
+      var planos = document.querySelectorAll('.plano-card');
+      planos.forEach(function(el) {
+        el.classList.add('required-miss');
+        setTimeout(function() { el.classList.add('error-pulse'); }, 100);
+      });
+      if (planoHint) planoHint.classList.add('show');
+      if (alertBox) {
+        alertBox.classList.add('show');
+        alertText.textContent = '⚠️ Selecione um plano antes de continuar';
+      }
+      // Scroll para os planos
+      var grid = document.querySelector('.planos-grid');
+      if (grid) grid.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
-    var nome = document.getElementById('input-store-name').value.trim();
-    var url = document.getElementById('input-store-url').value.trim();
-    var email = document.getElementById('input-store-email').value.trim();
-
+    // 2. VALIDAR NOME DA LOJA
+    var nomeInput = document.getElementById('input-store-name');
+    var nome = (nomeInput ? nomeInput.value.trim() : '');
     if (!nome) {
-      showNotification('⚠️ Digite o nome da loja');
-      document.getElementById('input-store-name').focus();
-      return;
+      hasError = true;
+      if (nomeInput) {
+        nomeInput.classList.add('input-error');
+        document.getElementById('error-store-name').classList.add('show');
+        setTimeout(function() { nomeInput.focus(); }, 200);
+      }
+      if (!alertBox.classList.contains('show')) {
+        alertBox.classList.add('show');
+        alertText.textContent = '⚠️ Preencha todos os campos obrigatórios';
+      }
     }
+
+    // 3. VALIDAR URL
+    var urlInput = document.getElementById('input-store-url');
+    var url = (urlInput ? urlInput.value.trim() : '');
     if (!url) {
-      showNotification('⚠️ Digite a URL da loja');
-      document.getElementById('input-store-url').focus();
+      hasError = true;
+      if (urlInput) {
+        urlInput.classList.add('input-error');
+        document.getElementById('error-store-url').classList.add('show');
+        if (!nome) { setTimeout(function() { urlInput.focus(); }, 200); }
+      }
+      if (!alertBox.classList.contains('show')) {
+        alertBox.classList.add('show');
+        alertText.textContent = '⚠️ Preencha todos os campos obrigatórios';
+      }
+    } else if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      hasError = true;
+      if (urlInput) {
+        urlInput.classList.add('input-error');
+        var errEl = document.getElementById('error-store-url');
+        errEl.classList.add('show');
+        errEl.querySelector('span').textContent = 'A URL deve começar com http:// ou https://';
+        setTimeout(function() { urlInput.focus(); }, 200);
+      }
+      if (!alertBox.classList.contains('show')) {
+        alertBox.classList.add('show');
+        alertText.textContent = '⚠️ URL inválida — use http:// ou https://';
+      }
+    }
+
+    // Se houver erro, NÃO PROSSEGUE
+    if (hasError) {
+      // Mostrar seta no botão
+      if (btnHintArrow) btnHintArrow.style.display = 'inline-flex';
+      // Scroll para o topo do modal para mostrar o alerta
+      var modalBox = document.querySelector('#modal-add-store .modal-box');
+      if (modalBox) modalBox.scrollTop = 0;
       return;
     }
-    if (!url.startsWith('http://') && !url.startsWith('https://')) {
-      showNotification('⚠️ URL deve começar com http:// ou https://');
-      document.getElementById('input-store-url').focus();
-      return;
-    }
+
+    // ============================================
+    // SE TUDO OK, PROSSEGUE PARA O PIX
+    // ============================================
+    // Esconder seta
+    if (btnHintArrow) btnHintArrow.style.display = 'none';
+
+    var email = document.getElementById('input-store-email').value.trim();
 
     storeFormData = {
       nome: nome,
@@ -2132,6 +2359,7 @@ if (btnStoreNext) {
         showNotification('⚠️ Dados da loja não encontrados');
         return;
       }
+
       _setStatusPix('confirmado', '<i class="fas fa-check-circle" style="color:#4CAF50;"></i> Pagamento confirmado!');
       setTimeout(function() {
         confirmarPagamentoEAvancar('pago');
@@ -2349,6 +2577,26 @@ function renderizarOpcoesDoacao(lista) {
     container.appendChild(el);
   });
 }
+//=====================================
+// Limpar erro ao digitar no campo Nome
+//======================================
+document.getElementById('input-store-name').addEventListener('input', function() {
+  this.classList.remove('input-error');
+  document.getElementById('error-store-name').classList.remove('show');
+  var alertBox = document.getElementById('modal-store-alert');
+  if (alertBox) alertBox.classList.remove('show');
+});
+
+// Limpar erro ao digitar no campo URL
+document.getElementById('input-store-url').addEventListener('input', function() {
+  this.classList.remove('input-error');
+  document.getElementById('error-store-url').classList.remove('show');
+  var alertBox = document.getElementById('modal-store-alert');
+  if (alertBox) alertBox.classList.remove('show');
+  // Resetar texto da mensagem de URL
+  var errEl = document.getElementById('error-store-url');
+  errEl.querySelector('span').textContent = 'Por favor, insira uma URL válida (deve começar com http:// ou https://)';
+});
 
 // ============================================
 // INICIALIZAR
