@@ -6,6 +6,10 @@
       "use": "@vercel/node"
     },
     {
+      "src": "sync-promocoes.js",
+      "use": "@vercel/node"
+    },
+    {
       "src": "programas.js",
       "use": "@vercel/node"
     },
@@ -38,6 +42,10 @@
     {
       "src": "/sync",
       "dest": "/sync.js"
+    },
+    {
+      "src": "/sync-promocoes",
+      "dest": "/sync-promocoes.js"
     },
     {
       "src": "/programas",
