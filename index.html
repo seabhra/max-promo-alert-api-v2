@@ -725,15 +725,15 @@
 /* =====================================================
    AVISO ABAIXO DOS PLANOS
    ===================================================== */
-
 .plano-hint {
     display: none;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
 
-    /* Texto branco */
+    width: 100%;
+    box-sizing: border-box;
+
     color: #ffffff;
-
     font-size: 0.7rem;
     font-weight: 600;
 
@@ -748,11 +748,22 @@
     display: flex;
 }
 
-/* Ícone do aviso em vermelho */
+/* SETA VERMELHA */
 .plano-hint i {
+    flex-shrink: 0;
     color: #ff3b3b;
-    font-size: 0.85rem;
+    font-size: 0.9rem;
 }
+
+/* TEXTO OCUPA O RESTANTE DA LINHA */
+.plano-hint span {
+    flex: 1;
+    width: 100%;
+    text-align: left;
+}
+
+
+
 
 </style>
 </head>
@@ -901,9 +912,9 @@
         </div>
         <!-- Alerta de plano não selecionado -->
 <div class="plano-hint" id="plano-hint">
-  <i class="fas fa-hand-point-right"></i>
-  <span>Selecione um plano para continuar</span>
-</div> 
+    <i class="fas fa-chevron-up"></i>
+    <span>Selecione um plano para continuar</span>
+</div>
       </div>
 
       <div class="section-label"><i class="fas fa-pencil"></i> Dados da loja</div>
