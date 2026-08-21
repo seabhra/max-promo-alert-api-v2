@@ -6,16 +6,18 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
+  <!-- VERSÃO: 2.0.3 - NEON INTEGRATION CORRIGIDA -->
   <title>Max Promo — Alerta Inteligente de Promoções</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
 <style>
   :root{--bg-color:#0c0e12;--panel-color:#14171e;--card-color:#1a1e27;--accent-color:#FFB300;--accent-glow:rgba(255,179,0,0.15);--alert-color:#ff3333;--text-main:#f0f0f0;--text-muted:#7a7f8a;--sidebar-width:64px;--btn-size:48px;--radius-sm:8px;--radius-md:12px;--radius-lg:18px;--radius-full:50px}
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
   body{font-family:'Inter',sans-serif;background-color:var(--bg-color);color:var(--text-main);height:100vh;display:flex;flex-direction:column;overflow:hidden}
   header{background:linear-gradient(135deg,var(--panel-color) 0%,#1c2030 100%);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--accent-color);box-shadow:0 4px 20px rgba(255,179,0,0.12);z-index:1000;flex-shrink:0}
   .header-left{display:flex;align-items:center;gap:10px}
-  .app-icon{width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,#FFB300,#FF8F00);display:flex;align-items:center;justify-content:center;font-size:20px;color:#000;font-weight:900}
+  .app-icon{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0}
+  .app-icon img{width:100%;height:100%;object-fit:contain}
   h1{font-size:1.15rem;font-weight:900;letter-spacing:1.5px;text-transform:uppercase}
   h1 span{color:var(--accent-color);text-shadow:0 0 20px rgba(255,179,0,0.3)}
   .header-right{display:flex;align-items:center;gap:10px}
@@ -24,6 +26,7 @@
   .status-dot{width:8px;height:8px;border-radius:50%;background:#4CAF50;animation:statusPulse 2s ease-in-out infinite}
   .status-dot.offline{background:#ff4444}
   @keyframes statusPulse{0%,100%{box-shadow:0 0 0 0 rgba(76,175,80,0.5)}50%{box-shadow:0 0 0 6px rgba(76,175,80,0)}}
+  
   .btn-menu-toggle{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:none;border:1.5px solid rgba(255,179,0,0.3);border-radius:10px;padding:8px 14px 6px;cursor:pointer;transition:all 0.25s ease;user-select:none}
   .btn-menu-toggle:hover{border-color:var(--accent-color);background:rgba(255,179,0,0.06)}
   .btn-menu-toggle:active{transform:scale(0.93)}
@@ -33,6 +36,7 @@
   .btn-menu-toggle.active .menu-hamburger span:nth-child(2){opacity:0;transform:scaleX(0)}
   .btn-menu-toggle.active .menu-hamburger span:nth-child(3){transform:translateY(-6.5px) rotate(-45deg)}
   .menu-label{font-size:0.55rem;font-weight:700;letter-spacing:1.5px;color:var(--accent-color);text-transform:uppercase;line-height:1;margin-top:2px}
+  
   .tab-bar{display:flex;background:var(--panel-color);border-bottom:1px solid rgba(255,255,255,0.05);flex-shrink:0;overflow-x:auto;scrollbar-width:none}
   .tab-bar::-webkit-scrollbar{display:none}
   .tab-btn{flex:1;min-width:0;padding:12px 8px;background:none;border:none;color:var(--text-muted);font-family:'Inter',sans-serif;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;cursor:pointer;transition:all 0.25s ease;position:relative;white-space:nowrap;display:flex;flex-direction:column;align-items:center;gap:4px}
@@ -40,15 +44,22 @@
   .tab-btn.active{color:var(--accent-color)}
   .tab-btn.active::after{content:'';position:absolute;bottom:0;left:20%;right:20%;height:3px;background:var(--accent-color);border-radius:3px 3px 0 0}
   .tab-btn .badge-count{position:absolute;top:6px;right:calc(50% - 20px);background:#ff3333;color:#fff;font-size:0.6rem;font-weight:800;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+ 
   .main-content{flex:1;overflow:hidden;position:relative;display:flex;flex-direction:column}
+ 
+ 
+ 
   .feed-container{flex:1;overflow-y:auto;overflow-x:hidden;padding:12px;scroll-behavior:smooth}
   .feed-container::-webkit-scrollbar{width:4px}
   .feed-container::-webkit-scrollbar-track{background:transparent}
   .feed-container::-webkit-scrollbar-thumb{background:rgba(255,179,0,0.2);border-radius:4px}
+  
   .search-container{position:absolute;top:0;left:0;width:100%;background-color:rgba(20,23,30,0.98);backdrop-filter:blur(8px);display:flex;gap:10px;z-index:800;max-height:0;overflow:hidden;opacity:0;padding:0 12px;border-bottom:1px solid transparent;transition:all 0.3s ease;align-items:center}
   .search-container.active{max-height:80px;opacity:1;padding:12px;border-bottom:1px solid rgba(255,179,0,0.2);box-shadow:0 4px 15px rgba(0,0,0,0.5)}
   .search-container input{flex:1;padding:12px 18px;border-radius:var(--radius-full);border:1px solid #333;background-color:#0a0c10;color:#fff;font-size:0.9rem;outline:none;font-family:'Inter',sans-serif}
   .search-container input:focus{border-color:var(--accent-color);box-shadow:0 0 0 2px rgba(255,179,0,0.15)}
+  
+  
   .btn-search-action{flex-shrink:0;width:44px;height:44px;border-radius:50%;border:none;cursor:pointer;background:linear-gradient(135deg,#FFB300,#FF8F00);color:#000;font-size:1rem;display:flex;align-items:center;justify-content:center;transition:all 0.2s ease}
   .btn-search-action:active{transform:scale(0.9)}
   .sidebar-controls{position:absolute;top:0;right:0;height:100%;width:var(--sidebar-width);z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:12px 0;transition:transform 0.4s cubic-bezier(0.4,0,0.2,1);transform:translateX(0)}
@@ -70,7 +81,7 @@
   @keyframes pulseRing{0%{transform:scale(0.8);opacity:0.6}100%{transform:scale(1.3);opacity:0}}
   .promo-card-content{flex:1;min-width:0}
   .promo-card-type{display:inline-flex;align-items:center;gap:4px;font-size:0.65rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:4px;margin-bottom:6px}
-  .promo-card-title{font-size:0.95rem;font-weight:700;line-height:1.3;margin-bottom:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .promo-card-title {font-size: 0.95rem; font-weight: 700; line-height: 1.3; margin-bottom: 4px; display: -webkit-box; display: box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical;  box-orient: vertical;overflow: hidden; text-overflow: ellipsis; max-height: 2.6em; }
   .promo-card-desc{font-size:0.8rem;color:var(--text-muted);line-height:1.4;margin-bottom:8px}
   .promo-card-meta{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
   .promo-price-old{font-size:0.8rem;color:var(--text-muted);text-decoration:line-through}
@@ -111,18 +122,24 @@
   .alert-close-btn:hover{background:rgba(255,255,255,0.15)}
   .toast-notification{position:absolute;top:20px;left:50%;transform:translateX(-50%) translateY(-20px);background:rgba(20,23,30,0.96);color:var(--text-main);padding:12px 24px;border-radius:var(--radius-full);border:1px solid rgba(255,179,0,0.3);box-shadow:0 10px 30px rgba(0,0,0,0.7);z-index:2000;opacity:0;font-size:0.85rem;font-weight:600;text-align:center;pointer-events:none;transition:opacity 0.3s ease,transform 0.3s ease;white-space:nowrap;backdrop-filter:blur(8px)}
   .toast-notification.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  
   .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:3000;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
   .modal-overlay.active{display:flex}
-  .modal-box{background:var(--panel-color);border:1px solid rgba(255,179,0,0.2);border-radius:var(--radius-lg);padding:24px;width:90%;max-width:400px;animation:modalIn 0.3s ease-out}
+
+  .modal-box{background:var(--panel-color);border:1px solid rgba(255,179,0,0.2);border-radius:var(--radius-lg);padding:24px;width:90%;max-width:400px;animation:modalIn 0.3s ease-out;max-height:90vh;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+ 
   @keyframes modalIn{from{opacity:0;transform:scale(0.9) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
   .modal-box h2{font-size:1.1rem;font-weight:800;margin-bottom:6px}
   .modal-box p{font-size:0.8rem;color:var(--text-muted);margin-bottom:18px}
   .modal-box label{display:block;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:6px}
   .modal-box input,.modal-box select{width:100%;padding:12px 16px;border-radius:var(--radius-sm);border:1px solid #333;background:#0a0c10;color:#fff;font-size:0.9rem;font-family:'Inter',sans-serif;outline:none;margin-bottom:14px}
   .modal-box input:focus,.modal-box select:focus{border-color:var(--accent-color)}
+  
+  
   .modal-actions{display:flex;gap:10px;margin-top:6px}
   .modal-actions button{flex:1;padding:12px;border-radius:var(--radius-sm);border:none;font-family:'Inter',sans-serif;font-size:0.85rem;font-weight:700;cursor:pointer;transition:all 0.2s ease}
   .modal-actions button:active{transform:scale(0.96)}
+  
   .btn-cancel{background:rgba(255,255,255,0.06);color:var(--text-muted);border:1px solid rgba(255,255,255,0.08)!important}
   .btn-confirm{background:linear-gradient(135deg,#FFB300,#FF8F00);color:#000}
   .filter-strip{display:flex;gap:8px;padding:10px 12px;overflow-x:auto;scrollbar-width:none;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,0.03)}
@@ -148,32 +165,466 @@
   .loading-text span{color:var(--accent-color)}
   .loading-sub{margin-top:8px;font-size:0.8rem;color:#555;animation:pulseText 1.8s ease-in-out infinite}
   @keyframes pulseText{0%,100%{opacity:0.3}50%{opacity:1}}
+  
   .demo-panel{position:absolute;top:12px;right:76px;z-index:700;display:flex;gap:6px}
   .demo-btn{padding:7px 14px;border-radius:var(--radius-full);border:1px solid rgba(255,179,0,0.25);background:rgba(20,23,30,0.92);color:var(--accent-color);font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;cursor:pointer;backdrop-filter:blur(8px);transition:all 0.2s ease}
   .demo-btn:hover{background:rgba(255,179,0,0.1);border-color:var(--accent-color)}
   .demo-btn:active{transform:scale(0.95)}
   .demo-btn.active-demo{background:rgba(255,179,0,0.15);border-color:var(--accent-color);box-shadow:0 0 12px rgba(255,179,0,0.15)}
+  
+  
   .compare-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04)}
   .compare-row:last-child{border-bottom:none}
   .compare-store{font-size:0.85rem;font-weight:600}
   .compare-price{font-family:'Rajdhani',sans-serif;font-size:1.05rem;font-weight:700}
   .compare-best{color:#4CAF50}
+  
   .source-badge{display:inline-flex;align-items:center;gap:4px;font-size:0.6rem;font-weight:700;padding:2px 6px;border-radius:3px;text-transform:uppercase;letter-spacing:0.5px}
   img.promo-icon-img,img.alert-icon-img{border:none;outline:none}
   img.promo-icon-img.img-failed,img.alert-icon-img.img-failed{display:none!important}
   @media(max-width:380px){h1{font-size:1rem}.savings-badge{display:none}.promo-card-body{gap:10px;padding:12px}.promo-card-icon{width:42px;height:42px;font-size:1.1rem}}
   @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:0.01ms!important;transition-duration:0.01ms!important}}
+
+/* ============================================
+   CSS PARA MODAL DE INSERIR LOJA COM PIX
+   ============================================ */
+
+/* Planos de inserir loja */
+.planos-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.plano-card {
+  border: 2px solid rgba(255, 255, 255, .08);
+  border-radius: var(--radius-md);
+  padding: 14px 12px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  text-align: center;
+  position: relative;
+  background: rgba(255, 255, 255, .02);
+}
+
+.plano-card:hover {
+  border-color: rgba(255, 179, 0, .4);
+  background: rgba(255, 179, 0, .05);
+  transform: translateY(-2px);
+}
+
+.plano-card.selected {
+  border-color: var(--accent-color);
+  background: rgba(255, 179, 0, .12);
+  box-shadow: 0 0 0 3px rgba(255, 179, 0, .15), 0 4px 15px rgba(255, 179, 0, .1);
+}
+
+.plano-card .plano-popular {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #FFB300, #FF8F00);
+  color: #000;
+  font-size: .55rem;
+  font-weight: 800;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  padding: 3px 12px;
+  border-radius: 50px;
+  white-space: nowrap;
+}
+
+.plano-card .plano-dias {
+  font-size: .7rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+.plano-card .plano-valor {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--accent-color);
+  margin: 4px 0;
+}
+
+.plano-card .plano-desc {
+  font-size: .62rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.plano-card.selected .plano-dias,
+.plano-card.selected .plano-desc {
+  color: var(--accent-color);
+  opacity: .9;
+}
+
+
+
+/* Botão Continuar com animação */
+#btn-store-step1-next:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: grayscale(0.4);
+}
+
+#btn-store-step1-next:not(:disabled) {
+  animation: pulseGlow 1.5s ease-in-out infinite;
+}
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 179, 0, 0.4); }
+  50% { box-shadow: 0 0 20px 5px rgba(255, 179, 0, 0.2); }
+}
+
+/* Step 2 - PIX */
+.step-pix-header {
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.step-pix-header p {
+  font-size: .78rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.pix-valor-destaque {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: rgba(76, 175, 80, .08);
+  border: 1px solid rgba(76, 175, 80, .2);
+  border-radius: var(--radius-md);
+  padding: 10px 16px;
+  margin-bottom: 14px;
+  font-size: .85rem;
+  font-weight: 700;
+}
+
+.pix-valor-destaque span {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1.2rem;
+  color: #4CAF50;
+}
+
+.qr-wrapper {
+  background: #fff;
+  border-radius: 16px;
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 14px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, .4);
+}
+
+#pix-qr-canvas {
+  display: block;
+}
+
+.pix-copiacola-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.pix-copiacola-row input {
+  flex: 1;
+  font-size: .68rem;
+  font-family: monospace;
+  padding: 10px 12px;
+  margin-bottom: 0;
+}
+
+.btn-copy-pix {
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-sm);
+  background: rgba(76, 175, 80, .15);
+  border: 1px solid rgba(76, 175, 80, .3);
+  color: #4CAF50;
+  cursor: pointer;
+  font-size: .95rem;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .2s;
+}
+
+.btn-copy-pix:hover {
+  background: rgba(76, 175, 80, .25);
+}
+
+.btn-copy-pix:active {
+  transform: scale(.92);
+}
+
+.pix-timer-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: .8rem;
+  font-weight: 700;
+  color: #FFB300;
+  margin-bottom: 10px;
+}
+
+.pix-timer-box.urgente {
+  color: #ff4444;
+}
+
+.manual-instrucoes {
+  background: rgba(255, 179, 0, .05);
+  border: 1px solid rgba(255, 179, 0, .15);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  font-size: .75rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.manual-instrucoes strong {
+  color: var(--text-main);
+}
+
+.manual-instrucoes ol {
+  padding-left: 16px;
+  margin-top: 4px;
+}
+
+.manual-instrucoes li {
+  margin-bottom: 3px;
+}
+
+.pix-status-msg {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: .75rem;
+  color: var(--text-muted);
+  margin-bottom: 14px;
+  text-align: center;
+}
+
+.pix-status-msg.aguardando {
+  color: var(--text-muted);
+}
+
+.pix-status-msg.confirmado {
+  color: #4CAF50;
+}
+
+.pix-status-msg.erro {
+  color: #ff4444;
+}
+
+/* Step 3 - Concluído */
+.step3-center {
+  text-align: center;
+  padding: 16px 0;
+}
+
+.step3-check-circle {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4CAF50, #2E7D32);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  color: #fff;
+  margin: 0 auto 16px;
+  box-shadow: 0 0 30px rgba(76, 175, 80, .4);
+}
+
+.step3-center h2 {
+  color: #4CAF50;
+  margin-bottom: 8px;
+}
+
+.step3-center p {
+  color: var(--text-muted);
+  font-size: .82rem;
+  line-height: 1.6;
+}
+
+.step3-resumo {
+  background: rgba(76, 175, 80, .08);
+  border: 1px solid rgba(76, 175, 80, .2);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  margin: 16px 0;
+  font-size: .8rem;
+  text-align: left;
+}
+
+.step3-resumo div {
+  margin-bottom: 5px;
+}
+
+.step3-resumo div:last-child {
+  margin-bottom: 0;
+}
+
+.dev-bar {
+  background: rgba(99, 91, 255, .12);
+  border: 1px dashed rgba(99, 91, 255, .35);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: .72rem;
+  color: #8B85FF;
+}
+
+.btn-dev-confirm {
+  margin-left: auto;
+  padding: 5px 12px;
+  border-radius: 50px;
+  background: rgba(99, 91, 255, .2);
+  border: 1px solid rgba(99, 91, 255, .4);
+  color: #8B85FF;
+  font-size: .7rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: 'Inter', sans-serif;
+  transition: all .2s;
+}
+
+.btn-dev-confirm:hover {
+  background: rgba(99, 91, 255, .35);
+}
+
+.section-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: .65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, .06);
+}
+
+.form-error {
+  margin-top: 12px;
+  color: #d32f2f;
+  font-size: .9rem;
+  font-weight: 600;
+}
+
+/* ============================================
+   BOTÃO FLUTUANTE VERDE - CORRIGIDO
+   ============================================ */
+.fab-add-store {
+  position: absolute;
+  bottom: 24px;
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(135deg, #4CAF50, #2E7D32);
+  color: #fff;
+  font-size: 1.5rem;
+  cursor: pointer;
+  box-shadow: 0 6px 25px rgba(76, 175, 80, 0.4);
+  transition: all 0.25s ease;
+  z-index: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fab-add-store:hover {
+  transform: scale(1.08);
+  box-shadow: 0 8px 35px rgba(76, 175, 80, 0.55);
+}
+
+.fab-add-store:active {
+  transform: scale(0.93);
+}
+
+.fab-add-store i {
+  font-size: 1.4rem;
+}
+
+/* Tooltip */
+.fab-add-store::after {
+  content: "Inserir Loja";
+  position: absolute;
+  right: 68px;
+  background: rgba(0,0,0,0.85);
+  color: #fff;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  font-family: 'Inter', sans-serif;
+}
+
+.fab-add-store:hover::after {
+  opacity: 1;
+}
+
+/* Responsivo */
+@media (max-width: 380px) {
+  .fab-add-store {
+    width: 48px;
+    height: 48px;
+    font-size: 1.2rem;
+    bottom: 16px;
+    right: 16px;
+  }
+  .fab-add-store::after {
+    display: none;
+  }
+}
+
 </style>
 </head>
+
 <body>
   <div class="loading-fullscreen" id="loading-fullscreen">
     <div class="spinner-ring"></div>
     <div class="loading-text">Iniciando <span>Max Promo</span></div>
     <div class="loading-sub">Buscando as melhores ofertas...</div>
   </div>
+
   <header>
     <div class="header-left">
-      <div class="app-icon" aria-hidden="true">M</div>
+      <div class="app-icon">
+        <img src="./public/imagens_app/ic_icon_app.png" alt="MAX PROMO">
+      </div>
       <h1>MAX <span>PROMO</span></h1>
     </div>
     <div class="header-right">
@@ -181,7 +632,7 @@
         <i class="fas fa-piggy-bank"></i>
         <span id="savings-total">R$ 0</span>
       </div>
-      <div class="status-dot" id="status-dot" title="Conectado ao Supabase"></div>
+      <div class="status-dot" id="status-dot" title="Conectado ao Neon"></div>
       <button class="btn-menu-toggle" id="btn-menu-toggle" aria-label="Menu">
         <div class="menu-hamburger"><span></span><span></span><span></span></div>
         <div class="menu-label">MENU</div>
@@ -194,25 +645,32 @@
     <button class="tab-btn" data-tab="history" role="tab"><i class="fas fa-chart-line"></i> Historico</button>
     <button class="tab-btn" data-tab="compare" role="tab"><i class="fas fa-balance-scale"></i> Comparar</button>
   </nav>
+
   <div class="main-content">
     <div class="search-container" id="search-bar">
       <input type="text" id="search-query" placeholder="Buscar produto, loja ou tipo de promocao..." aria-label="Buscar">
       <button class="btn-search-action" id="btn-search" title="Buscar"><i class="fas fa-search"></i></button>
     </div>
+
     <div class="filter-strip" id="filter-strip" role="group" aria-label="Filtros"></div>
     <div class="feed-container" id="feed-container"></div>
+    
     <div class="sidebar-controls" id="sidebar-controls">
-      <button class="map-btn" id="btn-search-toggle" title="Buscar"><i class="fas fa-search"></i></button>
-      <button class="map-btn" id="btn-alert-toggle" title="Alertas"><i class="fas fa-bell" id="alert-toggle-icon"></i></button>
-      <button class="map-btn" id="btn-filter-flash" title="Flash Sales" style="color:#FBC02D;"><i class="fas fa-bolt"></i></button>
-      <button class="map-btn" id="btn-filter-cupom" title="Cupons" style="color:#C2185B;"><i class="fas fa-ticket"></i></button>
-      <button class="map-btn" id="btn-filter-frete" title="Frete Gratis" style="color:#0288D1;"><i class="fas fa-truck"></i></button>
-      <button class="map-btn" id="btn-filter-cashback" title="Cashback" style="color:#F9A825;"><i class="fas fa-coins"></i></button>
-      <button class="map-btn" id="btn-refresh-feed" title="Atualizar"><i class="fas fa-sync-alt"></i></button>
-      <button class="map-btn" id="btn-demo-alert" title="Demo" style="color:#ff4444;"><i class="fas fa-vial"></i></button>
-    </div>
+
+  <button class="map-btn" id="btn-search-toggle" title="Buscar"><i class="fas fa-search"></i></button>
+  <button class="map-btn" id="btn-alert-toggle" title="Alertas"><i class="fas fa-bell" id="alert-toggle-icon"></i></button>
+  <button class="map-btn" id="btn-filter-flash" title="Flash Sales" style="color:#FBC02D;"><i class="fas fa-bolt"></i></button>
+  <button class="map-btn" id="btn-filter-cupom" title="Cupons" style="color:#C2185B;"><i class="fas fa-ticket"></i></button>
+  <button class="map-btn" id="btn-filter-frete" title="Frete Gratis" style="color:#0288D1;"><i class="fas fa-truck"></i></button>
+  <button class="map-btn" id="btn-filter-cashback" title="Cashback" style="color:#F9A825;"><i class="fas fa-coins"></i></button>
+  <button class="map-btn" id="btn-monitorar-sidebar" title="Monitorar Produtos" style="color:#FFB300;"><i class="fas fa-eye"></i></button>
+  <button class="map-btn" id="btn-refresh-feed" title="Atualizar"><i class="fas fa-sync-alt"></i></button>
+  <button class="map-btn" id="btn-demo-alert" title="Demo" style="color:#ff4444;"><i class="fas fa-vial"></i></button>
+</div>
+
     <div class="demo-panel" id="demo-panel"><button class="demo-btn" id="btn-demo-auto">Auto Demo</button></div>
-    <button class="fab-add" id="fab-add" title="Monitorar produto"><i class="fas fa-plus"></i></button>
+      <button class="fab-add" id="fab-add-store" title="Inserir Loja"><i class="fas fa-store"></i></button>
+
     <div id="alert-container">
       <div class="alert-bar" id="alert-bar">
         <div class="alert-icon-box" id="alert-icon-box">
@@ -228,7 +686,8 @@
     </div>
     <div class="toast-notification" id="toast-msg"></div>
   </div>
-  <div class="modal-overlay" id="modal-add-product">
+  
+  <div class="modal-overlay" id="modal-add-product"> 
     <div class="modal-box">
       <h2>Monitorar Produto</h2>
       <p>Adicione um produto para receber alertas quando o preco cair.</p>
@@ -253,6 +712,148 @@
       </div>
     </div>
   </div>
+
+  
+
+<!-- ============================================
+     MODAL: INSERIR LOJA COM PIX
+     ============================================ -->
+<div class="modal-overlay" id="modal-add-store">
+  <div class="modal-box">
+    <div id="store-error" class="form-error" style="display:none;"></div>
+
+    <!-- STEP 1: Escolher plano e dados -->
+    <div id="store-step-1">
+      <h2><i class="fas fa-store" style="color:var(--accent-color);margin-right:8px;"></i>Inserir Loja</h2>
+
+      <p>Preencha os dados e escolha o plano. O pagamento é via PIX, único e sem renovação automática.</p>
+      
+      <div class="section-label"><i class="fas fa-layer-group"></i> Escolha o plano</div>
+      <div class="planos-grid">
+        <div class="plano-card" data-dias="30" data-valor="9.90" onclick="selecionarPlano(this)">
+          <div class="plano-dias">📅 30 dias</div>
+          <div class="plano-valor">R$ 9,90</div>
+          <div class="plano-desc">Teste o serviço</div>
+        </div>
+        <div class="plano-card" data-dias="60" data-valor="19.90" onclick="selecionarPlano(this)">
+          <div class="plano-popular">⭐ Popular</div>
+          <div class="plano-dias">📅 60 dias</div>
+          <div class="plano-valor">R$ 19,90</div>
+          <div class="plano-desc">R$ 0,33/dia</div>
+        </div>
+        <div class="plano-card" data-dias="90" data-valor="39.90" onclick="selecionarPlano(this)">
+          <div class="plano-dias">📅 90 dias</div>
+          <div class="plano-valor">R$ 39,90</div>
+          <div class="plano-desc">R$ 0,44/dia</div>
+        </div>
+        <div class="plano-card" data-dias="365" data-valor="99.90" onclick="selecionarPlano(this)">
+          <div class="plano-popular">🔥 Melhor</div>
+          <div class="plano-dias">📅 365 dias</div>
+          <div class="plano-valor">R$ 99,90</div>
+          <div class="plano-desc">Melhor custo-benefício</div>
+        </div>
+      </div>
+
+      <div class="section-label"><i class="fas fa-pencil"></i> Dados da loja</div>
+      <label for="input-store-name">Nome da Loja</label>
+      <input type="text" id="input-store-name" placeholder="Ex: Minha Loja">
+      <label for="input-store-url">Site / URL</label>
+      <input type="url" id="input-store-url" placeholder="https://minhaloja.com.br">
+      <label for="input-store-cat">Tipo de Promoção Principal</label>
+      <select id="input-store-cat">
+        <option value="desconto">Desconto</option>
+        <option value="flash">Flash Sale</option>
+        <option value="cupom">Cupom</option>
+        <option value="cashback">Cashback</option>
+        <option value="frete_gratis">Frete Grátis</option>
+        <option value="saldao">Saldão</option>
+        <option value="outlet">Outlet</option>
+        <option value="live">Live Sale</option>
+        <option value="sorteio">Sorteio</option>
+      </select>
+      <label for="input-store-email">Seu E-mail (para recibo)</label>
+      <input type="email" id="input-store-email" placeholder="seuemail@exemplo.com">
+      
+      <div class="modal-actions">
+        <button class="btn-cancel" id="btn-store-cancel">Cancelar</button>
+      
+        <button class="btn-confirm" id="btn-store-step1-next" style="opacity:0.5;cursor:not-allowed;">
+  <i class="fas fa-lock" style="font-size:.75rem;margin-right:6px;"></i>Continuar → Pagar PIX
+</button>
+
+      </div>
+    </div>
+
+    <!-- STEP 2: Pagamento PIX -->
+    <div id="store-step-2" style="display:none;">
+      <div class="step-pix-header">
+        <h2><i class="fas fa-qrcode" style="color:#4CAF50;margin-right:8px;"></i>Pague via PIX</h2>
+        <p>Escaneie o QR Code ou copie a chave.<br>Após o pagamento, clique em <strong>"Já Paguei"</strong>.</p>
+      </div>
+      <div class="pix-valor-destaque">
+        <i class="fas fa-receipt" style="color:#4CAF50;"></i>
+        <span id="pix-valor-label">R$ 9,90</span>
+        <span style="font-size:.75rem;color:var(--text-muted);">•</span>
+        <span id="pix-dias-label" style="font-size:.75rem;color:var(--text-muted);"></span>
+      </div>
+      <div style="text-align:center;">
+        <div class="qr-wrapper" id="pix-qr-wrapper">
+          <canvas id="pix-qr-canvas" width="180" height="180"></canvas>
+        </div>
+      </div>
+      <div class="pix-copiacola-row">
+        <input id="pix-key-display" readonly placeholder="Gerando código PIX...">
+        <button class="btn-copy-pix" id="btn-copy-pix" title="Copiar"><i class="fas fa-copy"></i></button>
+      </div>
+      <div class="manual-instrucoes">
+        <strong><i class="fas fa-circle-info" style="color:var(--accent-color);margin-right:4px;"></i>Como pagar:</strong>
+        <ol>
+          <li>Abra o app do seu banco</li>
+          <li>Escolha <strong>PIX → Copia e Cola</strong> ou escaneie o QR</li>
+          <li>Confirme o valor: <strong id="instrucao-valor">R$ 9,90</strong></li>
+          <li>Pague e clique em <strong>"Já Paguei"</strong> abaixo</li>
+        </ol>
+      </div>
+      <div class="pix-timer-box" id="pix-timer-box">
+        <i class="fas fa-clock"></i>
+        <span>QR válido por: </span>
+        <span id="pix-countdown">10:00</span>
+      </div>
+      <div class="pix-status-msg aguardando" id="pix-status-msg">
+        <i class="fas fa-hourglass-half" style="color:var(--accent-color);"></i>
+        Aguardando confirmação do pagamento...
+      </div>
+      <div class="dev-bar" id="dev-bar-teste" style="display:flex;">
+        <i class="fas fa-flask"></i>
+        <span><strong>Modo teste</strong> — simula pagamento confirmado</span>
+        <button class="btn-dev-confirm" id="btn-dev-simular">✔ Simular Pago</button>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" id="btn-store-step2-back">← Voltar</button>
+        <button class="btn-confirm" id="btn-store-step2-paguei">
+          <i class="fas fa-check-circle" style="font-size:.8rem;margin-right:5px;"></i>Já Paguei
+        </button>
+      </div>
+    </div>
+
+    <!-- STEP 3: Concluído -->
+    <div id="store-step-3" style="display:none;">
+      <div class="step3-center">
+        <div class="step3-check-circle"><i class="fas fa-check"></i></div>
+        <h2>Loja Cadastrada!</h2>
+        <p>Pagamento registrado. Sua loja será publicada em até 24h após validação manual.</p>
+        <div class="step3-resumo" id="store-step3-resumo"></div>
+        <div class="modal-actions">
+          <button class="btn-confirm" id="btn-store-step3-close" style="flex:1;">
+            <i class="fas fa-check" style="font-size:.8rem;margin-right:5px;"></i>Concluir
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
   <div class="modal-overlay" id="modal-compare">
     <div class="modal-box">
       <h2 id="compare-title">Comparar Precos</h2>
@@ -262,219 +863,1498 @@
     </div>
   </div>
   <audio id="alert-sound" preload="auto"></audio>
+
+
 <script>
-  var PROMO_CONFIG = {
-    'desconto':{icon:'/imagens_promo/ic_promo_desconto.png',faIcon:'fas fa-percent',color:'#2E7D32',label:'DESCONTO',emoji:'🏷️'},
-    'saldao':{icon:'/imagens_promo/ic_promo_saldao.png',faIcon:'fas fa-tags',color:'#E65100',label:'SALDAO',emoji:'🔥'},
-    'outlet':{icon:'/imagens_promo/ic_promo_outlet.png',faIcon:'fas fa-store',color:'#6A1B9A',label:'OUTLET',emoji:'🏪'},
-    'flash':{icon:'/imagens_promo/ic_promo_flash.png',faIcon:'fas fa-bolt',color:'#FBC02D',label:'FLASH SALE',emoji:'⚡',urgent:true},
-    'frete_gratis':{icon:'/imagens_promo/ic_promo_frete.png',faIcon:'fas fa-truck',color:'#0288D1',label:'FRETE GRATIS',emoji:'🚚'},
-    'cupom':{icon:'/imagens_promo/ic_promo_cupom.png',faIcon:'fas fa-ticket',color:'#C2185B',label:'CUPOM',emoji:'🎟️'},
-    'leve_pague':{icon:'/imagens_promo/ic_promo_leve.png',faIcon:'fas fa-gift',color:'#00796B',label:'COMPRE X LEVE Y',emoji:'🎁'},
-    'cashback':{icon:'/imagens_promo/ic_promo_cashback.png',faIcon:'fas fa-coins',color:'#F9A825',label:'CASHBACK',emoji:'💰'},
-    'blackfriday':{icon:'/imagens_promo/ic_promo_blackfriday.png',faIcon:'fas fa-calendar-minus',color:'#212121',label:'BLACK FRIDAY',emoji:'🖤',goldAccent:'#FFD700'},
-    'brinde':{icon:'/imagens_promo/ic_promo_brinde.png',faIcon:'fas fa-gift',color:'#EC407A',label:'BRINDE',emoji:'🎀'},
-    'progressivo':{icon:'/imagens_promo/ic_promo_progressivo.png',faIcon:'fas fa-chart-line',color:'#689F38',label:'DESCONTO PROGRESSIVO',emoji:'📈'},
-    'primeira':{icon:'/imagens_promo/ic_promo_primeira.png',faIcon:'fas fa-star',color:'#1565C0',label:'PRIMEIRA COMPRA',emoji:'🆕'},
-    'fidelidade':{icon:'/imagens_promo/ic_promo_fidelidade.png',faIcon:'fas fa-award',color:'#FFB300',label:'FIDELIDADE',emoji:'⭐'},
-    'misterio':{icon:'/imagens_promo/ic_promo_misterio.png',faIcon:'fas fa-box-open',color:'#4527A0',label:'CAIXA MISTERIOSA',emoji:'🎲'},
-    'bilhete':{icon:'/imagens_promo/ic_promo_bilhete.png',faIcon:'fas fa-ticket',color:'#FFD700',label:'BILHETE DOURADO',emoji:'🎫',goldAccent:'#FFD700'},
-    'live':{icon:'/imagens_promo/ic_promo_live.png',faIcon:'fas fa-video',color:'#D32F2F',label:'LIVE SALE',emoji:'📱',isLive:true},
-    'combo':{icon:'/imagens_promo/ic_promo_combo.png',faIcon:'fas fa-boxes-stacked',color:'#EF6C00',label:'COMBO',emoji:'📦'},
-    'parcela':{icon:'/imagens_promo/ic_promo_parcela.png',faIcon:'fas fa-credit-card',color:'#00695C',label:'PARCELAMENTO',emoji:'💳'},
-    'cross':{icon:'/imagens_promo/ic_promo_cross.png',faIcon:'fas fa-link',color:'#42A5F5',label:'COMPRE JUNTO',emoji:'🔗'},
-    'sorteio':{icon:'/imagens_promo/ic_promo_sorteio.png',faIcon:'fas fa-trophy',color:'#7B1FA2',label:'SORTEIO',emoji:'🎰'}
+
+// ============================================
+// CONFIGURAÇÃO DOS ÍCONES
+// ============================================
+var BOLSA_TIGRESA = {
+  id: 21,
+  tipo: 'flash',
+  titulo: 'Bolsa Tigresa – edição limitada',
+  desc: 'Flash Sale: 10% OFF por 2 horas apenas!',
+  loja: 'Atelier Sorelle Santos',
+  precoOld: 160,
+  precoNew: 144,
+  tempoRestante: 7200,
+  clickThroughUrl: 'https://ateliersorellesantos.vercel.app/',
+  url: 'https://ateliersorellesantos.vercel.app/'
+};
+
+var PROMO_CONFIG = {
+  'desconto':{icon:'/public/imagens_promo/ic_promo_desconto.png',faIcon:'fas fa-percent',color:'#2E7D32',label:'DESCONTO',emoji:'🏷️'},
+  'saldao':{icon:'/public/imagens_promo/ic_promo_saldao.png',faIcon:'fas fa-tags',color:'#E65100',label:'SALDAO',emoji:'🔥'},
+  'outlet':{icon:'/public/imagens_promo/ic_promo_outlet.png',faIcon:'fas fa-store',color:'#6A1B9A',label:'OUTLET',emoji:'🏪'},
+  'flash':{icon:'/public/imagens_promo/ic_promo_flash.png',faIcon:'fas fa-bolt',color:'#FBC02D',label:'FLASH SALE',emoji:'⚡',urgent:true},
+  'frete_gratis':{icon:'/public/imagens_promo/ic_promo_frete.png',faIcon:'fas fa-truck',color:'#0288D1',label:'FRETE GRATIS',emoji:'🚚'},
+  'cupom':{icon:'/public/imagens_promo/ic_promo_cupom.png',faIcon:'fas fa-ticket',color:'#C2185B',label:'CUPOM',emoji:'🎟️'},
+  'leve_pague':{icon:'/public/imagens_promo/ic_promo_leve.png',faIcon:'fas fa-gift',color:'#00796B',label:'COMPRE X LEVE Y',emoji:'🎁'},
+  'cashback':{icon:'/public/imagens_promo/ic_promo_cashback.png',faIcon:'fas fa-coins',color:'#F9A825',label:'CASHBACK',emoji:'💰'},
+  'blackfriday':{icon:'/public/imagens_promo/ic_promo_blackfriday.png',faIcon:'fas fa-calendar-minus',color:'#212121',label:'BLACK FRIDAY',emoji:'🖤',goldAccent:'#FFD700'},
+  'brinde':{icon:'/public/imagens_promo/ic_promo_brinde.png',faIcon:'fas fa-gift',color:'#EC407A',label:'BRINDE',emoji:'🎀'},
+  'progressivo':{icon:'/public/imagens_promo/ic_promo_progressivo.png',faIcon:'fas fa-chart-line',color:'#689F38',label:'DESCONTO PROGRESSIVO',emoji:'📈'},
+  'primeira':{icon:'/public/imagens_promo/ic_promo_primeira.png',faIcon:'fas fa-star',color:'#1565C0',label:'PRIMEIRA COMPRA',emoji:'🆕'},
+  'fidelidade':{icon:'/public/imagens_promo/ic_promo_fidelidade.png',faIcon:'fas fa-award',color:'#FFB300',label:'FIDELIDADE',emoji:'⭐'},
+  'misterio':{icon:'/public/imagens_promo/ic_promo_misterio.png',faIcon:'fas fa-box-open',color:'#4527A0',label:'CAIXA MISTERIOSA',emoji:'🎲'},
+  'bilhete':{icon:'/public/imagens_promo/ic_promo_bilhete.png',faIcon:'fas fa-ticket',color:'#FFD700',label:'BILHETE DOURADO',emoji:'🎫',goldAccent:'#FFD700'},
+  'live':{icon:'/public/imagens_promo/ic_promo_live.png',faIcon:'fas fa-video',color:'#D32F2F',label:'LIVE SALE',emoji:'📱',isLive:true},
+  'combo':{icon:'/public/imagens_promo/ic_promo_combo.png',faIcon:'fas fa-boxes-stacked',color:'#EF6C00',label:'COMBO',emoji:'📦'},
+  'parcela':{icon:'/public/imagens_promo/ic_promo_parcela.png',faIcon:'fas fa-credit-card',color:'#00695C',label:'PARCELAMENTO',emoji:'💳'},
+  'cross':{icon:'/public/imagens_promo/ic_promo_cross.png',faIcon:'fas fa-link',color:'#42A5F5',label:'COMPRE JUNTO',emoji:'🔗'},
+  'sorteio':{icon:'/public/imagens_promo/ic_promo_sorteio.png',faIcon:'fas fa-trophy',color:'#7B1FA2',label:'SORTEIO',emoji:'🎰'}
+};
+
+// ============================================
+// PIX / LOJA - CONFIGURAÇÃO
+// ============================================
+var PIX_CONFIG = {
+  chave:    'seabhra@gmail.com',
+  nome:     'GERALDO A. SEABRA',
+  cidade:   'SABARA',
+  descricao: 'Max Promo Cadastro'
+};
+
+var PLANOS = {
+  '30' : { valor: 9.90,  label: '30 dias',  desc: 'Teste o serviço' },
+  '60' : { valor: 19.90, label: '60 dias',  desc: 'R$ 0,33/dia' },
+  '90' : { valor: 39.90, label: '90 dias',  desc: 'R$ 0,44/dia' },
+  '365': { valor: 99.90, label: '365 dias', desc: 'Melhor custo-benefício' }
+};
+
+var storeFormData = {};
+var planoSelecionado = null;
+var pixCountdownInterval = null;
+var pixTxid = null;
+var MODO_TESTE = true;
+
+// ============================================
+// ESTADO GLOBAL
+// ============================================
+var iconCache = {};
+var sidebarAberta = true;
+var searchActive = false;
+var alertasAtivados = true;
+var alertTimeout = null;
+var tabAtiva = 'feed';
+var filtroAtivo = null;
+var monitoredProducts = [];
+var savingsTotal = 0;
+var demoInterval = null;
+var flashTimers = {};
+var neonOnline = false;
+var promocoesNeon = [];
+var autoRefreshInterval = null;
+var toastTimer = null;
+var menuAberto = false;
+
+// ============================================
+// FUNÇÕES UTILITÁRIAS
+// ============================================
+function ajustarBrilho(hex, percent) {
+  var num = parseInt(hex.replace('#',''), 16);
+  var amt = Math.round(2.55 * percent);
+  var R = (num >> 16) + amt;
+  var G = (num >> 8 & 0x00FF) + amt;
+  var B = (num & 0x0000FF) + amt;
+  return '#' + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 + (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 + (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1);
+}
+
+function showNotification(msg) {
+  var toast = document.getElementById('toast-msg');
+  if (!toast) return;
+  toast.textContent = msg;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function() { toast.classList.remove('show'); }, 2800);
+}
+
+function fallbackCopy(text) {
+  var ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.left = '-9999px';
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); } catch(e) {}
+  document.body.removeChild(ta);
+}
+
+function formatarTempo(seg) {
+  var h = Math.floor(seg / 3600);
+  var m = Math.floor((seg % 3600) / 60);
+  var s = seg % 60;
+  if (h > 0) return h + 'h ' + String(m).padStart(2, '0') + 'm';
+  if (m > 0) return m + 'm ' + String(s).padStart(2, '0') + 's';
+  return s + 's';
+}
+
+function formatarDinheiro(v) {
+  return 'R$ ' + Number(v).toFixed(2).replace('.', ',');
+}
+
+function calcularExpiracao(dias) {
+  var d = new Date();
+  d.setDate(d.getDate() + parseInt(dias));
+  return d.toLocaleDateString('pt-BR');
+}
+
+function openModal(id) {
+  var el = document.getElementById(id);
+  if (el) el.classList.add('active');
+  fecharMenu();
+}
+
+function closeModal(id) {
+  var el = document.getElementById(id);
+  if (el) el.classList.remove('active');
+}
+
+function fecharMenu() {
+  if (!menuAberto) return;
+  menuAberto = false;
+  var dropdown = document.getElementById('menu-dropdown');
+  var toggle = document.getElementById('btn-menu-toggle');
+  if (dropdown) dropdown.classList.remove('open');
+  if (toggle) toggle.classList.remove('active');
+}
+
+// ============================================
+// FUNÇÕES DE ÍCONES
+// ============================================
+function testarIconeDisponivel(src, cb) {
+  if (iconCache.hasOwnProperty(src)) { cb(iconCache[src]); return; }
+  var img = new Image();
+  img.onload = function() { iconCache[src] = true; cb(true); };
+  img.onerror = function() { iconCache[src] = false; cb(false); };
+  img.src = src;
+}
+
+function preTestarTodosIcones() {
+  Object.keys(PROMO_CONFIG).forEach(function(tipo) {
+    testarIconeDisponivel(PROMO_CONFIG[tipo].icon, function() {});
+  });
+}
+
+function gerarHTMLIcone(tipo, tamanho) {
+  var config = PROMO_CONFIG[tipo] || PROMO_CONFIG['desconto'];
+  var sizeClass = tamanho === 'grande' ? 'alert-icon-img' : 'promo-icon-img';
+  var faClass = 'fa-fallback';
+  if (iconCache[config.icon] === true) {
+    return '<img class="' + sizeClass + '" src="' + config.icon + '" alt="' + config.label + '"><i class="' + config.faIcon + ' ' + faClass + '" style="display:none;"></i>';
+  }
+  if (iconCache[config.icon] === false) {
+    return '<i class="' + config.faIcon + ' ' + faClass + '"></i>';
+  }
+  return '<img class="' + sizeClass + '" src="' + config.icon + '" alt="' + config.label + '" onerror="this.classList.add(\'img-failed\');this.style.display=\'none\';var fa=this.nextElementSibling;if(fa)fa.style.display=\'\';" onload="var fa=this.nextElementSibling;if(fa)fa.style.display=\'none\';"><i class="' + config.faIcon + ' ' + faClass + '"></i>';
+}
+
+// ============================================
+// FUNÇÕES PIX
+// ============================================
+function selecionarPlano(el) {
+  document.querySelectorAll('.plano-card').forEach(function(c) {
+    c.classList.remove('selected');
+  });
+  el.classList.add('selected');
+  
+  var dias = el.getAttribute('data-dias');
+  var valor = parseFloat(el.getAttribute('data-valor'));
+  
+  if (!PLANOS[dias]) {
+    showNotification('⚠️ Erro: Plano inválido!');
+    return;
+  }
+  
+  planoSelecionado = {
+    dias: dias,
+    valor: valor,
+    label: PLANOS[dias].label,
+    desc: PLANOS[dias].desc
   };
+  
+  var btn = document.getElementById('btn-store-step1-next');
+  if (btn) {
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    btn.style.cursor = 'pointer';
+    btn.innerHTML = '<i class="fas fa-arrow-right" style="font-size:.75rem;margin-right:6px;"></i>Continuar → Pagar PIX';
+  }
+  
+  showNotification('✅ Plano ' + PLANOS[dias].label + ' selecionado: ' + formatarDinheiro(valor));
+}
 
-  var iconCache = {};
-  function testarIconeDisponivel(src,cb){if(iconCache.hasOwnProperty(src)){cb(iconCache[src]);return}var img=new Image();img.onload=function(){iconCache[src]=true;cb(true)};img.onerror=function(){iconCache[src]=false;cb(false)};img.src=src}
-  function preTestarTodosIcones(){Object.keys(PROMO_CONFIG).forEach(function(tipo){testarIconeDisponivel(PROMO_CONFIG[tipo].icon,function(){})})}
-  function gerarHTMLIcone(tipo,tamanho){var config=PROMO_CONFIG[tipo]||PROMO_CONFIG['desconto'];var sizeClass=tamanho==='grande'?'alert-icon-img':'promo-icon-img';var faClass='fa-fallback';if(iconCache[config.icon]===true)return'<img class="'+sizeClass+'" src="'+config.icon+'" alt="'+config.label+'"><i class="'+config.faIcon+' '+faClass+'" style="display:none;"></i>';if(iconCache[config.icon]===false)return'<i class="'+config.faIcon+' '+faClass+'"></i>';return'<img class="'+sizeClass+'" src="'+config.icon+'" alt="'+config.label+'" onerror="this.classList.add(\'img-failed\');this.style.display=\'none\';var fa=this.nextElementSibling;if(fa)fa.style.display=\'\';" onload="var fa=this.nextElementSibling;if(fa)fa.style.display=\'none\';"><i class="'+config.faIcon+' '+faClass+'"></i>'}
-
-  // DADOS MOCK (fallback)
-  var MOCK_PROMOS = [
-    {id:1,tipo:'flash',titulo:'Galaxy S24 FE 128GB',desc:'Flash Sale: 50% OFF por 2 horas apenas!',loja:'TechStore',precoOld:3499,precoNew:1749,tempoRestante:7200},
-    {id:2,tipo:'cupom',titulo:'Fone Bluetooth Sony WH-1000XM5',desc:'Use o cupom RADAR10 e ganhe 10% OFF',loja:'SomMax',precoOld:2299,precoNew:2069,cupom:'RADAR10'},
-    {id:3,tipo:'frete_gratis',titulo:'Kit Organizacao Closet 5 pecas',desc:'Frete Grátis em compras acima de R$ 99',loja:'Casa&Estrutura',precoOld:189,precoNew:149},
-    {id:4,tipo:'cashback',titulo:'Perfume Tom Ford Tobacco Vanille 50ml',desc:'10% de Cashback na sua carteira digital',loja:'BelezaVIP',precoOld:1450,precoNew:1299},
-    {id:5,tipo:'leve_pague',titulo:'Camiseta Polo Classic',desc:'Compre 2, Leve 3 — Pague 2!',loja:'ModaFit',precoOld:89,precoNew:59},
-    {id:6,tipo:'blackfriday',titulo:'MacBook Air M3 256GB',desc:'Black Friday: Maiores descontos do ano!',loja:'AppleZone',precoOld:12499,precoNew:9999},
-    {id:7,tipo:'saldao',titulo:'Jaqueta de Couro Legítimo',desc:'Saldão de Inverno — ate 70% OFF',loja:'Couro&Style',precoOld:899,precoNew:269},
-    {id:8,tipo:'outlet',titulo:'Tenis Nike Air Max 90',desc:'Outlet de Fabrica — pecas de colecao passada',loja:'SneakerOutlet',precoOld:749,precoNew:349},
-    {id:9,tipo:'brinde',titulo:'Skincare Coreano Set 7 Steps',desc:'Ganhe um brinde exclusivo na compra acima de R$ 150',loja:'KBeauty',precoOld:280,precoNew:199},
-    {id:10,tipo:'progressivo',titulo:'Vinho Malbec Argentino',desc:'Compre 2 = 10% OFF | 3 = 20% OFF | 4 = 30% OFF',loja:'VinhoPremium',precoOld:89,precoNew:62},
-    {id:11,tipo:'primeira',titulo:'Kindle Paperwhite 11a Geracao',desc:'20% OFF na sua primeira compra!',loja:'LivrariaDigital',precoOld:649,precoNew:519},
-    {id:12,tipo:'live',titulo:'Make Set Profissional 24 pecas',desc:'AO VIVO agora: Ofertas exclusivas na live!',loja:'GlamLive',precoOld:450,precoNew:189},
-    {id:13,tipo:'combo',titulo:'Kit Gamer: Mouse + Teclado + Mousepad',desc:'Kit Completo: 3 produtos por R$ 199',loja:'GameZone',precoOld:349,precoNew:199},
-    {id:14,tipo:'parcela',titulo:'TV LG OLED 55" C4',desc:'12x sem juros em todos os produtos!',loja:'TVWorld',precoOld:6999,precoNew:5499},
-    {id:15,tipo:'misterio',titulo:'Caixa Misteriosa Premium',desc:'Caixa Misteriosa por R$ 49 — Valor garantido de R$ 150!',loja:'SurpriseBox',precoOld:150,precoNew:49},
-    {id:16,tipo:'desconto',titulo:'Smartwatch Amazfit GTR 4',desc:'-30% em todos os produtos',loja:'WearTech',precoOld:1299,precoNew:909},
-    {id:17,tipo:'fidelidade',titulo:'Cafe Especial 250g — 3 pacotes',desc:'Ganhe pontos duplos nesta compra!',loja:'CafeArtesanal',precoOld:120,precoNew:96},
-    {id:18,tipo:'bilhete',titulo:'Bilhete Dourado — Edicao Limitada',desc:'Voce encontrou um Bilhete Dourado!',loja:'LuxMall',precoOld:500,precoNew:99},
-    {id:19,tipo:'cross',titulo:'iPhone 15 + Capinha + Pelicula',desc:'Leve junto com 20% OFF: Capinha + Pelicula',loja:'iAccess',precoOld:5299,precoNew:4599},
-    {id:20,tipo:'sorteio',titulo:'Sorteio iPhone 16 Pro!',desc:'Compre qualquer produto e concorra!',loja:'MegaSorteio',precoOld:0,precoNew:0}
-  ];
-
-  var MOCK_PRICE_HISTORY = {};
-  MOCK_PROMOS.forEach(function(p){if(p.precoNew>0){var bars=[];for(var i=0;i<12;i++){var v=p.precoOld+(p.precoNew-p.precoOld)*(i/11)+(Math.random()-0.5)*(p.precoOld-p.precoNew)*0.3;bars.push(Math.max(p.precoNew*0.9,Math.min(p.precoOld*1.1,v)))}bars[11]=p.precoNew;MOCK_PRICE_HISTORY[p.id]=bars}});
-
-  var MOCK_COMPARE = {
-    'Galaxy S24 FE 128GB':[{loja:'TechStore',preco:1749},{loja:'MobileShop',preco:1899},{loja:'ElectroMax',preco:1799},{loja:'ImportTech',preco:1699}],
-    'Fone Bluetooth Sony WH-1000XM5':[{loja:'SomMax',preco:2069},{loja:'AudioPro',preco:2199},{loja:'TechStore',preco:2149}],
-    'MacBook Air M3 256GB':[{loja:'AppleZone',preco:9999},{loja:'MegaByte',preco:10499},{loja:'iAccess',preco:10299},{loja:'ImportTech',preco:9799}]
-  };
-
-  // ESTADO
-  var sidebarAberta=true,searchActive=false,alertasAtivados=true,alertTimeout=null,tabAtiva='feed',filtroAtivo=null;
-  var monitoredProducts=[],savingsTotal=0,demoInterval=null,flashTimers={};
-  var supabaseOnline=false,promocoesSupabase=[],autoRefreshInterval=null;
-
-  function ajustarBrilho(hex,percent){var num=parseInt(hex.replace('#',''),16);var amt=Math.round(2.55*percent);var R=(num>>16)+amt;var G=(num>>8&0x00FF)+amt;var B=(num&0x0000FF)+amt;return'#'+(0x1000000+(R<255?R<1?0:R:255)*0x10000+(G<255?G<1?0:G:255)*0x100+(B<255?B<1?0:B:255)).toString(16).slice(1)}
-
-  // ===================================================================
-  // BUSCAR PROMOCOES DO SUPABASE VIA API
-  // ===================================================================
-  async function buscarPromocoesSupabase(){
-    try{
-      var url='/api/promocoes?limite=50';
-      if(filtroAtivo)url+='&tipo='+filtroAtivo;
-      var response=await fetch(url);
-      if(!response.ok)throw new Error('API indisponivel');
-      var data=await response.json();
-      if(data.promocoes&&data.promocoes.length>0){
-        supabaseOnline=true;
-        document.getElementById('status-dot').classList.remove('offline');
-        return data.promocoes.map(function(p){
-          return{id:p.id,tipo:p.tipo,titulo:p.titulo,desc:p.descricao||'',loja:p.loja||'Desconhecida',precoOld:p.preco_antigo||0,precoNew:p.preco_novo||0,cupom:p.cupom||null,tempoRestante:p.tempo_restante||0,fonte:p.fonte||''};
-        });
+function gerarPixCopiaCola(chave, nome, cidade, valor, descricao) {
+  function campo(id, val) { return id + String(val.length).padStart(2, '0') + val; }
+  function crc16(str) {
+    var crc = 0xFFFF;
+    for (var i = 0; i < str.length; i++) {
+      crc ^= str.charCodeAt(i) << 8;
+      for (var j = 0; j < 8; j++) {
+        crc = (crc & 0x8000) ? (crc << 1) ^ 0x1021 : crc << 1;
       }
-      return null;
-    }catch(err){
-      supabaseOnline=false;
-      document.getElementById('status-dot').classList.add('offline');
-      return null;
     }
+    return (crc & 0xFFFF).toString(16).toUpperCase().padStart(4, '0');
   }
+  
+  var nomeClean = (nome || '').substring(0, 25).toUpperCase();
+  var cidadeClean = (cidade || '').substring(0, 15).toUpperCase();
+  var descClean = (descricao || '').substring(0, 72);
+  var valorStr = Number(valor).toFixed(2);
+  
+  var merchantAcc = campo('26', campo('00', 'BR.GOV.BCB.PIX') + campo('01', chave) + (descClean ? campo('02', descClean) : ''));
+  var addData = campo('62', campo('05', '***'));
+  var payload = '000201' + '010212' + merchantAcc + '52040000' + '5303986' + '54' + String(valorStr.length).padStart(2, '0') + valorStr + '5802BR' + '59' + String(nomeClean.length).padStart(2, '0') + nomeClean + '60' + String(cidadeClean.length).padStart(2, '0') + cidadeClean + addData + '6304';
+  
+  return payload + crc16(payload);
+}
 
-  // ALERTA
-  function dispararAlertaPromocaoIA(mensagem,tipoPromo){
-    if(!alertasAtivados)return;
-    var bar=document.getElementById('alert-bar');bar.classList.remove('alert-bar-critico');bar.style.background='';bar.style.color='';bar.style.borderTopColor='';
-    var config=PROMO_CONFIG[tipoPromo]||PROMO_CONFIG['desconto'];
-    document.getElementById('alert-title').textContent=config.emoji+' '+config.label+'!';
-    document.getElementById('alert-text').textContent=mensagem;
-    var iconBox=document.getElementById('alert-icon-box');
-    iconBox.style.background='linear-gradient(135deg,'+config.color+','+ajustarBrilho(config.color,-25)+')';
-    iconBox.innerHTML=gerarHTMLIcone(tipoPromo,'grande');
-    var bgColor=config.color;
-    if(config.urgent||tipoPromo==='blackfriday')bar.classList.add('alert-bar-critico');
-    if(tipoPromo==='flash'){bar.style.background='linear-gradient(90deg,'+bgColor+','+ajustarBrilho(bgColor,-20)+')';bar.style.color='#000'}
-    else if(tipoPromo==='blackfriday'){bar.style.background='linear-gradient(90deg,#212121,#111)';bar.style.borderTopColor='#FFD700';bar.style.color='#FFD700'}
-    else if(tipoPromo==='bilhete'){bar.style.background='linear-gradient(90deg,#1a1a2e,#16213e)';bar.style.borderTopColor='#FFD700';bar.style.color='#FFD700'}
-    else{bar.style.background='linear-gradient(90deg,'+bgColor+','+ajustarBrilho(bgColor,-20)+')';bar.style.color='#fff'}
-    var container=document.getElementById('alert-container');
-    if(container.style.display!=='block'){container.style.display='block';container.style.animation='none';container.offsetHeight;container.style.animation='slideUp 0.35s ease-out'}
-    try{var sound=document.getElementById('alert-sound');if(sound&&sound.src){sound.currentTime=0;sound.play().catch(function(){})}}catch(e){}
-    clearTimeout(alertTimeout);alertTimeout=setTimeout(function(){esconderAlertaVisual()},6000);
-    savingsTotal+=Math.floor(Math.random()*80)+20;document.getElementById('savings-total').textContent='R$ '+savingsTotal.toLocaleString('pt-BR');
+function renderizarQRCode(texto) {
+  var canvas = document.getElementById('pix-qr-canvas');
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, 180, 180);
+  
+  if (typeof QRCode !== 'undefined') {
+    var tmpDiv = document.createElement('div');
+    document.body.appendChild(tmpDiv);
+    try {
+      new QRCode(tmpDiv, {
+        text: texto,
+        width: 180,
+        height: 180,
+        colorDark: '#000000',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.M
+      });
+      setTimeout(function() {
+        var img = tmpDiv.querySelector('img');
+        if (img) {
+          var i = new Image();
+          i.onload = function() { ctx.drawImage(i, 0, 0, 180, 180); };
+          i.src = img.src;
+        }
+        if (tmpDiv.parentNode) document.body.removeChild(tmpDiv);
+      }, 150);
+    } catch(e) {
+      if (tmpDiv.parentNode) document.body.removeChild(tmpDiv);
+      _qrFallback(ctx);
+    }
+  } else {
+    _qrFallback(ctx);
   }
-  function esconderAlertaVisual(){document.getElementById('alert-container').style.display='none';var bar=document.getElementById('alert-bar');bar.classList.remove('alert-bar-critico');bar.style.color='';bar.style.borderTopColor=''}
+}
 
-  var toastTimer=null;
-  function showNotification(msg){var toast=document.getElementById('toast-msg');toast.textContent=msg;toast.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(function(){toast.classList.remove('show')},2800)}
+function _qrFallback(ctx) {
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, 180, 180);
+  ctx.fillStyle = '#444';
+  ctx.font = '13px Inter,sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('Use Copia e Cola', 90, 80);
+  ctx.fillText('abaixo ↓', 90, 100);
+}
 
-  function formatarTempo(seg){var h=Math.floor(seg/3600);var m=Math.floor((seg%3600)/60);var s=seg%60;if(h>0)return h+'h '+String(m).padStart(2,'0')+'m';if(m>0)return m+'m '+String(s).padStart(2,'0')+'s';return s+'s'}
-  function iniciarTimer(promoId,segundos){var remaining=segundos;clearInterval(flashTimers[promoId]);flashTimers[promoId]=setInterval(function(){remaining--;var el=document.getElementById('timer-'+promoId);if(!el){clearInterval(flashTimers[promoId]);return}if(remaining<=0){el.querySelector('.timer-value').textContent='Encerrado';el.classList.add('urgent');clearInterval(flashTimers[promoId]);return}el.querySelector('.timer-value').textContent=formatarTempo(remaining);if(remaining<600)el.classList.add('urgent')},1000)}
+function iniciarCountdownPix() {
+  clearInterval(pixCountdownInterval);
+  var segundos = 600;
+  pixCountdownInterval = setInterval(function() {
+    segundos--;
+    var m = Math.floor(segundos / 60);
+    var s = segundos % 60;
+    var countEl = document.getElementById('pix-countdown');
+    if (countEl) countEl.textContent = m + ':' + String(s).padStart(2, '0');
+    if (segundos <= 60) {
+      var timerEl = document.getElementById('pix-timer-box');
+      if (timerEl) timerEl.classList.add('urgente');
+    }
+    if (segundos <= 0) {
+      clearInterval(pixCountdownInterval);
+      _setStatusPix('erro', '<i class="fas fa-times-circle"></i> QR expirado. Volte e gere novamente.');
+    }
+  }, 1000);
+}
 
-  // ===================================================================
-  // RENDERIZAR CARDS — SUPABASE PRIMEIRO, MOCK COMO FALLBACK
-  // ===================================================================
-  async function renderFeed(promos){
-    var container=document.getElementById('feed-container');container.innerHTML='';
-    var lista=promos;
-    if(!lista){var supabaseData=await buscarPromocoesSupabase();lista=supabaseData||MOCK_PROMOS}
-    if(filtroAtivo)lista=lista.filter(function(p){return p.tipo===filtroAtivo});
-    var q=document.getElementById('search-query').value.trim().toLowerCase();
-    if(q.length>=2)lista=lista.filter(function(p){return p.titulo.toLowerCase().indexOf(q)!==-1||p.desc.toLowerCase().indexOf(q)!==-1||p.loja.toLowerCase().indexOf(q)!==-1||(PROMO_CONFIG[p.tipo]&&PROMO_CONFIG[p.tipo].label.toLowerCase().indexOf(q)!==-1)});
-    if(lista.length===0){container.innerHTML='<div class="empty-state"><i class="fas fa-search"></i><p>Nenhuma oferta encontrada.</p></div>';return}
-    lista.forEach(function(promo,idx){
-      var config=PROMO_CONFIG[promo.tipo]||PROMO_CONFIG['desconto'];
-      var card=document.createElement('div');card.className='promo-card';card.style.animationDelay=(idx*0.06)+'s';
-      var isUrgent=config.urgent,isLive=config.isLive,hasTimer=promo.tempoRestante>0;
-      var priceOldStr=promo.precoOld>0?'R$ '+promo.precoOld.toLocaleString('pt-BR'):'';
-      var priceNewStr=promo.precoNew>0?'R$ '+promo.precoNew.toLocaleString('pt-BR'):'Gratuito';
-      var pctDesc='';if(promo.precoOld>0&&promo.precoNew>0){var pct=Math.round((1-promo.precoNew/promo.precoOld)*100);if(pct>0)pctDesc='-'+pct+'%'}
-      var histHTML='';var hist=MOCK_PRICE_HISTORY[promo.id];
-      if(hist&&hist.length>0){var maxH=Math.max.apply(null,hist);var minH=Math.min.apply(null,hist);histHTML='<div class="price-history-mini">';hist.forEach(function(v){var h=3+((v-minH)/(maxH-minH+1))*27;var c=v===hist[hist.length-1]?'#4CAF50':'rgba(255,255,255,0.15)';histHTML+='<div class="price-bar" style="height:'+h+'px;background:'+c+';"></div>'});histHTML+='</div>'}
-      var timerHTML='';if(hasTimer)timerHTML='<div class="promo-timer urgent" id="timer-'+promo.id+'"><i class="fas fa-clock"></i> <span class="timer-value">'+formatarTempo(promo.tempoRestante)+'</span></div>';
-      var btnColor=config.goldAccent||config.color;var btnText='Aproveitar';if(promo.cupom)btnText='Cupom: '+promo.cupom;if(isLive)btnText='Assistir Live';
-      var liveHTML=isLive?'<div class="live-indicator"><div class="live-dot"></div> AO VIVO</div>':'';
-      var sourceHTML=promo.fonte?'<span class="source-badge" style="background:rgba(255,255,255,0.05);color:var(--text-muted);"><i class="fas fa-rss" style="font-size:0.5rem;"></i> '+promo.fonte+'</span>':'';
-      var iconHTML=gerarHTMLIcone(promo.tipo,'pequeno');
-      card.innerHTML='<div class="promo-card-accent" style="background:linear-gradient(90deg,'+config.color+','+ajustarBrilho(config.color,-20)+');"></div><div class="promo-card-body"><div class="promo-card-icon" style="background:linear-gradient(135deg,'+config.color+','+ajustarBrilho(config.color,-30)+');">'+iconHTML+(isUrgent?'<div class="pulse-ring"></div>':'')+'</div><div class="promo-card-content"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><span class="promo-card-type" style="background:'+ajustarBrilho(config.color,-60)+';color:'+config.color+';">'+config.label+'</span>'+(pctDesc?'<span style="font-size:0.72rem;font-weight:800;color:#4CAF50;">'+pctDesc+'</span>':'')+liveHTML+sourceHTML+'</div><div class="promo-card-title">'+promo.titulo+'</div><div class="promo-card-desc">'+promo.desc+'</div><div class="promo-card-meta">'+(priceOldStr?'<span class="promo-price-old">'+priceOldStr+'</span>':'')+'<span class="promo-price-new" style="color:'+(promo.precoNew<promo.precoOld?'#4CAF50':'var(--text-main)')+';">'+priceNewStr+'</span><span class="promo-store"><i class="fas fa-store"></i> '+promo.loja+'</span></div>'+histHTML+'</div></div><div class="promo-card-footer">'+timerHTML+'<button class="promo-btn-grab" style="background:linear-gradient(135deg,'+btnColor+','+ajustarBrilho(btnColor,-15)+');">'+btnText+'</button></div>';
-      container.appendChild(card);
-      if(hasTimer)iniciarTimer(promo.id,promo.tempoRestante);
+function _setStatusPix(tipo, html) {
+  var el = document.getElementById('pix-status-msg');
+  if (!el) return;
+  el.className = 'pix-status-msg ' + tipo;
+  el.innerHTML = html;
+}
+
+function limparModalLoja() {
+  document.getElementById('input-store-name').value = '';
+  document.getElementById('input-store-url').value = '';
+  document.getElementById('input-store-email').value = '';
+  document.querySelectorAll('.plano-card').forEach(function(c) { c.classList.remove('selected'); });
+  planoSelecionado = null;
+  storeFormData = {};
+  clearInterval(pixCountdownInterval);
+  document.getElementById('store-step-1').style.display = 'block';
+  document.getElementById('store-step-2').style.display = 'none';
+  document.getElementById('store-step-3').style.display = 'none';
+  
+  var btnNext = document.getElementById('btn-store-step1-next');
+  if (btnNext) {
+    btnNext.disabled = true;
+    btnNext.innerHTML = '<i class="fas fa-lock" style="font-size:.75rem;margin-right:6px;"></i>Continuar → Pagar PIX';
+  }
+  
+  var statusMsg = document.getElementById('pix-status-msg');
+  if (statusMsg) {
+    statusMsg.className = 'pix-status-msg aguardando';
+    statusMsg.innerHTML = '<i class="fas fa-hourglass-half" style="color:var(--accent-color);"></i> Aguardando confirmação do pagamento...';
+  }
+  
+  var timerBox = document.getElementById('pix-timer-box');
+  if (timerBox) timerBox.classList.remove('urgente');
+  document.getElementById('pix-countdown').textContent = '10:00';
+}
+
+async function salvarLojaNoNeon(form, status) {
+  var payload = {
+    loja_nome: form.nome,
+    loja_url: form.url,
+    loja_categoria: form.categoria,
+    loja_email: form.email,
+    plano_dias: parseInt(form.dias),
+    valor_pago: parseFloat(form.valor),
+    data_expiracao: calcularExpiracao(form.dias),
+    pix_txid: pixTxid || ('MANUAL_' + Date.now()),
+    status: status || 'aguardando_validacao',
+    modo_pagamento: 'pix_manual'
+  };
+  try {
+    var r = await fetch('/api/salvar-loja', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return await r.json();
+  } catch(e) {
+    console.error('[Max Promo] salvarLoja:', e);
+    try {
+      var key = 'maxpromo_lojas_pendentes';
+      var pending = JSON.parse(localStorage.getItem(key) || '[]');
+      pending.push(Object.assign({}, payload, { tentativa_em: new Date().toISOString() }));
+      localStorage.setItem(key, JSON.stringify(pending));
+    } catch(_) {}
+    return null;
+  }
+}
+
+function confirmarPagamentoEAvancar(statusFinal) {
+  clearInterval(pixCountdownInterval);
+  salvarLojaNoNeon(storeFormData, statusFinal || 'aguardando_validacao');
+  
+  var resumo = document.getElementById('store-step3-resumo');
+  if (resumo) {
+    resumo.innerHTML = 
+      '<div><strong>🏪 Loja:</strong> ' + storeFormData.nome + '</div>' +
+      '<div><strong>🔗 URL:</strong> ' + storeFormData.url + '</div>' +
+      '<div><strong>📅 Plano:</strong> ' + storeFormData.label + ' (' + formatarDinheiro(storeFormData.valor) + ')</div>' +
+      '<div><strong>⏳ Válido até:</strong> ' + calcularExpiracao(storeFormData.dias) + '</div>' +
+      '<div><strong>✅ Status:</strong> <span style="color:#4CAF50;">✔ Solicitação recebida — publicação em até 24h</span></div>';
+  }
+  
+  document.getElementById('store-step-2').style.display = 'none';
+  document.getElementById('store-step-3').style.display = 'block';
+}
+
+// ============================================
+// FUNÇÕES DE RENDER
+// ============================================
+var MOCK_PROMOS = [
+  {
+    id: 21,
+    tipo: 'flash',
+    titulo: 'Bolsa Tigresa – edição limitada',
+    desc: 'Flash Sale: 10% OFF por 2 horas apenas!',
+    loja: 'Atelier Sorelle Santos',
+    precoOld: 3499,
+    precoNew: 1749,
+    tempoRestante: 7200,
+    clickThroughUrl: 'https://ateliersorellesantos.vercel.app/',
+    url: 'https://ateliersorellesantos.vercel.app/'
+  }
+];
+
+var MOCK_PRICE_HISTORY = {};
+MOCK_PROMOS.forEach(function(p) {
+  if (p.precoNew > 0) {
+    var bars = [];
+    for (var i = 0; i < 12; i++) {
+      var v = p.precoOld + (p.precoNew - p.precoOld) * (i / 11) + (Math.random() - 0.5) * (p.precoOld - p.precoNew) * 0.3;
+      bars.push(Math.max(p.precoNew * 0.9, Math.min(p.precoOld * 1.1, v)));
+    }
+    bars[11] = p.precoNew;
+    MOCK_PRICE_HISTORY[p.id] = bars;
+  }
+});
+
+var MOCK_COMPARE = {
+  'Galaxy S24 FE 128GB': [{loja:'TechStore',preco:1749},{loja:'MobileShop',preco:1899},{loja:'ElectroMax',preco:1799},{loja:'ImportTech',preco:1699}],
+  'Fone Bluetooth Sony WH-1000XM5': [{loja:'SomMax',preco:2069},{loja:'AudioPro',preco:2199},{loja:'TechStore',preco:2149}],
+  'MacBook Air M3 256GB': [{loja:'AppleZone',preco:9999},{loja:'MegaByte',preco:10499},{loja:'iAccess',preco:10299},{loja:'ImportTech',preco:9799}]
+};
+
+async function buscarPromocoesNeon() {
+  try {
+    var url = '/programas?limite=50';
+    if (filtroAtivo) url += '&setor=' + encodeURIComponent(filtroAtivo);
+    var response = await fetch(url);
+    if (!response.ok) throw new Error('API /programas indisponivel');
+    var data = await response.json();
+    if (data.programas && data.programas.length > 0) {
+      neonOnline = true;
+      document.getElementById('status-dot').classList.remove('offline');
+      return data.programas.map(function(p) {
+        return {
+          id: p.awin_id || p.id,
+          tipo: mappearSetorParaTipo(p.setor),
+          titulo: p.nome || 'Produto',
+          desc: p.descricao || 'Oferta da Awin',
+          loja: p.nome || 'Awin',
+          precoOld: 0,
+          precoNew: 0,
+          cupom: null,
+          tempoRestante: 0,
+          fonte: 'Awin',
+          clickThroughUrl: p.url_click || '#',
+          url: p.url_click || '#'
+        };
+      });
+    }
+    return null;
+  } catch(err) {
+    console.warn('Erro ao buscar do Neon:', err);
+    neonOnline = false;
+    document.getElementById('status-dot').classList.add('offline');
+    return null;
+  }
+}
+
+function mappearSetorParaTipo(setor) {
+  if (!setor) return 'desconto';
+  var s = setor.toLowerCase();
+  if (s.indexOf('eletronic') !== -1 || s.indexOf('tech') !== -1) return 'flash';
+  if (s.indexOf('moda') !== -1 || s.indexOf('vestuario') !== -1) return 'saldao';
+  if (s.indexOf('casa') !== -1 || s.indexOf('decor') !== -1) return 'outlet';
+  if (s.indexOf('beleza') !== -1 || s.indexOf('saude') !== -1) return 'cashback';
+  if (s.indexOf('games') !== -1) return 'combo';
+  if (s.indexOf('livros') !== -1) return 'leve_pague';
+  if (s.indexOf('esporte') !== -1) return 'frete_gratis';
+  return 'desconto';
+}
+
+function dispararAlertaPromocaoIA(mensagem, tipoPromo) {
+  if (!alertasAtivados) return;
+  var bar = document.getElementById('alert-bar');
+  if (!bar) return;
+  bar.classList.remove('alert-bar-critico');
+  bar.style.background = '';
+  bar.style.color = '';
+  bar.style.borderTopColor = '';
+  
+  var config = PROMO_CONFIG[tipoPromo] || PROMO_CONFIG['desconto'];
+  document.getElementById('alert-title').textContent = config.emoji + ' ' + config.label + '!';
+  document.getElementById('alert-text').textContent = mensagem;
+  var iconBox = document.getElementById('alert-icon-box');
+  iconBox.style.background = 'linear-gradient(135deg,' + config.color + ',' + ajustarBrilho(config.color, -25) + ')';
+  iconBox.innerHTML = gerarHTMLIcone(tipoPromo, 'grande');
+  
+  if (config.urgent || tipoPromo === 'blackfriday') bar.classList.add('alert-bar-critico');
+  if (tipoPromo === 'flash') {
+    bar.style.background = 'linear-gradient(90deg,' + config.color + ',' + ajustarBrilho(config.color, -20) + ')';
+    bar.style.color = '#000';
+  } else if (tipoPromo === 'blackfriday') {
+    bar.style.background = 'linear-gradient(90deg,#212121,#111)';
+    bar.style.borderTopColor = '#FFD700';
+    bar.style.color = '#FFD700';
+  } else if (tipoPromo === 'bilhete') {
+    bar.style.background = 'linear-gradient(90deg,#1a1a2e,#16213e)';
+    bar.style.borderTopColor = '#FFD700';
+    bar.style.color = '#FFD700';
+  } else {
+    bar.style.background = 'linear-gradient(90deg,' + config.color + ',' + ajustarBrilho(config.color, -20) + ')';
+    bar.style.color = '#fff';
+  }
+  
+  var container = document.getElementById('alert-container');
+  if (container.style.display !== 'block') {
+    container.style.display = 'block';
+    container.style.animation = 'none';
+    container.offsetHeight;
+    container.style.animation = 'slideUp 0.35s ease-out';
+  }
+  
+  try {
+    var sound = document.getElementById('alert-sound');
+    if (sound && sound.src) { sound.currentTime = 0; sound.play().catch(function() {}); }
+  } catch(e) {}
+  
+  clearTimeout(alertTimeout);
+  alertTimeout = setTimeout(function() { esconderAlertaVisual(); }, 6000);
+  savingsTotal += Math.floor(Math.random() * 80) + 20;
+  document.getElementById('savings-total').textContent = 'R$ ' + savingsTotal.toLocaleString('pt-BR');
+}
+
+function esconderAlertaVisual() {
+  document.getElementById('alert-container').style.display = 'none';
+  var bar = document.getElementById('alert-bar');
+  if (bar) {
+    bar.classList.remove('alert-bar-critico');
+    bar.style.color = '';
+    bar.style.borderTopColor = '';
+  }
+}
+
+function iniciarTimer(promoId, segundos) {
+  var remaining = segundos;
+  clearInterval(flashTimers[promoId]);
+  flashTimers[promoId] = setInterval(function() {
+    remaining--;
+    var el = document.getElementById('timer-' + promoId);
+    if (!el) { clearInterval(flashTimers[promoId]); return; }
+    if (remaining <= 0) {
+      el.querySelector('.timer-value').textContent = 'Encerrado';
+      el.classList.add('urgent');
+      clearInterval(flashTimers[promoId]);
+      return;
+    }
+    el.querySelector('.timer-value').textContent = formatarTempo(remaining);
+    if (remaining < 600) el.classList.add('urgent');
+  }, 1000);
+}
+
+async function renderFeed(promos) {
+  var container = document.getElementById('feed-container');
+  if (!container) return;
+  container.innerHTML = '';
+  
+  var lista = promos;
+  if (!lista) {
+    var neonData = await buscarPromocoesNeon();
+    lista = neonData || [];
+  }
+  
+  var listaCompleta = [BOLSA_TIGRESA, ...lista];
+  
+  if (filtroAtivo) {
+    listaCompleta = listaCompleta.filter(function(p) { return p.tipo === filtroAtivo; });
+  }
+  
+  var q = document.getElementById('search-query').value.trim().toLowerCase();
+  if (q.length >= 2) {
+    listaCompleta = listaCompleta.filter(function(p) {
+      return p.titulo.toLowerCase().indexOf(q) !== -1 ||
+             p.desc.toLowerCase().indexOf(q) !== -1 ||
+             p.loja.toLowerCase().indexOf(q) !== -1 ||
+             (PROMO_CONFIG[p.tipo] && PROMO_CONFIG[p.tipo].label.toLowerCase().indexOf(q) !== -1);
+    });
+  }
+  
+  if (listaCompleta.length === 0) {
+    container.innerHTML = '<div class="empty-state"><i class="fas fa-search"></i><p>Nenhuma oferta encontrada.</p></div>';
+    return;
+  }
+  
+  listaCompleta.forEach(function(promo, idx) {
+    var config = PROMO_CONFIG[promo.tipo] || PROMO_CONFIG['desconto'];
+    var card = document.createElement('div');
+    card.className = 'promo-card';
+    card.style.animationDelay = (idx * 0.06) + 's';
+    
+    var isUrgent = config.urgent;
+    var isLive = config.isLive;
+    var hasTimer = promo.tempoRestante > 0;
+    
+    var priceOldStr = promo.precoOld > 0 ? 'R$ ' + promo.precoOld.toLocaleString('pt-BR') : '';
+    var priceNewStr = promo.precoNew > 0 ? 'R$ ' + promo.precoNew.toLocaleString('pt-BR') : 'Gratuito';
+    var pctDesc = '';
+    if (promo.precoOld > 0 && promo.precoNew > 0) {
+      var pct = Math.round((1 - promo.precoNew / promo.precoOld) * 100);
+      if (pct > 0) pctDesc = '-' + pct + '%';
+    }
+    
+    var histHTML = '';
+    var hist = MOCK_PRICE_HISTORY[promo.id];
+    if (hist && hist.length > 0) {
+      var maxH = Math.max.apply(null, hist);
+      var minH = Math.min.apply(null, hist);
+      histHTML = '<div class="price-history-mini">';
+      hist.forEach(function(v) {
+        var h = 3 + ((v - minH) / (maxH - minH + 1)) * 27;
+        var c = v === hist[hist.length - 1] ? '#4CAF50' : 'rgba(255,255,255,0.15)';
+        histHTML += '<div class="price-bar" style="height:' + h + 'px;background:' + c + ';"></div>';
+      });
+      histHTML += '</div>';
+    }
+    
+    var timerHTML = '';
+    if (hasTimer) {
+      timerHTML = '<div class="promo-timer urgent" id="timer-' + promo.id + '"><i class="fas fa-clock"></i> <span class="timer-value">' + formatarTempo(promo.tempoRestante) + '</span></div>';
+    }
+    
+    var btnColor = config.goldAccent || config.color;
+    var btnText = 'Aproveitar';
+    if (promo.cupom) btnText = 'Cupom: ' + promo.cupom;
+    if (isLive) btnText = 'Assistir Live';
+    
+    var linkUrl = promo.clickThroughUrl || promo.url || '#';
+    var btnHTML = '<a href="' + linkUrl + '" target="_blank" rel="noopener noreferrer" class="promo-btn-grab" style="background:linear-gradient(135deg,' + btnColor + ',' + ajustarBrilho(btnColor, -15) + ');text-decoration:none;display:inline-block;text-align:center;">' + btnText + '</a>';
+    
+    var liveHTML = isLive ? '<div class="live-indicator"><div class="live-dot"></div> AO VIVO</div>' : '';
+    var sourceHTML = promo.fonte ? '<span class="source-badge" style="background:rgba(255,255,255,0.05);color:var(--text-muted);"><i class="fas fa-rss" style="font-size:0.5rem;"></i> ' + promo.fonte + '</span>' : '';
+    var iconHTML = gerarHTMLIcone(promo.tipo, 'pequeno');
+    
+    var isBolsaTigresa = promo.id === 21;
+    var borderStyle = isBolsaTigresa ? 'border-color: #FFD700; box-shadow: 0 0 20px rgba(255,215,0,0.2);' : '';
+    
+    card.innerHTML = '<div class="promo-card-accent" style="background:linear-gradient(90deg,' + config.color + ',' + ajustarBrilho(config.color, -20) + ');"></div>' +
+      '<div class="promo-card-body" style="' + borderStyle + '">' +
+        '<div class="promo-card-icon" style="background:linear-gradient(135deg,' + config.color + ',' + ajustarBrilho(config.color, -30) + ');">' + iconHTML + (isUrgent ? '<div class="pulse-ring"></div>' : '') + '</div>' +
+        '<div class="promo-card-content">' +
+          '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">' +
+            '<span class="promo-card-type" style="background:' + ajustarBrilho(config.color, -60) + ';color:' + config.color + ';">' + config.label + '</span>' +
+            (pctDesc ? '<span style="font-size:0.72rem;font-weight:800;color:#4CAF50;">' + pctDesc + '</span>' : '') +
+            liveHTML + sourceHTML +
+          '</div>' +
+          '<div class="promo-card-title">' + promo.titulo + '</div>' +
+          '<div class="promo-card-desc">' + promo.desc + '</div>' +
+          '<div class="promo-card-meta">' +
+            (priceOldStr ? '<span class="promo-price-old">' + priceOldStr + '</span>' : '') +
+            '<span class="promo-price-new" style="color:' + (promo.precoNew < promo.precoOld ? '#4CAF50' : 'var(--text-main)') + ';">' + priceNewStr + '</span>' +
+            '<span class="promo-store"><i class="fas fa-store"></i> ' + promo.loja + '</span>' +
+          '</div>' +
+          histHTML +
+        '</div>' +
+      '</div>' +
+      '<div class="promo-card-footer">' +
+        timerHTML +
+        btnHTML +
+      '</div>';
+    
+    container.appendChild(card);
+    
+    if (hasTimer) {
+      iniciarTimer(promo.id, promo.tempoRestante);
+    }
+  });
+}
+
+function renderMonitored() {
+  var container = document.getElementById('feed-container');
+  if (!container) return;
+  container.innerHTML = '';
+  if (monitoredProducts.length === 0) {
+    container.innerHTML = '<div class="empty-state"><i class="fas fa-eye-slash"></i><p>Nenhum produto monitorado.<br>Use o menu para adicionar.</p></div>';
+    return;
+  }
+  monitoredProducts.forEach(function(prod, idx) {
+    var card = document.createElement('div');
+    card.className = 'monitored-card';
+    card.style.animationDelay = (idx * 0.06) + 's';
+    var statusColor = '#4CAF50';
+    if (prod.currentPrice > prod.targetPrice * 1.1) statusColor = '#ff4444';
+    else if (prod.currentPrice > prod.targetPrice) statusColor = '#FFB300';
+    card.innerHTML = '<div class="prod-img" style="color:' + statusColor + ';"><i class="fas fa-box"></i></div><div class="prod-info"><div class="prod-name">' + prod.name + '</div><div class="prod-target">Alvo: R$ ' + prod.targetPrice.toLocaleString('pt-BR') + '</div></div><div class="prod-current" style="color:' + statusColor + ';">R$ ' + prod.currentPrice.toLocaleString('pt-BR') + '</div><button class="remove-btn" data-idx="' + idx + '" title="Remover"><i class="fas fa-trash"></i></button>';
+    container.appendChild(card);
+    card.querySelector('.remove-btn').addEventListener('click', function() {
+      monitoredProducts.splice(parseInt(this.getAttribute('data-idx')), 1);
+      renderMonitored();
+      atualizarBadgeMonitorados();
+      showNotification('Produto removido');
+    });
+  });
+}
+
+function renderHistory() {
+  var container = document.getElementById('feed-container');
+  if (!container) return;
+  container.innerHTML = '';
+  var promosComHist = MOCK_PROMOS.filter(function(p) { return MOCK_PRICE_HISTORY[p.id]; });
+  if (promosComHist.length === 0) {
+    container.innerHTML = '<div class="empty-state"><i class="fas fa-chart-line"></i><p>Nenhum historico.</p></div>';
+    return;
+  }
+  promosComHist.forEach(function(promo, idx) {
+    var config = PROMO_CONFIG[promo.tipo] || PROMO_CONFIG['desconto'];
+    var hist = MOCK_PRICE_HISTORY[promo.id];
+    var maxH = Math.max.apply(null, hist);
+    var minH = Math.min.apply(null, hist);
+    var card = document.createElement('div');
+    card.className = 'promo-card';
+    card.style.animationDelay = (idx * 0.06) + 's';
+    var meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+    var barsHTML = '<div style="display:flex;align-items:flex-end;gap:4px;height:80px;padding:10px 0;">';
+    hist.forEach(function(v, i) {
+      var h = 8 + ((v - minH) / (maxH - minH + 1)) * 65;
+      var c = i === hist.length - 1 ? '#4CAF50' : 'rgba(255,179,0,0.3)';
+      barsHTML += '<div style="display:flex;flex-direction:column;align-items:center;flex:1;gap:2px;"><div style="width:100%;height:' + h + 'px;background:' + c + ';border-radius:3px 3px 0 0;min-height:4px;"></div><span style="font-size:0.5rem;color:var(--text-muted);">' + meses[i] + '</span></div>';
+    });
+    barsHTML += '</div>';
+    card.innerHTML = '<div class="promo-card-accent" style="background:linear-gradient(90deg,' + config.color + ',' + ajustarBrilho(config.color, -20) + ');"></div><div style="padding:14px 16px;"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><span class="promo-card-type" style="background:' + ajustarBrilho(config.color, -60) + ';color:' + config.color + ';">' + config.label + '</span><span style="font-weight:700;font-size:0.9rem;">' + promo.titulo + '</span></div><div style="display:flex;gap:16px;font-size:0.8rem;margin-bottom:4px;"><span style="color:var(--text-muted);">Maior: R$ ' + maxH.toLocaleString('pt-BR') + '</span><span style="color:#4CAF50;">Menor: R$ ' + minH.toLocaleString('pt-BR') + '</span></div>' + barsHTML + '</div>';
+    container.appendChild(card);
+  });
+}
+
+function renderCompare() {
+  var container = document.getElementById('feed-container');
+  if (!container) return;
+  container.innerHTML = '';
+  var produtosComComp = Object.keys(MOCK_COMPARE || {});
+  if (produtosComComp.length === 0) {
+    container.innerHTML = '<div class="empty-state"><i class="fas fa-balance-scale"></i><p>Nenhum produto para comparar.</p></div>';
+    return;
+  }
+  produtosComComp.forEach(function(nome, idx) {
+    var lojas = MOCK_COMPARE[nome].slice().sort(function(a, b) { return a.preco - b.preco; });
+    var melhor = lojas[0].preco;
+    var card = document.createElement('div');
+    card.className = 'promo-card';
+    card.style.animationDelay = (idx * 0.06) + 's';
+    var rowsHTML = '';
+    lojas.forEach(function(l) {
+      var isBest = l.preco === melhor;
+      rowsHTML += '<div class="compare-row"><span class="compare-store"><i class="fas fa-store" style="margin-right:6px;color:' + (isBest ? '#4CAF50' : 'var(--text-muted)') + ';"></i>' + l.loja + (isBest ? ' <span style="font-size:0.65rem;font-weight:800;color:#4CAF50;">MELHOR PRECO</span>' : '') + '</span><span class="compare-price ' + (isBest ? 'compare-best' : '') + '">R$ ' + l.preco.toLocaleString('pt-BR') + '</span></div>';
+    });
+    card.innerHTML = '<div class="promo-card-accent" style="background:linear-gradient(90deg,#4CAF50,#2E7D32);"></div><div style="padding:14px 16px;"><div style="font-weight:700;font-size:0.95rem;margin-bottom:12px;"><i class="fas fa-balance-scale" style="margin-right:8px;color:#4CAF50;"></i>' + nome + '</div>' + rowsHTML + '</div>';
+    container.appendChild(card);
+  });
+}
+
+function renderFilters() {
+  var strip = document.getElementById('filter-strip');
+  if (!strip) return;
+  strip.innerHTML = '';
+  var chipAll = document.createElement('button');
+  chipAll.className = 'filter-chip' + (!filtroAtivo ? ' active' : '');
+  chipAll.innerHTML = '<i class="fas fa-th"></i> Todos';
+  chipAll.addEventListener('click', function() {
+    filtroAtivo = null;
+    renderFilters();
+    renderCurrentTab();
+  });
+  strip.appendChild(chipAll);
+  
+  var tiposFiltro = ['flash','cupom','frete_gratis','cashback','leve_pague','blackfriday','saldao','outlet','desconto','brinde','progressivo','combo','parcela','live','misterio','sorteio'];
+  tiposFiltro.forEach(function(tipo) {
+    var config = PROMO_CONFIG[tipo];
+    if (!config) return;
+    var chip = document.createElement('button');
+    chip.className = 'filter-chip' + (filtroAtivo === tipo ? ' active' : '');
+    chip.innerHTML = '<span class="chip-dot" style="background:' + config.color + ';"></span> ' + config.label;
+    chip.addEventListener('click', function() {
+      filtroAtivo = filtroAtivo === tipo ? null : tipo;
+      renderFilters();
+      renderCurrentTab();
+    });
+    strip.appendChild(chip);
+  });
+}
+
+function renderPromoTypesGrid() {
+  var g = document.getElementById('promo-types-grid');
+  if (!g) return;
+  g.innerHTML = '';
+  Object.keys(PROMO_CONFIG).forEach(function(t) {
+    var c = PROMO_CONFIG[t];
+    var it = document.createElement('div');
+    it.className = 'promo-type-item';
+    it.innerHTML = '<div class="promo-type-dot" style="background:' + c.color + ';"></div><div class="promo-type-label">' + c.emoji + ' ' + c.label + '</div>';
+    g.appendChild(it);
+  });
+}
+
+function renderCurrentTab() {
+  switch(tabAtiva) {
+    case 'feed': renderFeed(); break;
+    case 'monitored': renderMonitored(); break;
+    case 'history': renderHistory(); break;
+    case 'compare': renderCompare(); break;
+  }
+}
+
+function atualizarBadgeMonitorados() {
+  var badge = document.getElementById('monitored-count');
+  if (!badge) return;
+  if (monitoredProducts.length > 0) {
+    badge.textContent = monitoredProducts.length;
+    badge.style.display = 'flex';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+// ============================================
+// DEMO ALERT
+// ============================================
+var DEMO_MSGS = {
+  'desconto': '-30% em todos os produtos!',
+  'saldao': 'Saldão de Inverno — ate 70% OFF!',
+  'outlet': 'Outlet de Fabrica!',
+  'flash': 'Flash Sale: 50% OFF por 2 horas!',
+  'frete_gratis': 'Frete Grátis em compras acima de R$ 99',
+  'cupom': 'Use o cupom MAXPROMO20 e ganhe 20% OFF',
+  'leve_pague': 'Compre 2, Leve 3 — Pague 2!',
+  'cashback': '10% de Cashback!',
+  'blackfriday': 'Black Friday: Maiores descontos!',
+  'brinde': 'Ganhe um brinde exclusivo!',
+  'progressivo': 'Compre 2=10% OFF|3=20% OFF|4=30% OFF',
+  'primeira': '20% OFF na primeira compra!',
+  'fidelidade': 'Ganhe pontos duplos!',
+  'misterio': 'Caixa Misteriosa por R$ 49!',
+  'bilhete': 'Bilhete Dourado! Premio exclusivo!',
+  'live': 'AO VIVO agora: Ofertas exclusivas!',
+  'combo': 'Kit Completo: 3 produtos por R$ 99',
+  'parcela': '12x sem juros!',
+  'cross': 'Leve junto com 20% OFF',
+  'sorteio': 'Sorteio iPhone 16 Pro!'
+};
+
+function dispararAlertaAleatorio() {
+  var tipos = Object.keys(PROMO_CONFIG);
+  var tipo = tipos[Math.floor(Math.random() * tipos.length)];
+  dispararAlertaPromocaoIA(DEMO_MSGS[tipo] || PROMO_CONFIG[tipo].label + ' ativado!', tipo);
+}
+
+// ============================================
+// INIT APP
+// ============================================
+function initApp() {
+  // Verifica se os elementos existem antes de adicionar eventos
+  setTimeout(function() {
+    var loading = document.getElementById('loading-fullscreen');
+    if (loading) loading.classList.add('fade-out');
+  }, 1500);
+  
+  preTestarTodosIcones();
+  renderFilters();
+  renderFeed();
+
+  // ============================================
+  // MENU TOGGLE
+  // ============================================
+  var menuToggle = document.getElementById('btn-menu-toggle');
+  if (menuToggle) {
+    menuToggle.addEventListener('click', function(e) {
+      e.stopPropagation();
+      menuAberto = !menuAberto;
+      var dropdown = document.getElementById('menu-dropdown');
+      if (menuAberto) {
+        dropdown.classList.add('open');
+        this.classList.add('active');
+      } else {
+        dropdown.classList.remove('open');
+        this.classList.remove('active');
+      }
     });
   }
 
-  function renderMonitored(){var container=document.getElementById('feed-container');container.innerHTML='';if(monitoredProducts.length===0){container.innerHTML='<div class="empty-state"><i class="fas fa-eye-slash"></i><p>Nenhum produto monitorado.<br>Toque no botao + para adicionar.</p></div>';return}monitoredProducts.forEach(function(prod,idx){var card=document.createElement('div');card.className='monitored-card';card.style.animationDelay=(idx*0.06)+'s';var statusColor='#4CAF50';if(prod.currentPrice>prod.targetPrice*1.1)statusColor='#ff4444';else if(prod.currentPrice>prod.targetPrice)statusColor='#FFB300';card.innerHTML='<div class="prod-img" style="color:'+statusColor+';"><i class="fas fa-box"></i></div><div class="prod-info"><div class="prod-name">'+prod.name+'</div><div class="prod-target">Alvo: R$ '+prod.targetPrice.toLocaleString('pt-BR')+'</div></div><div class="prod-current" style="color:'+statusColor+';">R$ '+prod.currentPrice.toLocaleString('pt-BR')+'</div><button class="remove-btn" data-idx="'+idx+'" title="Remover"><i class="fas fa-trash"></i></button>';container.appendChild(card);card.querySelector('.remove-btn').addEventListener('click',function(){monitoredProducts.splice(parseInt(this.getAttribute('data-idx')),1);renderMonitored();atualizarBadgeMonitorados();showNotification('Produto removido')})})}
+  // Fechar menu ao clicar fora
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('#btn-menu-toggle') && !e.target.closest('#menu-dropdown')) {
+      fecharMenu();
+    }
+  });
 
-  function renderHistory(){var container=document.getElementById('feed-container');container.innerHTML='';var promosComHist=MOCK_PROMOS.filter(function(p){return MOCK_PRICE_HISTORY[p.id]});if(promosComHist.length===0){container.innerHTML='<div class="empty-state"><i class="fas fa-chart-line"></i><p>Nenhum historico.</p></div>';return}promosComHist.forEach(function(promo,idx){var config=PROMO_CONFIG[promo.tipo]||PROMO_CONFIG['desconto'];var hist=MOCK_PRICE_HISTORY[promo.id];var maxH=Math.max.apply(null,hist);var minH=Math.min.apply(null,hist);var card=document.createElement('div');card.className='promo-card';card.style.animationDelay=(idx*0.06)+'s';var meses=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];var barsHTML='<div style="display:flex;align-items:flex-end;gap:4px;height:80px;padding:10px 0;">';hist.forEach(function(v,i){var h=8+((v-minH)/(maxH-minH+1))*65;var c=i===hist.length-1?'#4CAF50':'rgba(255,179,0,0.3)';barsHTML+='<div style="display:flex;flex-direction:column;align-items:center;flex:1;gap:2px;"><div style="width:100%;height:'+h+'px;background:'+c+';border-radius:3px 3px 0 0;min-height:4px;"></div><span style="font-size:0.5rem;color:var(--text-muted);">'+meses[i]+'</span></div>'});barsHTML+='</div>';card.innerHTML='<div class="promo-card-accent" style="background:linear-gradient(90deg,'+config.color+','+ajustarBrilho(config.color,-20)+');"></div><div style="padding:14px 16px;"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><span class="promo-card-type" style="background:'+ajustarBrilho(config.color,-60)+';color:'+config.color+';">'+config.label+'</span><span style="font-weight:700;font-size:0.9rem;">'+promo.titulo+'</span></div><div style="display:flex;gap:16px;font-size:0.8rem;margin-bottom:4px;"><span style="color:var(--text-muted);">Maior: R$ '+maxH.toLocaleString('pt-BR')+'</span><span style="color:#4CAF50;">Menor: R$ '+minH.toLocaleString('pt-BR')+'</span></div>'+barsHTML+'</div>';container.appendChild(card)})}
+  // ============================================
+  // TABS
+  // ============================================
+  document.querySelectorAll('.tab-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.tab-btn').forEach(function(b) {
+        b.classList.remove('active');
+        b.setAttribute('aria-selected', 'false');
+      });
+      this.classList.add('active');
+      this.setAttribute('aria-selected', 'true');
+      tabAtiva = this.getAttribute('data-tab');
+      renderCurrentTab();
+    });
+  });
 
-  function renderCompare(){var container=document.getElementById('feed-container');container.innerHTML='';var produtosComComp=Object.keys(MOCK_COMPARE);if(produtosComComp.length===0){container.innerHTML='<div class="empty-state"><i class="fas fa-balance-scale"></i><p>Nenhum produto para comparar.</p></div>';return}produtosComComp.forEach(function(nome,idx){var lojas=MOCK_COMPARE[nome].slice().sort(function(a,b){return a.preco-b.preco});var melhor=lojas[0].preco;var card=document.createElement('div');card.className='promo-card';card.style.animationDelay=(idx*0.06)+'s';var rowsHTML='';lojas.forEach(function(l){var isBest=l.preco===melhor;rowsHTML+='<div class="compare-row"><span class="compare-store"><i class="fas fa-store" style="margin-right:6px;color:'+(isBest?'#4CAF50':'var(--text-muted)')+';"></i>'+l.loja+(isBest?' <span style="font-size:0.65rem;font-weight:800;color:#4CAF50;">MELHOR PRECO</span>':'')+'</span><span class="compare-price '+(isBest?'compare-best':'')+'">R$ '+l.preco.toLocaleString('pt-BR')+'</span></div>'});card.innerHTML='<div class="promo-card-accent" style="background:linear-gradient(90deg,#4CAF50,#2E7D32);"></div><div style="padding:14px 16px;"><div style="font-weight:700;font-size:0.95rem;margin-bottom:12px;"><i class="fas fa-balance-scale" style="margin-right:8px;color:#4CAF50;"></i>'+nome+'</div>'+rowsHTML+'</div>';container.appendChild(card)})}
-
-  function renderFilters(){var strip=document.getElementById('filter-strip');strip.innerHTML='';var chipAll=document.createElement('button');chipAll.className='filter-chip'+(!filtroAtivo?' active':'');chipAll.innerHTML='<i class="fas fa-th"></i> Todos';chipAll.addEventListener('click',function(){filtroAtivo=null;renderFilters();renderCurrentTab()});strip.appendChild(chipAll);var tiposFiltro=['flash','cupom','frete_gratis','cashback','leve_pague','blackfriday','saldao','outlet','desconto','brinde','progressivo','combo','parcela','live','misterio','sorteio'];tiposFiltro.forEach(function(tipo){var config=PROMO_CONFIG[tipo];if(!config)return;var chip=document.createElement('button');chip.className='filter-chip'+(filtroAtivo===tipo?' active':'');chip.innerHTML='<span class="chip-dot" style="background:'+config.color+';"></span> '+config.label;chip.addEventListener('click',function(){filtroAtivo=filtroAtivo===tipo?null:tipo;renderFilters();renderCurrentTab()});strip.appendChild(chip)})}
-
-  function abrirComparacao(titulo){var lojas=MOCK_COMPARE[titulo];if(!lojas){showNotification('Comparacao indisponivel');return}document.getElementById('compare-title').textContent=titulo;document.getElementById('compare-subtitle').textContent='Precos em diferentes lojas';var listEl=document.getElementById('compare-list');listEl.innerHTML='';var sorted=lojas.slice().sort(function(a,b){return a.preco-b.preco});var melhor=sorted[0].preco;sorted.forEach(function(l){var isBest=l.preco===melhor;var row=document.createElement('div');row.className='compare-row';row.innerHTML='<span class="compare-store"><i class="fas fa-store" style="margin-right:6px;color:'+(isBest?'#4CAF50':'var(--text-muted)')+';"></i>'+l.loja+(isBest?' <span style="font-size:0.65rem;font-weight:800;color:#4CAF50;">MELHOR</span>':'')+'</span><span class="compare-price '+(isBest?'compare-best':'')+'">R$ '+l.preco.toLocaleString('pt-BR')+'</span>';listEl.appendChild(row)});document.getElementById('modal-compare').classList.add('active')}
-
-  function atualizarBadgeMonitorados(){var badge=document.getElementById('monitored-count');if(monitoredProducts.length>0){badge.textContent=monitoredProducts.length;badge.style.display='flex'}else{badge.style.display='none'}}
-
-  function renderCurrentTab(){switch(tabAtiva){case'feed':renderFeed();break;case'monitored':renderMonitored();break;case'history':renderHistory();break;case'compare':renderCompare();break}}
-
-  var DEMO_MSGS={'desconto':'-30% em todos os produtos!','saldao':'Saldão de Inverno — ate 70% OFF!','outlet':'Outlet de Fabrica!','flash':'Flash Sale: 50% OFF por 2 horas!','frete_gratis':'Frete Grátis em compras acima de R$ 99','cupom':'Use o cupom MAXPROMO20 e ganhe 20% OFF','leve_pague':'Compre 2, Leve 3 — Pague 2!','cashback':'10% de Cashback!','blackfriday':'Black Friday: Maiores descontos!','brinde':'Ganhe um brinde exclusivo!','progressivo':'Compre 2=10% OFF|3=20% OFF|4=30% OFF','primeira':'20% OFF na primeira compra!','fidelidade':'Ganhe pontos duplos!','misterio':'Caixa Misteriosa por R$ 49!','bilhete':'Bilhete Dourado! Premio exclusivo!','live':'AO VIVO agora: Ofertas exclusivas!','combo':'Kit Completo: 3 produtos por R$ 99','parcela':'12x sem juros!','cross':'Leve junto com 20% OFF','sorteio':'Sorteio iPhone 16 Pro!'};
-  function dispararAlertaAleatorio(){var tipos=Object.keys(PROMO_CONFIG);var tipo=tipos[Math.floor(Math.random()*tipos.length)];dispararAlertaPromocaoIA(DEMO_MSGS[tipo]||PROMO_CONFIG[tipo].label+' ativado!',tipo)}
-
-  function initApp(){
-    setTimeout(function(){document.getElementById('loading-fullscreen').classList.add('fade-out')},1500);
-    preTestarTodosIcones();renderFilters();renderFeed();
-
-    document.getElementById('btn-menu-toggle').addEventListener('click',function(){sidebarAberta=!sidebarAberta;var sidebar=document.getElementById('sidebar-controls');if(sidebarAberta){sidebar.classList.remove('retracted');this.classList.remove('active')}else{sidebar.classList.add('retracted');this.classList.add('active');if(searchActive){searchActive=false;document.getElementById('search-bar').classList.remove('active')}}});
-
-    document.querySelectorAll('.tab-btn').forEach(function(btn){btn.addEventListener('click',function(){document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');b.setAttribute('aria-selected','false')});this.classList.add('active');this.setAttribute('aria-selected','true');tabAtiva=this.getAttribute('data-tab');document.getElementById('fab-add').style.display=(tabAtiva==='feed'||tabAtiva==='monitored')?'flex':'none';renderCurrentTab()})});
-
-    document.getElementById('btn-search-toggle').addEventListener('click',function(){searchActive=!searchActive;var bar=document.getElementById('search-bar');if(searchActive){bar.classList.add('active');setTimeout(function(){document.getElementById('search-query').focus()},300)}else{bar.classList.remove('active');document.getElementById('search-query').value='';renderCurrentTab()}});
-    document.getElementById('btn-search').addEventListener('click',function(){renderCurrentTab();showNotification('Busca realizada')});
-    document.getElementById('search-query').addEventListener('keypress',function(e){if(e.key==='Enter'){renderCurrentTab();showNotification('Busca realizada')}});
-    document.getElementById('search-query').addEventListener('input',function(){if(tabAtiva==='feed')renderFeed()});
-
-    document.getElementById('btn-alert-toggle').addEventListener('click',function(){alertasAtivados=!alertasAtivados;var icon=document.getElementById('alert-toggle-icon');if(alertasAtivados){icon.className='fas fa-bell';this.style.borderColor='';this.style.color='var(--accent-color)';showNotification('Alertas ativados')}else{icon.className='fas fa-bell-slash';this.style.borderColor='#ff4444';this.style.color='#ff4444';showNotification('Alertas desativados')}});
-    document.getElementById('alert-close-btn').addEventListener('click',esconderAlertaVisual);
-
-    function ativarFiltroSidebar(tipo){filtroAtivo=filtroAtivo===tipo?null:tipo;tabAtiva='feed';document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active')});document.querySelector('[data-tab="feed"]').classList.add('active');renderFilters();renderFeed();showNotification(filtroAtivo?'Filtrando: '+PROMO_CONFIG[tipo].label:'Filtro removido')}
-    document.getElementById('btn-filter-flash').addEventListener('click',function(){ativarFiltroSidebar('flash')});
-    document.getElementById('btn-filter-cupom').addEventListener('click',function(){ativarFiltroSidebar('cupom')});
-    document.getElementById('btn-filter-frete').addEventListener('click',function(){ativarFiltroSidebar('frete_gratis')});
-    document.getElementById('btn-filter-cashback').addEventListener('click',function(){ativarFiltroSidebar('cashback')});
-
-    document.getElementById('btn-refresh-feed').addEventListener('click',function(){var icon=this.querySelector('i');icon.style.transition='transform 0.5s ease';icon.style.transform='rotate(360deg)';setTimeout(function(){icon.style.transform=''},600);filtroAtivo=null;document.getElementById('search-query').value='';iconCache={};preTestarTodosIcones();renderFilters();renderCurrentTab();showNotification('Ofertas atualizadas')});
-    document.getElementById('btn-demo-alert').addEventListener('click',dispararAlertaAleatorio);
-
-    document.getElementById('btn-demo-auto').addEventListener('click',function(){if(demoInterval){clearInterval(demoInterval);demoInterval=null;this.classList.remove('active-demo');this.textContent='Auto Demo';showNotification('Demo desativado')}else{this.classList.add('active-demo');this.textContent='Parar Demo';showNotification('Demo automatico — alertas a cada 5s');demoInterval=setInterval(dispararAlertaAleatorio,5000)}});
-
-    document.getElementById('fab-add').addEventListener('click',function(){if(tabAtiva!=='monitored'){tabAtiva='monitored';document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active')});document.querySelector('[data-tab="monitored"]').classList.add('active');renderMonitored()}document.getElementById('modal-add-product').classList.add('active')});
-    document.getElementById('btn-modal-cancel').addEventListener('click',function(){document.getElementById('modal-add-product').classList.remove('active')});
-    document.getElementById('btn-modal-confirm').addEventListener('click',function(){var name=document.getElementById('input-prod-name').value.trim();var target=parseFloat(document.getElementById('input-prod-target').value);if(name.length<2){showNotification('Digite o nome do produto');return}if(!target||target<=0){showNotification('Digite um preco alvo valido');return}var current=Math.round(target*(1.15+Math.random()*0.25));monitoredProducts.push({name:name,targetPrice:target,currentPrice:current});document.getElementById('modal-add-product').classList.remove('active');document.getElementById('input-prod-name').value='';document.getElementById('input-prod-target').value='';atualizarBadgeMonitorados();renderMonitored();showNotification('Produto adicionado!');dispararAlertaPromocaoIA('Monitorando: '+name+' — Alvo R$ '+target.toLocaleString('pt-BR'),'fidelidade')});
-    document.getElementById('btn-compare-close').addEventListener('click',function(){document.getElementById('modal-compare').classList.remove('active')});
-    document.querySelectorAll('.modal-overlay').forEach(function(overlay){overlay.addEventListener('click',function(e){if(e.target===overlay)overlay.classList.remove('active')})});
-    document.addEventListener('keydown',function(e){if(e.key==='Escape'){document.querySelectorAll('.modal-overlay.active').forEach(function(m){m.classList.remove('active')});if(searchActive){searchActive=false;document.getElementById('search-bar').classList.remove('active')}esconderAlertaVisual()}});
-
-    setInterval(function(){if(monitoredProducts.length>0){var idx=Math.floor(Math.random()*monitoredProducts.length);var prod=monitoredProducts[idx];var change=(Math.random()-0.6)*prod.targetPrice*0.05;prod.currentPrice=Math.max(Math.round(prod.targetPrice*0.8),Math.round(prod.currentPrice+change));if(prod.currentPrice<=prod.targetPrice)dispararAlertaPromocaoIA(prod.name+' atingiu seu preco alvo! R$ '+prod.currentPrice.toLocaleString('pt-BR'),'desconto');if(tabAtiva==='monitored')renderMonitored()}},8000);
-
-    // AUTO-REFRESH: busca novas promocoes do Supabase a cada 30s
-    autoRefreshInterval=setInterval(function(){if(tabAtiva==='feed')renderFeed()},30000);
+  // ============================================
+  // SEARCH
+  // ============================================
+  var searchToggle = document.getElementById('btn-search-toggle');
+  var searchBar = document.getElementById('search-bar');
+  var searchQuery = document.getElementById('search-query');
+  
+  if (searchToggle) {
+    searchToggle.addEventListener('click', function() {
+      searchActive = !searchActive;
+      if (searchActive) {
+        searchBar.classList.add('active');
+        setTimeout(function() { if (searchQuery) searchQuery.focus(); }, 300);
+      } else {
+        searchBar.classList.remove('active');
+        if (searchQuery) searchQuery.value = '';
+        renderCurrentTab();
+      }
+    });
   }
 
-  window.onload=initApp;
+  var btnSearch = document.getElementById('btn-search');
+  if (btnSearch) {
+    btnSearch.addEventListener('click', function() {
+      renderCurrentTab();
+      showNotification('Busca realizada');
+    });
+  }
+
+  if (searchQuery) {
+    searchQuery.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        renderCurrentTab();
+        showNotification('Busca realizada');
+      }
+    });
+    searchQuery.addEventListener('input', function() {
+      if (tabAtiva === 'feed') renderFeed();
+    });
+  }
+
+  // ============================================
+  // ALERT TOGGLE
+  // ============================================
+  var alertToggle = document.getElementById('btn-alert-toggle');
+  if (alertToggle) {
+    alertToggle.addEventListener('click', function() {
+      alertasAtivados = !alertasAtivados;
+      var icon = document.getElementById('alert-toggle-icon');
+      if (alertasAtivados) {
+        icon.className = 'fas fa-bell';
+        this.style.borderColor = '';
+        this.style.color = 'var(--accent-color)';
+        showNotification('Alertas ativados');
+      } else {
+        icon.className = 'fas fa-bell-slash';
+        this.style.borderColor = '#ff4444';
+        this.style.color = '#ff4444';
+        showNotification('Alertas desativados');
+      }
+    });
+  }
+
+  var alertClose = document.getElementById('alert-close-btn');
+  if (alertClose) {
+    alertClose.addEventListener('click', esconderAlertaVisual);
+  }
+
+  // ============================================
+  // SIDEBAR FILTERS
+  // ============================================
+  function ativarFiltroSidebar(tipo) {
+    filtroAtivo = filtroAtivo === tipo ? null : tipo;
+    tabAtiva = 'feed';
+    document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+    var feedTab = document.querySelector('[data-tab="feed"]');
+    if (feedTab) feedTab.classList.add('active');
+    renderFilters();
+    renderFeed();
+    showNotification(filtroAtivo ? 'Filtrando: ' + PROMO_CONFIG[tipo].label : 'Filtro removido');
+  }
+
+  var btnFlash = document.getElementById('btn-filter-flash');
+  if (btnFlash) btnFlash.addEventListener('click', function() { ativarFiltroSidebar('flash'); });
+  
+  var btnCupom = document.getElementById('btn-filter-cupom');
+  if (btnCupom) btnCupom.addEventListener('click', function() { ativarFiltroSidebar('cupom'); });
+  
+  var btnFrete = document.getElementById('btn-filter-frete');
+  if (btnFrete) btnFrete.addEventListener('click', function() { ativarFiltroSidebar('frete_gratis'); });
+  
+  var btnCashback = document.getElementById('btn-filter-cashback');
+  if (btnCashback) btnCashback.addEventListener('click', function() { ativarFiltroSidebar('cashback'); });
+
+
+  // ============================================
+  // SIDEBAR FILTERS
+  // ============================================
+  function ativarFiltroSidebar(tipo) {
+    filtroAtivo = filtroAtivo === tipo ? null : tipo;
+    tabAtiva = 'feed';
+    document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+    var feedTab = document.querySelector('[data-tab="feed"]');
+    if (feedTab) feedTab.classList.add('active');
+    renderFilters();
+    renderFeed();
+    showNotification(filtroAtivo ? 'Filtrando: ' + PROMO_CONFIG[tipo].label : 'Filtro removido');
+  }
+
+  var btnFlash = document.getElementById('btn-filter-flash');
+  if (btnFlash) btnFlash.addEventListener('click', function() { ativarFiltroSidebar('flash'); });
+  
+  var btnCupom = document.getElementById('btn-filter-cupom');
+  if (btnCupom) btnCupom.addEventListener('click', function() { ativarFiltroSidebar('cupom'); });
+  
+  var btnFrete = document.getElementById('btn-filter-frete');
+  if (btnFrete) btnFrete.addEventListener('click', function() { ativarFiltroSidebar('frete_gratis'); });
+  
+  var btnCashback = document.getElementById('btn-filter-cashback');
+  if (btnCashback) btnCashback.addEventListener('click', function() { ativarFiltroSidebar('cashback'); });
+
+  // ============================================
+  // MONITORAR PRODUTOS (SIDEBAR)
+  // ============================================
+  var btnMonitorarSidebar = document.getElementById('btn-monitorar-sidebar');
+  if (btnMonitorarSidebar) {
+    btnMonitorarSidebar.addEventListener('click', function() {
+      tabAtiva = 'monitored';
+      document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+      var monitoredTab = document.querySelector('[data-tab="monitored"]');
+      if (monitoredTab) monitoredTab.classList.add('active');
+      renderMonitored();
+      openModal('modal-add-product');
+    });
+  }
+
+
+  // ============================================
+  // REFRESH
+  // ============================================
+  var refreshBtn = document.getElementById('btn-refresh-feed');
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', function() {
+      var icon = this.querySelector('i');
+      icon.style.transition = 'transform 0.5s ease';
+      icon.style.transform = 'rotate(360deg)';
+      setTimeout(function() { icon.style.transform = ''; }, 600);
+      filtroAtivo = null;
+      if (searchQuery) searchQuery.value = '';
+      iconCache = {};
+      preTestarTodosIcones();
+      renderFilters();
+      renderCurrentTab();
+      showNotification('Ofertas atualizadas');
+    });
+  }
+
+  // ============================================
+  // DEMO ALERT
+  // ============================================
+  var demoBtn = document.getElementById('btn-demo-alert');
+  if (demoBtn) {
+    demoBtn.addEventListener('click', dispararAlertaAleatorio);
+  }
+
+  var autoDemoBtn = document.getElementById('btn-demo-auto');
+  if (autoDemoBtn) {
+    autoDemoBtn.addEventListener('click', function() {
+      if (demoInterval) {
+        clearInterval(demoInterval);
+        demoInterval = null;
+        this.classList.remove('active-demo');
+        this.textContent = 'Auto Demo';
+        showNotification('Demo desativado');
+      } else {
+        this.classList.add('active-demo');
+        this.textContent = 'Parar Demo';
+        showNotification('Demo automatico — alertas a cada 5s');
+        demoInterval = setInterval(dispararAlertaAleatorio, 5000);
+      }
+    });
+  }
+
+  // ============================================
+  // MENU ITEMS
+  // ============================================
+  var menuInfo = document.getElementById('menu-info');
+  if (menuInfo) menuInfo.addEventListener('click', function() { openModal('modal-info'); });
+
+  var menuDonate = document.getElementById('menu-donate');
+  if (menuDonate) menuDonate.addEventListener('click', function() { 
+    carregarOpcoesDoacao(); 
+    openModal('modal-donate'); 
+  });
+
+  var menuPromoTypes = document.getElementById('menu-promo-types');
+  if (menuPromoTypes) menuPromoTypes.addEventListener('click', function() { 
+    renderPromoTypesGrid(); 
+    openModal('modal-promo-types'); 
+  });
+
+  // MONITORAR PRODUTO (no menu)
+  var menuMonitorar = document.getElementById('menu-monitorar');
+  if (menuMonitorar) {
+    menuMonitorar.addEventListener('click', function() {
+      if (tabAtiva !== 'monitored') {
+        tabAtiva = 'monitored';
+        document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+        var monitoredTab = document.querySelector('[data-tab="monitored"]');
+        if (monitoredTab) monitoredTab.classList.add('active');
+        renderMonitored();
+      }
+      openModal('modal-add-product');
+    });
+  }
+
+  // ============================================
+  // FAB - INSERIR LOJA (VERDE)
+  // ============================================
+  var fabAddStore = document.getElementById('fab-add-store');
+  if (fabAddStore) {
+    fabAddStore.addEventListener('click', function() {
+      openModal('modal-add-store');
+    });
+  }
+
+  // ============================================
+  // MODAL: MONITORAR PRODUTO
+  // ============================================
+  var modalCancel = document.getElementById('btn-modal-cancel');
+  if (modalCancel) {
+    modalCancel.addEventListener('click', function() {
+      closeModal('modal-add-product');
+    });
+  }
+
+  var modalConfirm = document.getElementById('btn-modal-confirm');
+  if (modalConfirm) {
+    modalConfirm.addEventListener('click', function() {
+      var name = document.getElementById('input-prod-name').value.trim();
+      var target = parseFloat(document.getElementById('input-prod-target').value);
+      if (name.length < 2) {
+        showNotification('Digite o nome do produto');
+        return;
+      }
+      if (!target || target <= 0) {
+        showNotification('Digite um preco alvo valido');
+        return;
+      }
+      var current = Math.round(target * (1.15 + Math.random() * 0.25));
+      monitoredProducts.push({ name: name, targetPrice: target, currentPrice: current });
+      closeModal('modal-add-product');
+      document.getElementById('input-prod-name').value = '';
+      document.getElementById('input-prod-target').value = '';
+      atualizarBadgeMonitorados();
+      renderMonitored();
+      showNotification('Produto adicionado!');
+      dispararAlertaPromocaoIA('Monitorando: ' + name + ' — Alvo R$ ' + target.toLocaleString('pt-BR'), 'fidelidade');
+    });
+  }
+
+  // ============================================
+  // MODAL: INSERIR LOJA (STEP 1)
+  // ============================================
+
+  var btnStoreNext = document.getElementById('btn-store-step1-next');
+if (btnStoreNext) {
+  btnStoreNext.addEventListener('click', function(e) {
+    if (!planoSelecionado) {
+      showNotification('⚠️ Selecione um plano primeiro');
+      var g = document.querySelector('.planos-grid');
+      if (g) g.scrollIntoView({behavior:'smooth', block:'start'});
+      return;
+    }
+
+    var nome = document.getElementById('input-store-name').value.trim();
+    var url = document.getElementById('input-store-url').value.trim();
+    var email = document.getElementById('input-store-email').value.trim();
+
+    if (!nome) {
+      showNotification('⚠️ Digite o nome da loja');
+      document.getElementById('input-store-name').focus();
+      return;
+    }
+    if (!url) {
+      showNotification('⚠️ Digite a URL da loja');
+      document.getElementById('input-store-url').focus();
+      return;
+    }
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      showNotification('⚠️ URL deve começar com http:// ou https://');
+      document.getElementById('input-store-url').focus();
+      return;
+    }
+
+    storeFormData = {
+      nome: nome,
+      url: url,
+      categoria: document.getElementById('input-store-cat').value,
+      email: email || 'nao_informado@email.com',
+      dias: planoSelecionado.dias,
+      valor: planoSelecionado.valor,
+      label: planoSelecionado.label,
+      desc: planoSelecionado.desc
+    };
+
+    pixTxid = 'MAXPROMO_' + Date.now();
+
+    var pixCode = gerarPixCopiaCola(
+      PIX_CONFIG.chave,
+      PIX_CONFIG.nome,
+      PIX_CONFIG.cidade,
+      planoSelecionado.valor,
+      PIX_CONFIG.descricao + ' ' + planoSelecionado.label
+    );
+
+    document.getElementById('pix-key-display').value = pixCode;
+    renderizarQRCode(pixCode);
+
+    var vf = formatarDinheiro(planoSelecionado.valor);
+    document.getElementById('pix-valor-label').textContent = vf;
+    document.getElementById('pix-dias-label').textContent = planoSelecionado.label;
+    document.getElementById('instrucao-valor').textContent = vf;
+
+    var devBar = document.getElementById('dev-bar-teste');
+    if (devBar) devBar.style.display = MODO_TESTE ? 'flex' : 'none';
+
+    iniciarCountdownPix();
+
+    document.getElementById('store-step-1').style.display = 'none';
+    document.getElementById('store-step-2').style.display = 'block';
+
+    showNotification('💳 Plano ' + planoSelecionado.label + ' - Valor: ' + vf);
+  });
+}
+
+  // ============================================
+  // MODAL: INSERIR LOJA (STEP 2)
+  // ============================================
+  var btnStep2Back = document.getElementById('btn-store-step2-back');
+  if (btnStep2Back) {
+    btnStep2Back.addEventListener('click', function() {
+      clearInterval(pixCountdownInterval);
+      document.getElementById('store-step-2').style.display = 'none';
+      document.getElementById('store-step-1').style.display = 'block';
+    });
+  }
+
+  var btnPaguei = document.getElementById('btn-store-step2-paguei');
+  if (btnPaguei) {
+    btnPaguei.addEventListener('click', function() {
+      if (!storeFormData || !storeFormData.nome) {
+        showNotification('⚠️ Dados da loja não encontrados');
+        return;
+      }
+      _setStatusPix('confirmado', '<i class="fas fa-check-circle" style="color:#4CAF50;"></i> Pagamento confirmado!');
+      setTimeout(function() {
+        confirmarPagamentoEAvancar('pago');
+      }, 1000);
+    });
+  }
+
+  var btnSimular = document.getElementById('btn-dev-simular');
+  if (btnSimular) {
+    btnSimular.addEventListener('click', function() {
+      if (!storeFormData || !storeFormData.nome) {
+        showNotification('⚠️ Preencha os dados da loja primeiro');
+        return;
+      }
+      _setStatusPix('confirmado', '<i class="fas fa-check-circle" style="color:#4CAF50;"></i> ✅ Pagamento simulado com sucesso!');
+      setTimeout(function() {
+        confirmarPagamentoEAvancar('pago_simulado');
+      }, 800);
+    });
+  }
+
+  var btnCopyPix = document.getElementById('btn-copy-pix');
+  if (btnCopyPix) {
+    btnCopyPix.addEventListener('click', function() {
+      var input = document.getElementById('pix-key-display');
+      if (!input || !input.value) {
+        showNotification('⚠️ Aguarde o código PIX ser gerado');
+        return;
+      }
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(input.value).then(function() {
+          showNotification('✅ Código PIX copiado!');
+        }).catch(function() {
+          fallbackCopy(input.value);
+          showNotification('✅ Código PIX copiado!');
+        });
+      } else {
+        fallbackCopy(input.value);
+        showNotification('✅ Código PIX copiado!');
+      }
+    });
+  }
+
+  // ============================================
+  // MODAL: INSERIR LOJA (STEP 3)
+  // ============================================
+  var btnStep3Close = document.getElementById('btn-store-step3-close');
+  if (btnStep3Close) {
+    btnStep3Close.addEventListener('click', function() {
+      closeModal('modal-add-store');
+      limparModalLoja();
+      showNotification('✅ Loja cadastrada com sucesso!');
+    });
+  }
+
+  // ============================================
+  // MODAL: INSERIR LOJA (CANCEL)
+  // ============================================
+  var btnStoreCancel = document.getElementById('btn-store-cancel');
+  if (btnStoreCancel) {
+    btnStoreCancel.addEventListener('click', function() {
+      closeModal('modal-add-store');
+      var btnNext = document.getElementById('btn-store-step1-next');
+      if (btnNext) {
+        btnNext.disabled = true;
+        btnNext.style.opacity = '0.5';
+        btnNext.style.cursor = 'not-allowed';
+        btnNext.innerHTML = '<i class="fas fa-lock" style="font-size:.75rem;margin-right:6px;"></i>Continuar → Pagar PIX';
+      }
+      limparModalLoja();
+    });
+  }
+
+  // ============================================
+  // OUTROS MODAIS
+  // ============================================
+  var btnInfoClose = document.getElementById('btn-info-close');
+  if (btnInfoClose) btnInfoClose.addEventListener('click', function() { closeModal('modal-info'); });
+
+  var btnDonateClose = document.getElementById('btn-donate-close');
+  if (btnDonateClose) btnDonateClose.addEventListener('click', function() { closeModal('modal-donate'); });
+
+  var btnTypesClose = document.getElementById('btn-types-close');
+  if (btnTypesClose) btnTypesClose.addEventListener('click', function() { closeModal('modal-promo-types'); });
+
+  var btnCompareClose = document.getElementById('btn-compare-close');
+  if (btnCompareClose) btnCompareClose.addEventListener('click', function() { closeModal('modal-compare'); });
+
+  // Fechar modais ao clicar no overlay
+  document.querySelectorAll('.modal-overlay').forEach(function(overlay) {
+    overlay.addEventListener('click', function(e) {
+      if (e.target === overlay) overlay.classList.remove('active');
+    });
+  });
+
+  // ESC key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.modal-overlay.active').forEach(function(m) {
+        m.classList.remove('active');
+      });
+      if (searchActive) {
+        searchActive = false;
+        document.getElementById('search-bar').classList.remove('active');
+      }
+      esconderAlertaVisual();
+    }
+  });
+
+  // ============================================
+  // MONITORAMENTO AUTOMÁTICO DE PREÇOS
+  // ============================================
+  setInterval(function() {
+    if (monitoredProducts.length > 0) {
+      var idx = Math.floor(Math.random() * monitoredProducts.length);
+      var prod = monitoredProducts[idx];
+      var change = (Math.random() - 0.6) * prod.targetPrice * 0.05;
+      prod.currentPrice = Math.max(Math.round(prod.targetPrice * 0.8), Math.round(prod.currentPrice + change));
+      if (prod.currentPrice <= prod.targetPrice) {
+        dispararAlertaPromocaoIA(prod.name + ' atingiu seu preco alvo! R$ ' + prod.currentPrice.toLocaleString('pt-BR'), 'desconto');
+      }
+      if (tabAtiva === 'monitored') renderMonitored();
+    }
+  }, 8000);
+
+  // ============================================
+  // AUTO-REFRESH
+  // ============================================
+  autoRefreshInterval = setInterval(function() {
+    if (tabAtiva === 'feed') renderFeed();
+  }, 30000);
+}
+
+// ============================================
+// CARREGAR DOAÇÕES
+// ============================================
+var DONATE_API_URL = 'https://seabhra.github.io/max-promo-alert-api/donate_promos';
+var donateOptionsCache = null;
+
+var DONATE_ICONS = {
+  'pix': { icon: 'fas fa-qrcode', color: '#4CAF50', bg: 'rgba(76,175,80,0.12)' },
+  'paypal': { icon: 'fab fa-paypal', color: '#0070D2', bg: 'rgba(0,112,210,0.12)' },
+  'apoia.se': { icon: 'fas fa-hand-holding-heart', color: '#EC407A', bg: 'rgba(236,64,122,0.12)' },
+  'bitcoin': { icon: 'fab fa-bitcoin', color: '#FFB300', bg: 'rgba(255,179,0,0.12)' },
+  'default': { icon: 'fas fa-heart', color: '#EC407A', bg: 'rgba(236,64,122,0.12)' }
+};
+
+function detectarIconeDoacao(titulo) {
+  if (!titulo) return DONATE_ICONS['default'];
+  var t = titulo.toLowerCase().trim();
+  if (t.indexOf('apoia') !== -1) return DONATE_ICONS['apoia.se'];
+  if (t.indexOf('pix') !== -1) return DONATE_ICONS['pix'];
+  if (t.indexOf('paypal') !== -1) return DONATE_ICONS['paypal'];
+  if (t.indexOf('bitcoin') !== -1 || t.indexOf('btc') !== -1) return DONATE_ICONS['bitcoin'];
+  return DONATE_ICONS['default'];
+}
+
+async function carregarOpcoesDoacao() {
+  var container = document.getElementById('donate-options-list');
+  if (!container) return;
+  if (donateOptionsCache) { renderizarOpcoesDoacao(donateOptionsCache); return; }
+  container.innerHTML = '<div class="donate-loading"><i class="fas fa-spinner fa-spin"></i> Carregando...</div>';
+  try {
+    var response = await fetch(DONATE_API_URL);
+    if (!response.ok) throw new Error('HTTP ' + response.status);
+    var data = await response.json();
+    var lista = Array.isArray(data) ? data : null;
+    if (!lista) {
+      var chaves = ['doacoes', 'opcoes', 'donate_options', 'options', 'data', 'items'];
+      for (var i = 0; i < chaves.length; i++) {
+        if (Array.isArray(data[chaves[i]])) { lista = data[chaves[i]]; break; }
+      }
+    }
+    if (!lista || !lista.length) throw new Error('vazia');
+    donateOptionsCache = lista;
+    renderizarOpcoesDoacao(lista);
+  } catch(err) {
+    renderizarOpcoesDoacao([
+      { titulo: 'PIX', descricao: 'seabhra@gmail.com', tipo: 'pix', acao: 'copy', valor: 'seabhra@gmail.com' },
+      { titulo: 'Apoia.se', descricao: 'Apoio mensal recorrente', tipo: 'apoia.se', acao: 'link', url: '#' }
+    ]);
+  }
+}
+
+function renderizarOpcoesDoacao(lista) {
+  var container = document.getElementById('donate-options-list');
+  if (!container) return;
+  container.innerHTML = '';
+  lista.forEach(function(opt, i) {
+    var ic = detectarIconeDoacao(opt.titulo || opt.nome || opt.title || '');
+    var titulo = opt.titulo || opt.title || opt.nome || opt.name || 'Doar';
+    var desc = opt.descricao || opt.desc || opt.description || '';
+    var url = opt.url || opt.link || '#';
+    var acao = opt.acao || 'link';
+    var valorCopy = opt.valor || opt.chave || titulo;
+    var el = document.createElement('div');
+    el.className = 'donate-option-link';
+    el.style.animation = 'cardSlideIn 0.35s ease-out ' + (i * 0.06) + 's both';
+    el.innerHTML = '<div class="donate-option-icon-wrap" style="background:' + ic.bg + ';color:' + ic.color + ';"><i class="' + ic.icon + '"></i></div><div class="donate-option-text"><div class="do-title">' + titulo + '</div>' + (desc ? '<div class="do-desc">' + desc + '</div>' : '') + '</div><i class="fas fa-external-link-alt" style="color:var(--text-muted);font-size:0.7rem;margin-left:auto;flex-shrink:0;"></i>';
+    (function(a, u, v, tit) {
+      el.addEventListener('click', function() {
+        if (a === 'copy' || a === 'copiar') {
+          if (navigator.clipboard) {
+            navigator.clipboard.writeText(v).then(function() { showNotification(tit + ': copiado!'); });
+          } else {
+            fallbackCopy(v);
+            showNotification(tit + ': copiado!');
+          }
+        } else if (u && u !== '#') {
+          window.open(u, '_blank', 'noopener');
+          showNotification('Abrindo ' + tit + '...');
+        }
+      });
+    })(acao, url, valorCopy, titulo);
+    container.appendChild(el);
+  });
+}
+
+// ============================================
+// INICIALIZAR
+// ============================================
+window.onload = initApp;
+
 </script>
 </body>
 </html>
