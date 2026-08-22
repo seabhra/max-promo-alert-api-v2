@@ -610,6 +610,136 @@
   }
 }
 
+
+/* ================================================================================
+   ALERTAS DE PREENCHIMENTOFORMULÁRIO INSERÇÃO LOJAS/PRODUTOS - CAMPOS OBRIGATÓRIOS
+   ============================================================================== */
+
+
+/* Plano não selecionado - destaque */
+.planos-grid .plano-card.required-miss {
+  border-color: #ff6b6b;
+  background: rgba(255, 107, 107, 0.05);
+  animation: shakePlan 0.5s ease;
+}
+
+@keyframes shakePlan {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+
+/* Plano com erro - pulse */
+.planos-grid .plano-card.error-pulse {
+  animation: pulseBorder 0.8s ease-in-out 2;
+}
+
+@keyframes pulseBorder {
+  0%, 100% { border-color: rgba(255, 107, 107, 0.4); }
+  50% { border-color: #ff6b6b; }
+}
+
+/* Alerta global no topo do modal */
+.modal-alert-box {
+  background: rgba(255, 107, 107, 0.1);
+  border: 1px solid rgba(255, 107, 107, 0.25);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  display: none;
+  align-items: center;
+  gap: 10px;
+  color: #ff6b6b;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.modal-alert-box.show {
+  display: flex;
+}
+
+.modal-alert-box i {
+  font-size: 1rem;
+}
+/* =====================================================
+   SETA INDICATIVA — ÍCONE VERMELHO / TEXTO BRANCO
+   ===================================================== */
+
+.hint-arrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+
+    /* Texto */
+    color: #ffffff;
+
+    font-size: 0.75rem;
+    font-weight: 700;
+
+    animation: arrowBounce 1.2s ease-in-out infinite;
+}
+
+/* Ícone da seta */
+.hint-arrow i {
+    color: #ff3b3b; /* vermelho */
+    font-size: 0.9rem;
+}
+
+/* Movimento vertical da seta */
+@keyframes arrowBounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-5px);
+    }
+}
+
+
+/* =====================================================
+   AVISO ABAIXO DOS PLANOS
+   ===================================================== */
+.plano-hint {
+    display: none;
+    align-items: center;
+    gap: 8px;
+
+    width: 100%;
+    box-sizing: border-box;
+
+    color: #ffffff;
+    font-size: 0.7rem;
+    font-weight: 600;
+
+    margin-top: 4px;
+    padding: 6px 10px;
+
+    background: rgba(255, 59, 59, 0.08);
+    border-radius: var(--radius-sm);
+}
+
+.plano-hint.show {
+    display: flex;
+}
+
+/* SETA VERMELHA */
+.plano-hint i {
+    flex-shrink: 0;
+    color: #ff3b3b;
+    font-size: 0.9rem;
+}
+
+/* TEXTO OCUPA O RESTANTE DA LINHA */
+.plano-hint span {
+    flex: 1;
+    width: 100%;
+    text-align: left;
+}
+
+
+
+
 </style>
 </head>
 
@@ -716,20 +846,23 @@
   
 
 <!-- ============================================
-     MODAL: INSERIR LOJA COM PIX
+     MODAL:FORMULARIO INSERIR LOJA/PRODUTO COM PIX
      ============================================ -->
 <div class="modal-overlay" id="modal-add-store">
-  <div class="modal-box">
+  <div class="modal-box">   
+
     <div id="store-error" class="form-error" style="display:none;"></div>
 
     <!-- STEP 1: Escolher plano e dados -->
-    <div id="store-step-1">
-      <h2><i class="fas fa-store" style="color:var(--accent-color);margin-right:8px;"></i>Inserir Loja</h2>
+   <form id="store-form">
+          <h2><i class="fas fa-store" style="color:var(--accent-color);margin-right:8px;"></i>Inserir Loja</h2>
+          
 
       <p>Preencha os dados e escolha o plano. O pagamento é via PIX, único e sem renovação automática.</p>
       
       <div class="section-label"><i class="fas fa-layer-group"></i> Escolha o plano</div>
-      <div class="planos-grid">
+        <div class="planos-grid">
+         
         <div class="plano-card" data-dias="30" data-valor="9.90" onclick="selecionarPlano(this)">
           <div class="plano-dias">📅 30 dias</div>
           <div class="plano-valor">R$ 9,90</div>
@@ -753,12 +886,43 @@
           <div class="plano-desc">Melhor custo-benefício</div>
         </div>
       </div>
+      <!-- Alerta de plano não selecionado -->
+<div class="plano-hint" id="plano-hint">
+    <i class="fas fa-chevron-up"></i>
+    <span>Selecione um plano para continuar</span>
+</div>
 
       <div class="section-label"><i class="fas fa-pencil"></i> Dados da loja</div>
-      <label for="input-store-name">Nome da Loja</label>
-      <input type="text" id="input-store-name" placeholder="Ex: Minha Loja">
-      <label for="input-store-url">Site / URL</label>
-      <input type="url" id="input-store-url" placeholder="https://minhaloja.com.br">
+      
+       <!-- Inserir nome da loja -->
+     <label for="input-store-name">Nome da Loja <span style="color:#f3f2f2;">*</span></label>
+
+<input 
+    type="text" 
+    id="input-store-name" 
+    name="store-name"
+    placeholder="Ex: Minha Loja"
+    required>
+
+
+
+<!-- Inserir URL do site -->
+
+<label for="input-store-url">
+    Site / URL <span style="color:#f3f2f2;">*</span>
+</label>
+
+<input 
+    type="url" 
+    id="input-store-url" 
+    name="store-url"
+    placeholder="https://minhaloja.com.br"
+    required>
+
+
+
+<!-- Inserir tipo de promoção -->
+
       <label for="input-store-cat">Tipo de Promoção Principal</label>
       <select id="input-store-cat">
         <option value="desconto">Desconto</option>
@@ -771,22 +935,45 @@
         <option value="live">Live Sale</option>
         <option value="sorteio">Sorteio</option>
       </select>
-      <label for="input-store-email">Seu E-mail (para recibo)</label>
-      <input type="email" id="input-store-email" placeholder="seuemail@exemplo.com">
       
+       <!-- Inserir e-mail para recibo -->
+     <label for="input-store-email">Seu E-mail (para recibo)</label>
+
+<input
+    type="email"
+    id="input-store-email"
+    name="store-email"
+    placeholder="loja@loja.com"
+    required>
+
+     <!-- botão de cancelar pagamento -->
+
       <div class="modal-actions">
         <button class="btn-cancel" id="btn-store-cancel">Cancelar</button>
-      
-        <button class="btn-confirm" id="btn-store-step1-next" style="opacity:0.5;cursor:not-allowed;">
-  <i class="fas fa-lock" style="font-size:.75rem;margin-right:6px;"></i>Continuar → Pagar PIX
+    
+        <!-- Inserir forma de pagamento -->
+
+  <button 
+    type="submit"
+    class="btn-confirm" 
+    id="btn-store-step1-next"
+    style="opacity:0.5;cursor:not-allowed;"
+>
+    <i class="fas fa-lock" style="font-size:.75rem;margin-right:6px;"></i>
+    Continuar → Pagar PIX
+
+    <span class="hint-arrow" id="btn-hint-arrow" style="display:none;margin-left:8px;">
+        <i class="fas fa-arrow-right"></i> Clique aqui</span>
 </button>
 
       </div>
+      </form>
     </div>
 
     <!-- STEP 2: Pagamento PIX -->
     <div id="store-step-2" style="display:none;">
       <div class="step-pix-header">
+
         <h2><i class="fas fa-qrcode" style="color:#4CAF50;margin-right:8px;"></i>Pague via PIX</h2>
         <p>Escaneie o QR Code ou copie a chave.<br>Após o pagamento, clique em <strong>"Já Paguei"</strong>.</p>
       </div>
@@ -843,16 +1030,20 @@
         <h2>Loja Cadastrada!</h2>
         <p>Pagamento registrado. Sua loja será publicada em até 24h após validação manual.</p>
         <div class="step3-resumo" id="store-step3-resumo"></div>
+        
         <div class="modal-actions">
           <button class="btn-confirm" id="btn-store-step3-close" style="flex:1;">
             <i class="fas fa-check" style="font-size:.8rem;margin-right:5px;"></i>Concluir
           </button>
         </div>
-      </div>
-    </div>
-
+       </div>
   </div>
 </div>
+
+
+<!-- ======================
+     MODAL:COMPARE PREÇOS
+     ======================== -->
 
   <div class="modal-overlay" id="modal-compare">
     <div class="modal-box">
@@ -1054,6 +1245,17 @@ function gerarHTMLIcone(tipo, tamanho) {
 // FUNÇÕES PIX
 // ============================================
 function selecionarPlano(el) {
+
+   // Resetar erros visuais
+  document.querySelectorAll('.plano-card').forEach(function(c) {
+    c.classList.remove('required-miss', 'error-pulse');
+  });
+  var planoHint = document.getElementById('plano-hint');
+  if (planoHint) planoHint.classList.remove('show');
+  var alertBox = document.getElementById('modal-store-alert');
+  if (alertBox) alertBox.classList.remove('show');
+
+
   document.querySelectorAll('.plano-card').forEach(function(c) {
     c.classList.remove('selected');
   });
@@ -2039,78 +2241,218 @@ function initApp() {
   }
 
   // ============================================
-  // MODAL: INSERIR LOJA (STEP 1)
+  // MODAL: INSERIR LOJA/PRODUTO (STEP 1)
   // ============================================
 
-  var btnStoreNext = document.getElementById('btn-store-step1-next');
-if (btnStoreNext) {
-  btnStoreNext.addEventListener('click', function(e) {
+ // ============================================
+// MODAL: INSERIR LOJA/PRODUTO (STEP 1)
+// VALIDAÇÃO NATIVA DO NAVEGADOR
+// ============================================
+
+var storeForm = document.getElementById('store-form');
+
+if (storeForm) {
+
+  storeForm.addEventListener('submit', function(e) {
+
+    e.preventDefault();
+
+    var planoHint = document.getElementById('plano-hint');
+    var btnHintArrow = document.getElementById('btn-hint-arrow');
+
+    // ============================================
+    // 1. VALIDAÇÃO NATIVA DOS CAMPOS HTML
+    // ============================================
+
+    if (!this.checkValidity()) {
+
+      // O navegador mostra o balão nativo:
+      // "Preencha este campo."
+      // ou a mensagem correspondente ao tipo do campo.
+
+      this.reportValidity();
+
+      if (btnHintArrow) {
+        btnHintArrow.style.display = 'inline-flex';
+      }
+
+      return;
+    }
+
+
+    // ============================================
+    // 2. VALIDAR PLANO
+    // ============================================
+
     if (!planoSelecionado) {
-      showNotification('⚠️ Selecione um plano primeiro');
-      var g = document.querySelector('.planos-grid');
-      if (g) g.scrollIntoView({behavior:'smooth', block:'start'});
+
+      if (planoHint) {
+        planoHint.classList.add('show');
+      }
+
+      // Destacar os planos
+      var planos = document.querySelectorAll('.plano-card');
+
+      planos.forEach(function(el) {
+
+        el.classList.add('required-miss');
+
+        setTimeout(function() {
+          el.classList.add('error-pulse');
+        }, 100);
+
+      });
+
+      if (btnHintArrow) {
+        btnHintArrow.style.display = 'inline-flex';
+      }
+
+      // Levar até os planos
+      var grid = document.querySelector('.planos-grid');
+
+      if (grid) {
+        grid.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center'
+        });
+      }
+
       return;
     }
 
-    var nome = document.getElementById('input-store-name').value.trim();
-    var url = document.getElementById('input-store-url').value.trim();
-    var email = document.getElementById('input-store-email').value.trim();
 
-    if (!nome) {
-      showNotification('⚠️ Digite o nome da loja');
-      document.getElementById('input-store-name').focus();
-      return;
-    }
-    if (!url) {
-      showNotification('⚠️ Digite a URL da loja');
-      document.getElementById('input-store-url').focus();
-      return;
-    }
-    if (!url.startsWith('http://') && !url.startsWith('https://')) {
-      showNotification('⚠️ URL deve começar com http:// ou https://');
-      document.getElementById('input-store-url').focus();
-      return;
+    // ============================================
+    // 3. TUDO CORRETO
+    // ============================================
+
+    if (btnHintArrow) {
+      btnHintArrow.style.display = 'none';
     }
 
-    storeFormData = {
-      nome: nome,
-      url: url,
-      categoria: document.getElementById('input-store-cat').value,
-      email: email || 'nao_informado@email.com',
-      dias: planoSelecionado.dias,
-      valor: planoSelecionado.valor,
-      label: planoSelecionado.label,
-      desc: planoSelecionado.desc
-    };
+    if (planoHint) {
+      planoHint.classList.remove('show');
+    }
+
+
+    // ============================================
+    // 4. PEGAR DADOS DA LOJA
+    // ============================================
+
+    var nomeInput = document.getElementById('input-store-name');
+    var urlInput = document.getElementById('input-store-url');
+    var emailInput = document.getElementById('input-store-email');
+
+    var nome = nomeInput.value.trim();
+    var url = urlInput.value.trim();
+   
+    // ============================================
+    // 5. GUARDAR DADOS DO FORMULÁRIO
+    // ============================================
+
+var email = document.getElementById('input-store-email').value.trim();
+
+storeFormData = {
+    nome: nome,
+    url: url,
+    categoria: document.getElementById('input-store-cat').value,
+    email: email,
+    dias: planoSelecionado.dias,
+    valor: planoSelecionado.valor,
+    label: planoSelecionado.label,
+    desc: planoSelecionado.desc
+};
+
+
+    // ============================================
+    // 6. GERAR PIX
+    // ============================================
 
     pixTxid = 'MAXPROMO_' + Date.now();
 
     var pixCode = gerarPixCopiaCola(
+
       PIX_CONFIG.chave,
+
       PIX_CONFIG.nome,
+
       PIX_CONFIG.cidade,
+
       planoSelecionado.valor,
+
       PIX_CONFIG.descricao + ' ' + planoSelecionado.label
+
     );
 
+
     document.getElementById('pix-key-display').value = pixCode;
+
     renderizarQRCode(pixCode);
 
+
+    // ============================================
+    // 7. ATUALIZAR VALORES DO PIX
+    // ============================================
+
     var vf = formatarDinheiro(planoSelecionado.valor);
+
     document.getElementById('pix-valor-label').textContent = vf;
-    document.getElementById('pix-dias-label').textContent = planoSelecionado.label;
+
+    document.getElementById('pix-dias-label').textContent =
+      planoSelecionado.label;
+
     document.getElementById('instrucao-valor').textContent = vf;
 
+
+    // ============================================
+    // 8. MODO TESTE
+    // ============================================
+
     var devBar = document.getElementById('dev-bar-teste');
-    if (devBar) devBar.style.display = MODO_TESTE ? 'flex' : 'none';
+
+    if (devBar) {
+      devBar.style.display = MODO_TESTE ? 'flex' : 'none';
+    }
+
+
+    // ============================================
+    // 9. INICIAR CONTADOR
+    // ============================================
 
     iniciarCountdownPix();
 
-    document.getElementById('store-step-1').style.display = 'none';
-    document.getElementById('store-step-2').style.display = 'block';
 
-    showNotification('💳 Plano ' + planoSelecionado.label + ' - Valor: ' + vf);
+    // ============================================
+    // 10. IR PARA STEP 2
+    // ============================================
+
+  var step1 = document.getElementById('store-step-1');
+var step2 = document.getElementById('store-step-2');
+
+if (step1 && step2) {
+    step1.style.display = 'none';
+    step2.style.display = 'block';
+} else {
+    console.error('❌ Erro: STEP 1 ou STEP 2 não encontrado.', {
+        step1: step1,
+        step2: step2
+    });
+    return;
+}
+
+
+    // ============================================
+    // 11. AVISO
+    // ============================================
+
+    showNotification(
+      '💳 Plano ' +
+      planoSelecionado.label +
+      ' - Valor: ' +
+      vf
+    );
+
   });
+
 }
 
   // ============================================
@@ -2132,6 +2474,7 @@ if (btnStoreNext) {
         showNotification('⚠️ Dados da loja não encontrados');
         return;
       }
+
       _setStatusPix('confirmado', '<i class="fas fa-check-circle" style="color:#4CAF50;"></i> Pagamento confirmado!');
       setTimeout(function() {
         confirmarPagamentoEAvancar('pago');
@@ -2194,13 +2537,20 @@ if (btnStoreNext) {
   if (btnStoreCancel) {
     btnStoreCancel.addEventListener('click', function() {
       closeModal('modal-add-store');
+      
       var btnNext = document.getElementById('btn-store-step1-next');
-      if (btnNext) {
-        btnNext.disabled = true;
-        btnNext.style.opacity = '0.5';
-        btnNext.style.cursor = 'not-allowed';
-        btnNext.innerHTML = '<i class="fas fa-lock" style="font-size:.75rem;margin-right:6px;"></i>Continuar → Pagar PIX';
-      }
+
+if (btnNext) {
+
+  btnNext.style.opacity = '0.5';
+    btnNext.disabled = true;
+
+  btnNext.style.cursor = 'not-allowed';
+
+  btnNext.innerHTML =
+    '<i class="fas fa-lock" style="font-size:.75rem;margin-right:6px;"></i>' +
+    'Continuar → Pagar PIX';
+}
       limparModalLoja();
     });
   }
