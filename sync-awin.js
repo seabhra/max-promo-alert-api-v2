@@ -34,15 +34,14 @@ module.exports = async (req, res) => {
     );
 
     if (!response.ok) {
-      throw new Error(`Erro na API da Awin: ${response.status} - ${response.statusText}`);
+      throw new Error(`Erro na API da Awin: ${response.status}`);
     }
 
     const programas = await response.json();
     console.log(`📊 Encontrados ${programas.length} programas`);
 
-    // Filtrar programas com status 'Active' (campo correto)
     const ativos = programas.filter(p => p.status === 'Active');
-    console.log(`✅ ${ativos.length} programas ativos de ${programas.length} total`);
+    console.log(`✅ ${ativos.length} programas ativos`);
 
     let count = 0;
     for (const p of ativos) {
@@ -80,16 +79,13 @@ module.exports = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: `${count} programas ativos sincronizados com sucesso!`,
+      message: `${count} programas ativos sincronizados!`,
       total: programas.length,
       ativos: count
     });
 
   } catch (err) {
-    console.error('❌ Erro na sincronização:', err);
-    return res.status(500).json({ 
-      error: err.message,
-      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
-    });
+    console.error('❌ Erro:', err);
+    return res.status(500).json({ error: err.message });
   }
 };

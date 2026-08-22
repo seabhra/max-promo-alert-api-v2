@@ -37,10 +37,8 @@ CREATE INDEX IF NOT EXISTS idx_awin_advertisers_feed_enabled
 CREATE INDEX IF NOT EXISTS idx_awin_advertisers_region
   ON awin_advertisers (primary_region);
 
--- Garante que a tabela de promoções sabe distinguir a origem do registro
-ALTER TABLE promocoes
-  ADD COLUMN IF NOT EXISTS origem TEXT NOT NULL DEFAULT 'pix';
-  -- valores esperados: 'awin' | 'pix' | 'csv_manual'
-
+-- Nota: a tabela `promocoes` já tem a coluna `fonte` pra distinguir origem
+-- ('AWIN', etc.) — não precisa de uma coluna `origem` nova, redundante.
+-- Só falta ligar cada promoção Awin ao anunciante correspondente:
 ALTER TABLE promocoes
   ADD COLUMN IF NOT EXISTS awin_advertiser_id TEXT REFERENCES awin_advertisers(advertiser_id);

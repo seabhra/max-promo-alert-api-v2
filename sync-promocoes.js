@@ -7,6 +7,21 @@
 //   Header: Authorization: Bearer <accessToken>   <-- accessToken na query string falha silenciosamente (200 + vazio)
 //   Body: { filters: { membership, type }, pagination: { page, pageSize } }
 
+// sync-promocoes.js - Sincroniza PROMOÇÕES/OFERTAS da Awin com Neon (tabela real: promos)
+// Diferente do sync.js (que só cataloga programas em `programas_awin`, sem gerar comissão) —
+// este é o que efetivamente publica ofertas com link de afiliado, gerando clique e comissão.
+//
+// SCHEMA REAL da tabela `promos` (confirmado em produção, 22/08/2026):
+//   id, tipo, titulo, "desc", loja, link, cupom, precoold_1 (int), preconew_1 (int),
+//   awin_advertiser_id (adicionado nesta migração)
+//   -- precoold, preconew, temporestante (tipo JSON) são colunas legadas, não usadas aqui.
+//   -- Não existem colunas ativo/validade/fonte/image_url nesta tabela.
+//
+// Endpoint confirmado em produção (21/06/2026):
+//   POST https://api.awin.com/publisher/{publisherId}/promotions
+//   Header: Authorization: Bearer <accessToken>
+//   Body: { filters: { membership, type }, pagination: { page, pageSize } }
+
 const { neon } = require('@neondatabase/serverless');
 
 const AWIN_TOKEN        = process.env.AWIN_TOKEN;
@@ -62,55 +77,57 @@ async function fetchAwinPromotions(advertiserIds) {
   return Array.isArray(data) ? data : (data.data || data.promotions || []);
 }
 
+// ── Normaliza para o schema real da tabela promos ──
 function normalizar(promo) {
-  let temporestante = 0;
-  if (promo.endDate) {
-    const diffMs = new Date(promo.endDate).getTime() - Date.now();
-    temporestante = diffMs > 0 ? Math.floor(diffMs / 3600000) : 0;
-  }
   const urlAfiliado = promo.urlTracking || promo.url || null;
+
   return {
-    tipo: mapTipo(promo),
-    titulo: (promo.title || `Oferta ${promo.advertiser?.name}`).substring(0, 200),
-    descricao: promo.description || '',
-    loja: promo.advertiser?.name || 'Awin',
-    precoold: null,
-    preconew: null,
-    cupom: promo.voucher?.code || null,
-    temporestante,
-    ativo: promo.status === 'active',
-    url_afiliado: urlAfiliado,
-    validade: promo.endDate ? new Date(promo.endDate).toISOString() : null,
-    fonte: 'AWIN',
-    image_url: null,
-    awin_advertiser_id: promo.advertiser?.id ? String(promo.advertiser.id) : null,
+    tipo:               mapTipo(promo),
+    titulo:             (promo.title || `Oferta ${promo.advertiser?.name}`).substring(0, 200),
+    desc:                promo.description || '',
+    loja:               promo.advertiser?.name || 'Awin',
+    link:               urlAfiliado,
+    cupom:              promo.voucher?.code || null,
+    // Promotions da Awin não trazem preço de/para estruturado — fica null.
+    precoold_1:          null,
+    preconew_1:          null,
+    awin_advertiser_id:  promo.advertiser?.id ? String(promo.advertiser.id) : null,
+    _endDate:            promo.endDate || null, // usado só pra filtrar ativas, não é gravado
   };
 }
 
+// ── Upsert por (titulo + loja) na tabela promos ──
 async function upsertPromos(rows) {
-  let inseridos = 0, atualizados = 0, erros = 0;
+  let inseridos = 0;
+  let atualizados = 0;
+  let erros = 0;
+
   for (const row of rows) {
     try {
-      const existing = await sql`SELECT id FROM promocoes WHERE titulo = ${row.titulo} AND loja = ${row.loja} LIMIT 1`;
+      const existing = await sql`
+        SELECT id FROM promos WHERE titulo = ${row.titulo} AND loja = ${row.loja} LIMIT 1
+      `;
+
       if (existing.length > 0) {
         await sql`
-          UPDATE promocoes SET
-            tipo = ${row.tipo}, descricao = ${row.descricao}, precoold = ${row.precoold},
-            preconew = ${row.preconew}, cupom = ${row.cupom}, temporestante = ${row.temporestante},
-            ativo = ${row.ativo}, url_afiliado = ${row.url_afiliado}, validade = ${row.validade},
-            fonte = ${row.fonte}, awin_advertiser_id = ${row.awin_advertiser_id}
+          UPDATE promos SET
+            tipo = ${row.tipo},
+            "desc" = ${row.desc},
+            link = ${row.link},
+            cupom = ${row.cupom},
+            precoold_1 = ${row.precoold_1},
+            preconew_1 = ${row.preconew_1},
+            awin_advertiser_id = ${row.awin_advertiser_id}
           WHERE id = ${existing[0].id}
         `;
         atualizados++;
       } else {
         await sql`
-          INSERT INTO promocoes (
-            tipo, titulo, descricao, loja, precoold, preconew, cupom,
-            temporestante, ativo, url_afiliado, validade, fonte, image_url, awin_advertiser_id
+          INSERT INTO promos (
+            tipo, titulo, "desc", loja, link, cupom, precoold_1, preconew_1, awin_advertiser_id
           ) VALUES (
-            ${row.tipo}, ${row.titulo}, ${row.descricao}, ${row.loja}, ${row.precoold}, ${row.preconew},
-            ${row.cupom}, ${row.temporestante}, ${row.ativo}, ${row.url_afiliado}, ${row.validade},
-            ${row.fonte}, ${row.image_url}, ${row.awin_advertiser_id}
+            ${row.tipo}, ${row.titulo}, ${row.desc}, ${row.loja}, ${row.link},
+            ${row.cupom}, ${row.precoold_1}, ${row.preconew_1}, ${row.awin_advertiser_id}
           )
         `;
         inseridos++;
@@ -120,15 +137,8 @@ async function upsertPromos(rows) {
       erros++;
     }
   }
-  return { inseridos, atualizados, erros };
-}
 
-async function desativarExpiradas() {
-  try {
-    await sql`UPDATE promocoes SET ativo = false WHERE fonte = 'AWIN' AND validade IS NOT NULL AND validade < now()`;
-  } catch (err) {
-    console.error('Expiradas:', err.message);
-  }
+  return { inseridos, atualizados, erros };
 }
 
 module.exports = async (req, res) => {
@@ -155,7 +165,6 @@ module.exports = async (req, res) => {
     const ativas = promos.filter(p => p.status === 'active' && (!p.endDate || new Date(p.endDate).getTime() > agora));
     const rows = ativas.map(normalizar);
     const result = await upsertPromos(rows);
-    await desativarExpiradas();
 
     return res.status(200).json({
       ok: true,
