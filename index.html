@@ -2344,32 +2344,23 @@ if (storeForm) {
 
     var nome = nomeInput.value.trim();
     var url = urlInput.value.trim();
-    var email = emailInput ? emailInput.value.trim() : '';
-
-
+   
     // ============================================
     // 5. GUARDAR DADOS DO FORMULÁRIO
     // ============================================
 
-    storeFormData = {
+var email = document.getElementById('input-store-email').value.trim();
 
-      nome: nome,
-
-      url: url,
-
-      categoria: document.getElementById('input-store-cat').value,
-
-      email: email || 'nao_informado@email.com',
-
-      dias: planoSelecionado.dias,
-
-      valor: planoSelecionado.valor,
-
-      label: planoSelecionado.label,
-
-      desc: planoSelecionado.desc
-
-    };
+storeFormData = {
+    nome: nome,
+    url: url,
+    categoria: document.getElementById('input-store-cat').value,
+    email: email,
+    dias: planoSelecionado.dias,
+    valor: planoSelecionado.valor,
+    label: planoSelecionado.label,
+    desc: planoSelecionado.desc
+};
 
 
     // ============================================
@@ -2434,9 +2425,19 @@ if (storeForm) {
     // 10. IR PARA STEP 2
     // ============================================
 
-    document.getElementById('store-step-1').style.display = 'none';
+  var step1 = document.getElementById('store-step-1');
+var step2 = document.getElementById('store-step-2');
 
-    document.getElementById('store-step-2').style.display = 'block';
+if (step1 && step2) {
+    step1.style.display = 'none';
+    step2.style.display = 'block';
+} else {
+    console.error('❌ Erro: STEP 1 ou STEP 2 não encontrado.', {
+        step1: step1,
+        step2: step2
+    });
+    return;
+}
 
 
     // ============================================
