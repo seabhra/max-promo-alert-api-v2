@@ -610,136 +610,6 @@
   }
 }
 
-
-/* ================================================================================
-   ALERTAS DE PREENCHIMENTOFORMULÁRIO INSERÇÃO LOJAS/PRODUTOS - CAMPOS OBRIGATÓRIOS
-   ============================================================================== */
-
-
-/* Plano não selecionado - destaque */
-.planos-grid .plano-card.required-miss {
-  border-color: #ff6b6b;
-  background: rgba(255, 107, 107, 0.05);
-  animation: shakePlan 0.5s ease;
-}
-
-@keyframes shakePlan {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-6px); }
-  75% { transform: translateX(6px); }
-}
-
-/* Plano com erro - pulse */
-.planos-grid .plano-card.error-pulse {
-  animation: pulseBorder 0.8s ease-in-out 2;
-}
-
-@keyframes pulseBorder {
-  0%, 100% { border-color: rgba(255, 107, 107, 0.4); }
-  50% { border-color: #ff6b6b; }
-}
-
-/* Alerta global no topo do modal */
-.modal-alert-box {
-  background: rgba(255, 107, 107, 0.1);
-  border: 1px solid rgba(255, 107, 107, 0.25);
-  border-radius: var(--radius-sm);
-  padding: 10px 14px;
-  margin-bottom: 14px;
-  display: none;
-  align-items: center;
-  gap: 10px;
-  color: #ff6b6b;
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
-.modal-alert-box.show {
-  display: flex;
-}
-
-.modal-alert-box i {
-  font-size: 1rem;
-}
-/* =====================================================
-   SETA INDICATIVA — ÍCONE VERMELHO / TEXTO BRANCO
-   ===================================================== */
-
-.hint-arrow {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-
-    /* Texto */
-    color: #ffffff;
-
-    font-size: 0.75rem;
-    font-weight: 700;
-
-    animation: arrowBounce 1.2s ease-in-out infinite;
-}
-
-/* Ícone da seta */
-.hint-arrow i {
-    color: #ff3b3b; /* vermelho */
-    font-size: 0.9rem;
-}
-
-/* Movimento vertical da seta */
-@keyframes arrowBounce {
-    0%, 100% {
-        transform: translateY(0);
-    }
-
-    50% {
-        transform: translateY(-5px);
-    }
-}
-
-
-/* =====================================================
-   AVISO ABAIXO DOS PLANOS
-   ===================================================== */
-.plano-hint {
-    display: none;
-    align-items: center;
-    gap: 8px;
-
-    width: 100%;
-    box-sizing: border-box;
-
-    color: #ffffff;
-    font-size: 0.7rem;
-    font-weight: 600;
-
-    margin-top: 4px;
-    padding: 6px 10px;
-
-    background: rgba(255, 59, 59, 0.08);
-    border-radius: var(--radius-sm);
-}
-
-.plano-hint.show {
-    display: flex;
-}
-
-/* SETA VERMELHA */
-.plano-hint i {
-    flex-shrink: 0;
-    color: #ff3b3b;
-    font-size: 0.9rem;
-}
-
-/* TEXTO OCUPA O RESTANTE DA LINHA */
-.plano-hint span {
-    flex: 1;
-    width: 100%;
-    text-align: left;
-}
-
-
-
-
 </style>
 </head>
 
@@ -845,85 +715,122 @@
 
   
 <!-- ============================================
-     MODAL: FORMULÁRIO INSERIR LOJA/PRODUTO COM PIX
+     MODAL: INSERIR LOJA COM PIX (VERSÃO COMPLETA)
      ============================================ -->
 <div class="modal-overlay" id="modal-add-store">
-  <div class="modal-box">   
-
+  <div class="modal-box">
     <div id="store-error" class="form-error" style="display:none;"></div>
 
     <!-- STEP 1: Escolher plano e dados -->
     <div id="store-step-1">
-      <form id="store-form">
-        <h2><i class="fas fa-store" style="color:var(--accent-color);margin-right:8px;"></i>Inserir Loja</h2>
-        <p>Preencha os dados e escolha o plano. O pagamento é via PIX, único e sem renovação automática.</p>
-        
-        <div class="section-label"><i class="fas fa-layer-group"></i> Escolha o plano</div>
-        <div class="planos-grid">
-          <div class="plano-card" data-dias="30" data-valor="9.90" onclick="selecionarPlano(this)">
-            <div class="plano-dias">📅 30 dias</div>
-            <div class="plano-valor">R$ 9,90</div>
-            <div class="plano-desc">Teste o serviço</div>
-          </div>
-          <div class="plano-card" data-dias="60" data-valor="19.90" onclick="selecionarPlano(this)">
-            <div class="plano-popular">⭐ Popular</div>
-            <div class="plano-dias">📅 60 dias</div>
-            <div class="plano-valor">R$ 19,90</div>
-            <div class="plano-desc">R$ 0,33/dia</div>
-          </div>
-          <div class="plano-card" data-dias="90" data-valor="39.90" onclick="selecionarPlano(this)">
-            <div class="plano-dias">📅 90 dias</div>
-            <div class="plano-valor">R$ 39,90</div>
-            <div class="plano-desc">R$ 0,44/dia</div>
-          </div>
-          <div class="plano-card" data-dias="365" data-valor="99.90" onclick="selecionarPlano(this)">
-            <div class="plano-popular">🔥 Melhor</div>
-            <div class="plano-dias">📅 365 dias</div>
-            <div class="plano-valor">R$ 99,90</div>
-            <div class="plano-desc">Melhor custo-benefício</div>
-          </div>
+      <h2><i class="fas fa-store" style="color:var(--accent-color);margin-right:8px;"></i>Inserir Loja</h2>
+
+      <p>Preencha os dados e escolha o plano. O pagamento é via PIX, único e sem renovação automática.</p>
+      
+      <div class="section-label" style="color:var(--accent-color);"><i class="fas fa-layer-group" style="color:var(--accent-color);"></i> Escolha o plano</div>
+      
+      <div class="planos-grid">
+        <div class="plano-card" data-dias="30" data-valor="9.90" onclick="selecionarPlano(this)">
+          <div class="plano-dias">📅 30 dias</div>
+          <div class="plano-valor">R$ 9,90</div>
+          <div class="plano-desc">Teste o serviço</div>
         </div>
-
-        <div class="plano-hint" id="plano-hint">
-          <i class="fas fa-chevron-up"></i>
-          <span>Selecione um plano para continuar</span>
+        <div class="plano-card" data-dias="60" data-valor="19.90" onclick="selecionarPlano(this)">
+          <div class="plano-popular">⭐ Popular</div>
+          <div class="plano-dias">📅 60 dias</div>
+          <div class="plano-valor">R$ 19,90</div>
+          <div class="plano-desc">R$ 0,33/dia</div>
         </div>
-
-        <div class="section-label"><i class="fas fa-pencil"></i> Dados da loja</div>
-        
-        <label for="input-store-name">Nome da Loja <span style="color:#f3f2f2;">*</span></label>
-        <input type="text" id="input-store-name" name="store-name" placeholder="Ex: Minha Loja" required>
-
-        <label for="input-store-url">Site / URL <span style="color:#f3f2f2;">*</span></label>
-        <input type="url" id="input-store-url" name="store-url" placeholder="https://minhaloja.com.br" required>
-
-        <label for="input-store-cat">Tipo de Promoção Principal</label>
-        <select id="input-store-cat">
-          <option value="desconto">Desconto</option>
-          <option value="flash">Flash Sale</option>
-          <option value="cupom">Cupom</option>
-          <option value="cashback">Cashback</option>
-          <option value="frete_gratis">Frete Grátis</option>
-          <option value="saldao">Saldão</option>
-          <option value="outlet">Outlet</option>
-          <option value="live">Live Sale</option>
-          <option value="sorteio">Sorteio</option>
-        </select>
-        
-        <label for="input-store-email">Seu E-mail (para recibo)</label>
-        <input type="email" id="input-store-email" name="store-email" placeholder="loja@loja.com" required>
-
-        <div class="modal-actions">
-          <button type="button" class="btn-cancel" id="btn-store-cancel">Cancelar</button>
-          <button type="submit" class="btn-confirm" id="btn-store-step1-next" disabled style="opacity:0.5;cursor:not-allowed;">
-            <i class="fas fa-lock" style="font-size:.75rem;margin-right:6px;"></i>
-            Continuar → Pagar PIX
-            <span class="hint-arrow" id="btn-hint-arrow" style="display:none;margin-left:8px;">
-              <i class="fas fa-arrow-right"></i> Clique aqui
-            </span>
-          </button>
+        <div class="plano-card" data-dias="90" data-valor="39.90" onclick="selecionarPlano(this)">
+          <div class="plano-dias">📅 90 dias</div>
+          <div class="plano-valor">R$ 39,90</div>
+          <div class="plano-desc">R$ 0,44/dia</div>
         </div>
-      </form>
+        <div class="plano-card" data-dias="365" data-valor="99.90" onclick="selecionarPlano(this)">
+          <div class="plano-popular">🔥 Melhor</div>
+          <div class="plano-dias">📅 365 dias</div>
+          <div class="plano-valor">R$ 99,90</div>
+          <div class="plano-desc">Melhor custo-benefício</div>
+        </div>
+      </div>
+
+      <!-- INFORMAÇÃO DO TEMPO DE PERMANÊNCIA -->
+      <div style="margin: 12px 0 16px 0; padding: 10px 14px; background: var(--bg-secondary); border-radius: 6px; border-left: 3px solid #4CAF50; display: flex; align-items: center; gap: 12px;">
+        <i class="fas fa-clock" style="color: #4CAF50; font-size: 1.2rem;"></i>
+        <div>
+          <span style="font-weight: 600;">Tempo de permanência:</span>
+          <span id="tempo-permanencia-display" style="color: var(--accent-color); font-weight: 700;">Selecione um plano</span>
+          <span style="color: var(--text-muted); font-size: 0.85rem; display: block;">O anúncio ficará ativo pelo período escolhido</span>
+        </div>
+      </div>
+
+      <!-- SEÇÃO DE DADOS DA LOJA -->
+      <div class="section-label"><i class="fas fa-pencil"></i> Dados da loja</div>
+      
+      <label for="input-store-name">Nome da Loja</label>
+      <input type="text" id="input-store-name" placeholder="Ex: Atelier Sorelle Santos">
+
+      <label for="input-store-url">Site / URL</label>
+      <input type="url" id="input-store-url" placeholder="https://ateliersorellesantos.vercel.app/">
+
+      <label for="input-store-cat">Tipo de Promoção Principal</label>
+      <select id="input-store-cat">
+        <option value="desconto">Desconto</option>
+        <option value="flash" selected>Flash Sale</option>
+        <option value="cupom">Cupom</option>
+        <option value="cashback">Cashback</option>
+        <option value="frete_gratis">Frete Grátis</option>
+        <option value="saldao">Saldão</option>
+        <option value="outlet">Outlet</option>
+        <option value="live">Live Sale</option>
+        <option value="sorteio">Sorteio</option>
+      </select>
+
+      <label for="input-store-email">Seu E-mail (para recibo)</label>
+      <input type="email" id="input-store-email" placeholder="seuemail@exemplo.com">
+
+      <!-- DADOS DO PRODUTO -->
+      <div class="section-label"><i class="fas fa-tag"></i> Dados do Produto</div>
+
+      <label for="input-product-name">Nome do Produto</label>
+      <input type="text" id="input-product-name" placeholder="Ex: Bolsa Tigresa – edição limitada">
+
+      <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 150px;">
+          <label for="input-price-old">Preço Antigo (R$)</label>
+          <input type="number" id="input-price-old" placeholder="160,00" step="0.01" min="0" oninput="calcularDesconto()">
+        </div>
+        <div style="flex: 1; min-width: 150px;">
+          <label for="input-price-new">Preço Novo (R$)</label>
+          <input type="number" id="input-price-new" placeholder="144,00" step="0.01" min="0" oninput="calcularDesconto()">
+        </div>
+        <div style="flex: 1; min-width: 150px;">
+          <label for="input-discount">Desconto (%)</label>
+          <input type="number" id="input-discount" placeholder="10" step="0.1" min="0" max="100" oninput="calcularPrecoPorDesconto()">
+          <small style="color: var(--text-muted); font-size: 0.7rem;">Calculado automaticamente ou edite manualmente</small>
+        </div>
+      </div>
+
+      <!-- CAMPO OCULTO PARA ARMAZENAR OS DIAS DO PLANO -->
+      <input type="hidden" id="input-plano-dias" value="0">
+
+      <label for="input-descricao">Descrição da Promoção</label>
+      <textarea id="input-descricao" rows="2" placeholder="Ex: Flash Sale: 10% OFF por 2 horas apenas!" style="width:100%;padding:10px;border:1px solid var(--border-color);border-radius:6px;background:var(--bg-input);color:var(--text-primary);font-family:inherit;resize:vertical;"></textarea>
+
+      <!-- RESUMO DA CONFIGURAÇÃO -->
+      <div style="margin-top: 16px; padding: 12px; background: var(--bg-secondary); border-radius: 6px; border-left: 3px solid var(--accent-color);">
+        <div style="font-weight: 600; margin-bottom: 8px; font-size: 0.9rem;">📋 Prévia da Configuração:</div>
+        <div id="config-preview" style="font-family: monospace; font-size: 0.8rem; color: var(--text-muted); line-height: 1.6;">
+          Nenhum dado preenchido ainda.
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-cancel" id="btn-store-cancel">Cancelar</button>
+        <button class="btn-confirm" id="btn-store-step1-next" style="opacity:0.5;cursor:not-allowed;">
+          <i class="fas fa-lock" style="font-size:.75rem;margin-right:6px;"></i>Continuar → Pagar PIX
+        </button>
+      </div>
     </div>
 
     <!-- STEP 2: Pagamento PIX -->
@@ -945,7 +852,7 @@
       </div>
       <div class="pix-copiacola-row">
         <input id="pix-key-display" readonly placeholder="Gerando código PIX...">
-        <button type="button" class="btn-copy-pix" id="btn-copy-pix" title="Copiar"><i class="fas fa-copy"></i></button>
+        <button class="btn-copy-pix" id="btn-copy-pix" title="Copiar"><i class="fas fa-copy"></i></button>
       </div>
       <div class="manual-instrucoes">
         <strong><i class="fas fa-circle-info" style="color:var(--accent-color);margin-right:4px;"></i>Como pagar:</strong>
@@ -965,14 +872,14 @@
         <i class="fas fa-hourglass-half" style="color:var(--accent-color);"></i>
         Aguardando confirmação do pagamento...
       </div>
-      <div class="dev-bar" id="dev-bar-teste" style="display:none;">
+      <div class="dev-bar" id="dev-bar-teste" style="display:flex;">
         <i class="fas fa-flask"></i>
         <span><strong>Modo teste</strong> — simula pagamento confirmado</span>
-        <button type="button" class="btn-dev-confirm" id="btn-dev-simular">✔ Simular Pago</button>
+        <button class="btn-dev-confirm" id="btn-dev-simular">✔ Simular Pago</button>
       </div>
       <div class="modal-actions">
-        <button type="button" class="btn-cancel" id="btn-store-step2-back">← Voltar</button>
-        <button type="button" class="btn-confirm" id="btn-store-step2-paguei">
+        <button class="btn-cancel" id="btn-store-step2-back">← Voltar</button>
+        <button class="btn-confirm" id="btn-store-step2-paguei">
           <i class="fas fa-check-circle" style="font-size:.8rem;margin-right:5px;"></i>Já Paguei
         </button>
       </div>
@@ -986,7 +893,7 @@
         <p>Pagamento registrado. Sua loja será publicada em até 24h após validação manual.</p>
         <div class="step3-resumo" id="store-step3-resumo"></div>
         <div class="modal-actions">
-          <button type="button" class="btn-confirm" id="btn-store-step3-close" style="flex:1;">
+          <button class="btn-confirm" id="btn-store-step3-close" style="flex:1;">
             <i class="fas fa-check" style="font-size:.8rem;margin-right:5px;"></i>Concluir
           </button>
         </div>
@@ -996,10 +903,10 @@
   </div>
 </div>
 
-<!-- ======================
-     MODAL:COMPARE PREÇOS
-     ======================== -->
 
+<!-------------------------
+STEP 2: Pagamento PIX ----
+ -------------------------->
   <div class="modal-overlay" id="modal-compare">
     <div class="modal-box">
       <h2 id="compare-title">Comparar Precos</h2>
@@ -1057,9 +964,9 @@ var PROMO_CONFIG = {
 // ============================================
 var PIX_CONFIG = {
   chave:    'seabhra@gmail.com',
-  nome:     'GERALDO A. SEABRA',
-  cidade:   'SABARA',
-  descricao: 'Max Promo Cadastro'
+  nome:     'GERALDO A.SEABRA',
+  cidade:   'BELO HORIONTE-MG',
+  descricao: 'Max Promo App Cadastro'
 };
 
 var PLANOS = {
@@ -1197,50 +1104,204 @@ function gerarHTMLIcone(tipo, tamanho) {
 }
 
 // ============================================
-// FUNÇÕES PIX
+// SELEÇÃO DE PLANO
 // ============================================
+
 function selecionarPlano(el) {
-
-   // Resetar erros visuais
-  document.querySelectorAll('.plano-card').forEach(function(c) {
-    c.classList.remove('required-miss', 'error-pulse');
-  });
-  var planoHint = document.getElementById('plano-hint');
-  if (planoHint) planoHint.classList.remove('show');
-  var alertBox = document.getElementById('modal-store-alert');
-  if (alertBox) alertBox.classList.remove('show');
-
-
-  document.querySelectorAll('.plano-card').forEach(function(c) {
-    c.classList.remove('selected');
-  });
-  el.classList.add('selected');
+  document.querySelectorAll('.plano-card').forEach(card => card.classList.remove('selecionado'));
+  el.classList.add('selecionado');
   
-  var dias = el.getAttribute('data-dias');
-  var valor = parseFloat(el.getAttribute('data-valor'));
+  const valor = el.dataset.valor;
+  const dias = parseInt(el.dataset.dias);
   
-  if (!PLANOS[dias]) {
-    showNotification('⚠️ Erro: Plano inválido!');
-    return;
+  // Atualiza display do tempo de permanência
+  const display = document.getElementById('tempo-permanencia-display');
+  display.textContent = `${dias} dias`;
+  display.style.color = '#4CAF50';
+  
+  // Armazena os dias do plano
+  document.getElementById('input-plano-dias').value = dias;
+  
+  // Atualiza prévia do PIX
+  document.getElementById('pix-valor-label').textContent = `R$ ${valor}`;
+  document.getElementById('instrucao-valor').textContent = `R$ ${valor}`;
+  document.getElementById('pix-dias-label').textContent = `${dias} dias`;
+  
+  // Atualiza a prévia da configuração
+  atualizarPreview();
+}
+
+// ============================================
+// FUNÇÕES PARA CÁLCULO DE DESCONTO
+// ============================================
+
+function calcularDesconto() {
+  const precoOld = parseFloat(document.getElementById('input-price-old').value);
+  const precoNew = parseFloat(document.getElementById('input-price-new').value);
+  const discountInput = document.getElementById('input-discount');
+  
+  if (precoOld > 0 && precoNew >= 0 && precoNew < precoOld) {
+    const desconto = ((precoOld - precoNew) / precoOld * 100);
+    discountInput.value = desconto.toFixed(1);
+    atualizarPreview();
+  } else if (precoOld > 0 && precoNew >= precoOld) {
+    discountInput.value = 0;
+    atualizarPreview();
   }
+}
+function calcularPrecoPorDesconto() {
+  const precoOld = parseFloat(document.getElementById('input-price-old').value);
+  const desconto = parseFloat(document.getElementById('input-discount').value);
+  const priceNewInput = document.getElementById('input-price-new');
   
-  planoSelecionado = {
-    dias: dias,
-    valor: valor,
-    label: PLANOS[dias].label,
-    desc: PLANOS[dias].desc
+  if (precoOld > 0 && desconto >= 0 && desconto <= 100) {
+    const precoNew = precoOld * (1 - desconto / 100);
+    priceNewInput.value = precoNew.toFixed(2);
+    atualizarPreview();
+  }
+}
+// ============================================
+// PRÉVIA DA CONFIGURAÇÃO
+// ============================================
+
+function atualizarPreview() {
+  const nomeLoja = document.getElementById('input-store-name').value || 'Nome da loja';
+  const produto = document.getElementById('input-product-name').value || 'Nome do produto';
+  const precoOld = document.getElementById('input-price-old').value || '0';
+  const precoNew = document.getElementById('input-price-new').value || '0';
+  const desconto = document.getElementById('input-discount').value || '0';
+  const planoDias = document.getElementById('input-plano-dias').value || '0';
+  const descricao = document.getElementById('input-descricao').value || 'Descrição da promoção';
+  const tipoPromocao = document.getElementById('input-store-cat').value || 'flash';
+  const url = document.getElementById('input-store-url').value || 'https://exemplo.com';
+  
+  // Calcula a data de expiração baseada nos dias do plano
+  const dataAtual = new Date();
+  const dataExpiracao = new Date(dataAtual);
+  dataExpiracao.setDate(dataExpiracao.getDate() + parseInt(planoDias));
+  const dataFormatada = dataExpiracao.toLocaleDateString('pt-BR');
+  
+  const preview = document.getElementById('config-preview');
+  preview.innerHTML = `
+    <strong>id:</strong> <span style="color:var(--accent-color);">[gerado automático]</span><br>
+    <strong>tipo:</strong> <span style="color:var(--accent-color);">'${tipoPromocao}'</span><br>
+    <strong>titulo:</strong> <span style="color:var(--accent-color);">'${produto}'</span><br>
+    <strong>desc:</strong> <span style="color:var(--accent-color);">'${descricao}'</span><br>
+    <strong>loja:</strong> <span style="color:var(--accent-color);">'${nomeLoja}'</span><br>
+    <strong>precoOld:</strong> <span style="color:var(--accent-color);">${parseFloat(precoOld).toFixed(2)}</span><br>
+    <strong>precoNew:</strong> <span style="color:var(--accent-color);">${parseFloat(precoNew).toFixed(2)}</span><br>
+    <strong>tempoRestante (dias):</strong> <span style="color:var(--accent-color);">${planoDias}</span><br>
+    <strong>expira em:</strong> <span style="color:#4CAF50;font-weight:600;">${dataFormatada}</span><br>
+    <strong>clickThroughUrl:</strong> <span style="color:var(--accent-color);">'${url}'</span><br>
+    <strong>url:</strong> <span style="color:var(--accent-color);">'${url}'</span>
+  `;
+  
+  // Validação para habilitar o botão "Continuar"
+  validarFormulario();
+}
+function validarFormulario() {
+  const nomeLoja = document.getElementById('input-store-name').value.trim();
+  const url = document.getElementById('input-store-url').value.trim();
+  const email = document.getElementById('input-store-email').value.trim();
+  const produto = document.getElementById('input-product-name').value.trim();
+  const precoOld = parseFloat(document.getElementById('input-price-old').value);
+  const precoNew = parseFloat(document.getElementById('input-price-new').value);
+  const planoDias = parseInt(document.getElementById('input-plano-dias').value);
+  const planoSelecionado = document.querySelector('.plano-card.selecionado');
+  
+  const nextBtn = document.getElementById('btn-store-step1-next');
+  
+  const isValid = nomeLoja && url && email && produto && precoOld > 0 && precoNew >= 0 && planoDias > 0 && planoSelecionado;
+  
+  if (isValid) {
+    nextBtn.style.opacity = '1';
+    nextBtn.style.cursor = 'pointer';
+    nextBtn.innerHTML = '<i class="fas fa-arrow-right" style="font-size:.75rem;margin-right:6px;"></i>Continuar → Pagar PIX';
+    nextBtn.disabled = false;
+  } else {
+    nextBtn.style.opacity = '0.5';
+    nextBtn.style.cursor = 'not-allowed';
+    nextBtn.innerHTML = '<i class="fas fa-lock" style="font-size:.75rem;margin-right:6px;"></i>Continuar → Pagar PIX';
+    nextBtn.disabled = true;
+  }
+}
+
+// ============================================
+// GERAR CONFIGURAÇÃO FINAL
+// ============================================
+
+function gerarConfiguracao() {
+  const planoDias = parseInt(document.getElementById('input-plano-dias').value);
+  const dataAtual = new Date();
+  const dataExpiracao = new Date(dataAtual);
+  dataExpiracao.setDate(dataExpiracao.getDate() + planoDias);
+  
+  // Tempo restante em segundos (conversão de dias para segundos)
+  const tempoRestanteSegundos = planoDias * 24 * 60 * 60;
+  
+  const data = {
+    id: Math.floor(Math.random() * 1000) + 1,
+    tipo: document.getElementById('input-store-cat').value,
+    titulo: document.getElementById('input-product-name').value.trim(),
+    desc: document.getElementById('input-descricao').value.trim() || 'Promoção especial',
+    loja: document.getElementById('input-store-name').value.trim(),
+    precoOld: parseFloat(document.getElementById('input-price-old').value),
+    precoNew: parseFloat(document.getElementById('input-price-new').value),
+    tempoRestante: tempoRestanteSegundos,
+    diasAtivo: planoDias,
+    dataExpiracao: dataExpiracao.toISOString(),
+    clickThroughUrl: document.getElementById('input-store-url').value.trim(),
+    url: document.getElementById('input-store-url').value.trim()
   };
   
-  var btn = document.getElementById('btn-store-step1-next');
-  if (btn) {
-    btn.disabled = false;
-    btn.style.opacity = '1';
-    btn.style.cursor = 'pointer';
-    btn.innerHTML = '<i class="fas fa-arrow-right" style="font-size:.75rem;margin-right:6px;"></i>Continuar → Pagar PIX';
-  }
-  
-  showNotification('✅ Plano ' + PLANOS[dias].label + ' selecionado: ' + formatarDinheiro(valor));
+  return data;
 }
+
+//==============================//
+  // CAMPOS DE INPUTS FORMULÁRIO//
+  //============================//
+  
+const campos = ['input-store-name', 'input-store-url', 'input-store-cat', 'input-store-email', 
+                  'input-product-name', 'input-descricao'];
+  
+  campos.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('input', atualizarPreview);
+      el.addEventListener('change', atualizarPreview);
+    }
+  });
+  
+  // Botão de continuar - captura os dados
+  document.getElementById('btn-store-step1-next').addEventListener('click', function(e) {
+    if (this.disabled) return;
+    
+    const config = gerarConfiguracao();
+    console.log('Configuração gerada:', config);
+    
+    // Salva no localStorage ou variável global para uso posterior
+    window.configLoja = config;
+    
+    // Exibe no console no formato BOLSA_TIGRESA
+    console.log(`
+      var BOLSA_TIGRESA = {
+        id: ${config.id},
+        tipo: '${config.tipo}',
+        titulo: '${config.titulo}',
+        desc: '${config.desc}',
+        loja: '${config.loja}',
+        precoOld: ${config.precoOld},
+        precoNew: ${config.precoNew},
+        tempoRestante: ${config.tempoRestante}, // ${config.diasAtivo} dias
+        clickThroughUrl: '${config.clickThroughUrl}',
+        url: '${config.url}'
+      };
+    `);
+    
+    // Avança para o passo 2 (PIX)
+    document.getElementById('store-step-1').style.display = 'none';
+    document.getElementById('store-step-2').style.display = 'block';
+  });
 
 function gerarPixCopiaCola(chave, nome, cidade, valor, descricao) {
   function campo(id, val) { return id + String(val.length).padStart(2, '0') + val; }
@@ -2028,6 +2089,33 @@ function initApp() {
   var btnCashback = document.getElementById('btn-filter-cashback');
   if (btnCashback) btnCashback.addEventListener('click', function() { ativarFiltroSidebar('cashback'); });
 
+
+  // ============================================
+  // SIDEBAR FILTERS
+  // ============================================
+  function ativarFiltroSidebar(tipo) {
+    filtroAtivo = filtroAtivo === tipo ? null : tipo;
+    tabAtiva = 'feed';
+    document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+    var feedTab = document.querySelector('[data-tab="feed"]');
+    if (feedTab) feedTab.classList.add('active');
+    renderFilters();
+    renderFeed();
+    showNotification(filtroAtivo ? 'Filtrando: ' + PROMO_CONFIG[tipo].label : 'Filtro removido');
+  }
+
+  var btnFlash = document.getElementById('btn-filter-flash');
+  if (btnFlash) btnFlash.addEventListener('click', function() { ativarFiltroSidebar('flash'); });
+  
+  var btnCupom = document.getElementById('btn-filter-cupom');
+  if (btnCupom) btnCupom.addEventListener('click', function() { ativarFiltroSidebar('cupom'); });
+  
+  var btnFrete = document.getElementById('btn-filter-frete');
+  if (btnFrete) btnFrete.addEventListener('click', function() { ativarFiltroSidebar('frete_gratis'); });
+  
+  var btnCashback = document.getElementById('btn-filter-cashback');
+  if (btnCashback) btnCashback.addEventListener('click', function() { ativarFiltroSidebar('cashback'); });
+
   // ============================================
   // MONITORAR PRODUTOS (SIDEBAR)
   // ============================================
@@ -2169,101 +2257,83 @@ function initApp() {
   }
 
   // ============================================
-  // MODAL: INSERIR LOJA/PRODUTO (STEP 1) — SUBMIT
+  // MODAL: INSERIR LOJA (STEP 1)
   // ============================================
-  var storeFormEl = document.getElementById('store-form');
-  if (storeFormEl) {
-    storeFormEl.addEventListener('submit', function(e) {
-      e.preventDefault();
 
-      var planoHint = document.getElementById('plano-hint');
-      var btnHintArrow = document.getElementById('btn-hint-arrow');
+  var btnStoreNext = document.getElementById('btn-store-step1-next');
+if (btnStoreNext) {
+  btnStoreNext.addEventListener('click', function(e) {
+    if (!planoSelecionado) {
+      showNotification('⚠️ Selecione um plano primeiro');
+      var g = document.querySelector('.planos-grid');
+      if (g) g.scrollIntoView({behavior:'smooth', block:'start'});
+      return;
+    }
 
-      // 1. Validação nativa
-      if (!storeFormEl.checkValidity()) {
-        storeFormEl.reportValidity();
-        if (btnHintArrow) btnHintArrow.style.display = 'inline-flex';
-        return;
-      }
+    var nome = document.getElementById('input-store-name').value.trim();
+    var url = document.getElementById('input-store-url').value.trim();
+    var email = document.getElementById('input-store-email').value.trim();
 
-      // 2. Validar plano
-      if (!planoSelecionado) {
-        if (planoHint) planoHint.classList.add('show');
-        document.querySelectorAll('.plano-card').forEach(function(el) {
-          el.classList.add('required-miss');
-          setTimeout(function() { el.classList.add('error-pulse'); }, 100);
-        });
-        if (btnHintArrow) btnHintArrow.style.display = 'inline-flex';
-        var grid = document.querySelector('.planos-grid');
-        if (grid) grid.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        return;
-      }
+    if (!nome) {
+      showNotification('⚠️ Digite o nome da loja');
+      document.getElementById('input-store-name').focus();
+      return;
+    }
+    if (!url) {
+      showNotification('⚠️ Digite a URL da loja');
+      document.getElementById('input-store-url').focus();
+      return;
+    }
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      showNotification('⚠️ URL deve começar com http:// ou https://');
+      document.getElementById('input-store-url').focus();
+      return;
+    }
 
-      // 3. Tudo correto
-      if (btnHintArrow) btnHintArrow.style.display = 'none';
-      if (planoHint) planoHint.classList.remove('show');
+    storeFormData = {
+      nome: nome,
+      url: url,
+      categoria: document.getElementById('input-store-cat').value,
+      email: email || 'nao_informado@email.com',
+      dias: planoSelecionado.dias,
+      valor: planoSelecionado.valor,
+      label: planoSelecionado.label,
+      desc: planoSelecionado.desc
+    };
 
-      // 4. Pegar dados
-      var nomeInput = document.getElementById('input-store-name');
-      var urlInput = document.getElementById('input-store-url');
-      var emailInput = document.getElementById('input-store-email');
-      if (!nomeInput || !urlInput || !emailInput) {
-        console.error('❌ Campos não encontrados');
-        return;
-      }
+    pixTxid = 'MAXPROMO_' + Date.now();
 
-      storeFormData = {
-        nome: nomeInput.value.trim(),
-        url: urlInput.value.trim(),
-        categoria: document.getElementById('input-store-cat') ? document.getElementById('input-store-cat').value : '',
-        email: emailInput.value.trim(),
-        dias: planoSelecionado.dias,
-        valor: planoSelecionado.valor,
-        label: planoSelecionado.label,
-        desc: planoSelecionado.desc
-      };
+    var pixCode = gerarPixCopiaCola(
+      PIX_CONFIG.chave,
+      PIX_CONFIG.nome,
+      PIX_CONFIG.cidade,
+      planoSelecionado.valor,
+      PIX_CONFIG.descricao + ' ' + planoSelecionado.label
+    );
 
-      // 5. Gerar PIX (usa PIX_CONFIG e gerarPixCopiaCola reais, já definidos acima)
-      pixTxid = 'MAXPROMO_' + Date.now();
-      try {
-        var pixCode = gerarPixCopiaCola(
-          PIX_CONFIG.chave,
-          PIX_CONFIG.nome,
-          PIX_CONFIG.cidade,
-          planoSelecionado.valor,
-          PIX_CONFIG.descricao + ' ' + planoSelecionado.label
-        );
-        var pixKeyDisplay = document.getElementById('pix-key-display');
-        if (pixKeyDisplay) pixKeyDisplay.value = pixCode;
-        renderizarQRCode(pixCode);
-      } catch (error) {
-        console.error('❌ Erro ao gerar PIX:', error);
-        showNotification('❌ Erro ao gerar PIX. Tente novamente.');
-        return;
-      }
+    document.getElementById('pix-key-display').value = pixCode;
+    renderizarQRCode(pixCode);
 
-      // 6. Atualizar valores na tela
-      var vf = formatarDinheiro(planoSelecionado.valor);
-      var pixValor = document.getElementById('pix-valor-label');
-      var pixDias = document.getElementById('pix-dias-label');
-      var instrucaoValor = document.getElementById('instrucao-valor');
-      if (pixValor) pixValor.textContent = vf;
-      if (pixDias) pixDias.textContent = planoSelecionado.label;
-      if (instrucaoValor) instrucaoValor.textContent = vf;
+    var vf = formatarDinheiro(planoSelecionado.valor);
+    document.getElementById('pix-valor-label').textContent = vf;
+    document.getElementById('pix-dias-label').textContent = planoSelecionado.label;
+    document.getElementById('instrucao-valor').textContent = vf;
 
-      var devBar = document.getElementById('dev-bar-teste');
-      if (devBar) devBar.style.display = MODO_TESTE ? 'flex' : 'none';
+    var devBar = document.getElementById('dev-bar-teste');
+    if (devBar) devBar.style.display = MODO_TESTE ? 'flex' : 'none';
 
-      iniciarCountdownPix();
+    iniciarCountdownPix();
 
-      // 7. Ir para Step 2
-      document.getElementById('store-step-1').style.display = 'none';
-      document.getElementById('store-step-2').style.display = 'block';
+    document.getElementById('store-step-1').style.display = 'none';
+    document.getElementById('store-step-2').style.display = 'block';
 
-      showNotification('💳 Plano ' + planoSelecionado.label + ' - Valor: ' + vf);
-    });
-  }
+    showNotification('💳 Plano ' + planoSelecionado.label + ' - Valor: ' + vf);
+  });
+}
 
+  // ============================================
+  // MODAL: INSERIR LOJA (STEP 2)
+  // ============================================
   var btnStep2Back = document.getElementById('btn-store-step2-back');
   if (btnStep2Back) {
     btnStep2Back.addEventListener('click', function() {
@@ -2281,7 +2351,9 @@ function initApp() {
         return;
       }
       _setStatusPix('confirmado', '<i class="fas fa-check-circle" style="color:#4CAF50;"></i> Pagamento confirmado!');
-      setTimeout(function() { confirmarPagamentoEAvancar('pago'); }, 1000);
+      setTimeout(function() {
+        confirmarPagamentoEAvancar('pago');
+      }, 1000);
     });
   }
 
@@ -2293,7 +2365,9 @@ function initApp() {
         return;
       }
       _setStatusPix('confirmado', '<i class="fas fa-check-circle" style="color:#4CAF50;"></i> ✅ Pagamento simulado com sucesso!');
-      setTimeout(function() { confirmarPagamentoEAvancar('pago_simulado'); }, 800);
+      setTimeout(function() {
+        confirmarPagamentoEAvancar('pago_simulado');
+      }, 800);
     });
   }
 
@@ -2319,6 +2393,9 @@ function initApp() {
     });
   }
 
+  // ============================================
+  // MODAL: INSERIR LOJA (STEP 3)
+  // ============================================
   var btnStep3Close = document.getElementById('btn-store-step3-close');
   if (btnStep3Close) {
     btnStep3Close.addEventListener('click', function() {
@@ -2328,14 +2405,17 @@ function initApp() {
     });
   }
 
+  // ============================================
+  // MODAL: INSERIR LOJA (CANCEL)
+  // ============================================
   var btnStoreCancel = document.getElementById('btn-store-cancel');
   if (btnStoreCancel) {
     btnStoreCancel.addEventListener('click', function() {
       closeModal('modal-add-store');
       var btnNext = document.getElementById('btn-store-step1-next');
       if (btnNext) {
-        btnNext.style.opacity = '0.5';
         btnNext.disabled = true;
+        btnNext.style.opacity = '0.5';
         btnNext.style.cursor = 'not-allowed';
         btnNext.innerHTML = '<i class="fas fa-lock" style="font-size:.75rem;margin-right:6px;"></i>Continuar → Pagar PIX';
       }
