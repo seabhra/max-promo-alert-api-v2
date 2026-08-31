@@ -9,7 +9,9 @@
     "vercel-build": "echo Vercel Build concluido",
     "dev": "nodemon src/app.js",
     "worker": "node src/workers/normalize.worker.js",
-    "collect:awin": "node src/collectors/awin.js"
+    "collect:awin": "node src/collectors/awin.js",
+    "deploy:vercel": "node -e \"fetch('https://api.vercel.com/v1/integrations/deploy/prj_iEmJcxrXvFYMQTiWfPhP94JA6v4O/7v90qnhQiF',{method:'POST'}).then(r=>r.json()).then(console.log)\""
+  
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",
@@ -21,6 +23,7 @@
     "dotenv": "^16.6.1",
     "express": "^4.22.2",
     "ioredis": "^5.11.1",
+    "max-promo-alert-api": "file:",
     "mongoose": "^9.7.0",
     "next": "^16.3.1",
     "openai": "^4.28.0",
