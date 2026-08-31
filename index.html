@@ -1070,7 +1070,7 @@ MODAL COMPARAR ------------
              placeholder="Ex: Atelier Sorelle Santos" 
              class="form-control"
              oninvalid="this.setCustomValidity('⚠️ Preencha o nome da loja (mínimo 3 caracteres)')"
-             oninput="this.setCustomValidity(''); verificarCamposPreenchidos()">
+             oninput="this.setCustomValidity('');">
       <small class="text-muted">Digite o nome da sua loja (mínimo 3 caracteres)</small>
     </div>
 
@@ -1082,7 +1082,7 @@ MODAL COMPARAR ------------
              placeholder="Ex: https://minhaloja.com.br" 
              class="form-control"
              oninvalid="this.setCustomValidity('⚠️ Digite uma URL válida. Ex: https://minhaloja.com.br')"
-             oninput="this.setCustomValidity(''); verificarCamposPreenchidos()"
+             oninput="this.setCustomValidity(''); "
              onblur="validarURL(this)">
       <small class="text-muted">URL completa da sua loja (ex: https://www.minhaloja.com.br)</small>
     </div>
@@ -1095,7 +1095,7 @@ MODAL COMPARAR ------------
              placeholder="loja@email.com" 
              class="form-control"
              oninvalid="this.setCustomValidity('⚠️ Digite um e-mail válido. Ex: loja@email.com')"
-             oninput="this.setCustomValidity(''); verificarCamposPreenchidos()"
+             oninput="this.setCustomValidity(''); "
              onblur="validarEmail(this)">
       <small class="text-muted">E-mail para contato e confirmação</small>
     </div>
@@ -1106,7 +1106,7 @@ MODAL COMPARAR ------------
               required
               class="form-control"
               oninvalid="this.setCustomValidity('⚠️ Selecione o tipo de promoção')"
-              onchange="this.setCustomValidity(''); verificarCamposPreenchidos()">
+              onchange="this.setCustomValidity('');">
         <option value="" disabled selected>Selecione o tipo de promoção...</option>
         <option value="desconto">Desconto</option>
         <option value="flash">Flash Sale</option>
@@ -1133,7 +1133,7 @@ MODAL COMPARAR ------------
              placeholder="Ex: Bolsa Tigresa - Edição limitada" 
              class="form-control"
              oninvalid="this.setCustomValidity('⚠️ Digite o nome do produto (mínimo 2 caracteres)')"
-             oninput="this.setCustomValidity(''); verificarCamposPreenchidos()">
+             oninput="this.setCustomValidity(''); ">
       <small class="text-muted">Digite o nome do produto em promoção</small>
     </div>
 
@@ -1141,7 +1141,7 @@ MODAL COMPARAR ------------
       <div style="flex: 1; min-width: 150px;">
         <label for="input-price-old">Preço Antigo (R$)</label>
         <input type="number" id="input-price-old" placeholder="160,00" step="0.01" min="0"
-               oninput="calcularDesconto(); verificarCamposPreenchidos()">
+               oninput="calcularDesconto(); ">
       </div>
       <div style="flex: 1; min-width: 150px;">
         <label for="input-price-new">PREÇO PROMOCIONAL (R$) *</label>
@@ -1153,13 +1153,13 @@ MODAL COMPARAR ------------
                placeholder="Ex: 144,00" 
                class="form-control"
                oninvalid="this.setCustomValidity('⚠️ Informe o preço promocional (valor maior que zero)')"
-               oninput="this.setCustomValidity(''); calcularDesconto(); verificarCamposPreenchidos()">
+               oninput="this.setCustomValidity(''); calcularDesconto();">
         <small class="text-muted">Informe o preço com desconto</small>
       </div>
       <div style="flex: 1; min-width: 150px;">
         <label for="input-discount">Desconto (%)</label>
         <input type="number" id="input-discount" placeholder="10" step="0.1" min="0" max="100"
-               oninput="calcularPrecoPorDesconto(); verificarCamposPreenchidos()">
+               oninput="calcularPrecoPorDesconto(); ">
         <small style="color: var(--text-muted); font-size: 0.7rem;">Calculado automaticamente</small>
       </div>
     </div>
@@ -1168,16 +1168,14 @@ MODAL COMPARAR ------------
 
     <div class="form-group">
       <label for="input-descricao">Descrição da Promoção</label>
-      <textarea id="input-descricao" rows="2" placeholder="Ex: Flash Sale: 10% OFF por 2 horas apenas!" maxlength="200"
-                style="width:100%;padding:10px;border:1px solid var(--border-color);border-radius:6px;background:var(--bg-input);color:var(--text-primary);font-family:inherit;resize:vertical;"
-                oninput="verificarCamposPreenchidos()">
-      </textarea>
+    <textarea id="input-descricao" rows="2" placeholder="Ex: Flash Sale: 10% OFF por 2 horas apenas!" maxlength="200"
+          style="width:100%;padding:10px;border:1px solid var(--border-color);border-radius:6px;background:var(--bg-input);color:var(--text-primary);font-family:inherit;resize:vertical;">
+  </textarea>
     </div>
 </div>    
     <!-- ============================================ -->
     <!-- FIM DA INCLUSÃO DOS CAMPOS OBRIGATÓRIOS -->
-    <!-- ============================================ -->
-   
+    <!-- ============================================ -->   
        
 
     <!-- ============================================ -->
@@ -1333,7 +1331,7 @@ var PROMO_CONFIG = {
 var PIX_CONFIG = {
   chave:    'seabhra@gmail.com',
   nome:     'GERALDO A.SEABRA',
-  cidade:   'BELO HORIONTE-MG',
+  cidade:   'BELO HORIZONTE-MG',
   descricao: 'Max Promo App Cadastro'
 };
 
@@ -3198,8 +3196,7 @@ function limparModalLoja() {
 // ============================================
 function validarEAvancarStep1() {
   console.log('[MAXPROMO] 🔍 Iniciando validação rigorosa...');
-  var temErro = false;
-  
+
   // A. VALIDAR PLANO
   if (!planoSelecionado || !planoSelecionado.dias || planoSelecionado.dias <= 0) {
     console.error('[MAXPROMO] ❌ ERRO: Nenhum plano selecionado!');
@@ -3210,7 +3207,6 @@ function validarEAvancarStep1() {
       grid.classList.add('planos-erro');
       grid.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
-    
     if (typeof showNotification === 'function') {
       showNotification('⚠️ SELECIONE UM PLANO ANTES DE CONTINUAR!', 'error');
     } else {
@@ -3224,7 +3220,6 @@ function validarEAvancarStep1() {
   if (nomeEl) {
     var nome = nomeEl.value.trim();
     if (!nome || nome.length < 3) {
-      console.error('[MAXPROMO] ❌ ERRO: Nome da loja inválido');
       nomeEl.focus();
       nomeEl.setCustomValidity('⚠️ Digite o nome da loja (mínimo 3 caracteres)');
       nomeEl.reportValidity();
@@ -3238,17 +3233,13 @@ function validarEAvancarStep1() {
   if (urlEl) {
     var url = urlEl.value.trim();
     var padraoURL = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/i;
-    
     if (!url) {
-      console.error('[MAXPROMO] ❌ ERRO: URL vazia');
       urlEl.focus();
       urlEl.setCustomValidity('⚠️ Digite a URL da loja');
       urlEl.reportValidity();
       return;
     }
-    
     if (!padraoURL.test(url)) {
-      console.error('[MAXPROMO] ❌ ERRO: URL inválida');
       urlEl.focus();
       urlEl.setCustomValidity('⚠️ URL inválida. Ex: https://minhaloja.com.br');
       urlEl.reportValidity();
@@ -3262,17 +3253,13 @@ function validarEAvancarStep1() {
   if (emailEl) {
     var email = emailEl.value.trim();
     var padraoEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    
     if (!email) {
-      console.error('[MAXPROMO] ❌ ERRO: Email vazio');
       emailEl.focus();
       emailEl.setCustomValidity('⚠️ Digite seu e-mail');
       emailEl.reportValidity();
       return;
     }
-    
     if (!padraoEmail.test(email)) {
-      console.error('[MAXPROMO] ❌ ERRO: Email inválido');
       emailEl.focus();
       emailEl.setCustomValidity('⚠️ E-mail inválido. Ex: loja@email.com');
       emailEl.reportValidity();
@@ -3285,7 +3272,6 @@ function validarEAvancarStep1() {
   var catEl = document.getElementById('input-store-cat');
   if (catEl) {
     if (!catEl.value) {
-      console.error('[MAXPROMO] ❌ ERRO: Categoria não selecionada');
       catEl.focus();
       catEl.setCustomValidity('⚠️ Selecione o tipo de promoção');
       catEl.reportValidity();
@@ -3299,7 +3285,6 @@ function validarEAvancarStep1() {
   if (prodEl) {
     var produto = prodEl.value.trim();
     if (!produto || produto.length < 2) {
-      console.error('[MAXPROMO] ❌ ERRO: Nome do produto inválido');
       prodEl.focus();
       prodEl.setCustomValidity('⚠️ Digite o nome do produto (mínimo 2 caracteres)');
       prodEl.reportValidity();
@@ -3313,7 +3298,6 @@ function validarEAvancarStep1() {
   if (priceNewEl) {
     var pNew = parseFloat(priceNewEl.value);
     if (!priceNewEl.value.trim() || isNaN(pNew) || pNew <= 0) {
-      console.error('[MAXPROMO] ❌ ERRO: Preço novo inválido');
       priceNewEl.focus();
       priceNewEl.setCustomValidity('⚠️ Informe o preço promocional (valor maior que zero)');
       priceNewEl.reportValidity();
@@ -3321,6 +3305,73 @@ function validarEAvancarStep1() {
     }
     priceNewEl.setCustomValidity('');
   }
+
+  // ==========================================
+  // TUDO VÁLIDO — coleta dados e gera o PIX
+  // ==========================================
+  console.log('[MAXPROMO] ✅ VALIDAÇÃO APROVADA! Gerando pagamento...');
+
+  try {
+    storeFormData = {
+      nome: document.getElementById('input-store-name').value.trim(),
+      url: document.getElementById('input-store-url').value.trim(),
+      categoria: document.getElementById('input-store-cat').value || '',
+      email: document.getElementById('input-store-email').value.trim(),
+      produto: document.getElementById('input-product-name').value.trim(),
+      precoOld: parseFloat(document.getElementById('input-price-old').value) || 0,
+      precoNew: parseFloat(document.getElementById('input-price-new').value) || 0,
+      descricao: document.getElementById('input-descricao').value.trim(),
+      dias: planoSelecionado.dias,
+      valor: planoSelecionado.valor,
+      label: planoSelecionado.label,
+      desc: planoSelecionado.desc
+    };
+
+    console.log('[MAXPROMO] 📝 Dados coletados:', storeFormData);
+
+    // Gera o TXID antes do payload, pois gerarPixCopiaCola lê pixTxid
+    pixTxid = 'MAXPROMO' + Date.now();
+
+    var pixCode = gerarPixCopiaCola(
+      PIX_CONFIG.chave,
+      PIX_CONFIG.nome,
+      PIX_CONFIG.cidade,
+      planoSelecionado.valor,
+      PIX_CONFIG.descricao + ' ' + planoSelecionado.label
+    );
+
+    var keyEl = document.getElementById('pix-key-display');
+    if (keyEl) keyEl.value = pixCode;
+
+    renderizarQRCode(pixCode);
+
+    var vf = formatarDinheiro(planoSelecionado.valor);
+    var valorLabel = document.getElementById('pix-valor-label');
+    if (valorLabel) valorLabel.textContent = vf;
+
+    var diasLabel = document.getElementById('pix-dias-label');
+    if (diasLabel) diasLabel.textContent = planoSelecionado.label;
+
+    var instrucaoValor = document.getElementById('instrucao-valor');
+    if (instrucaoValor) instrucaoValor.textContent = vf;
+
+    var devBar = document.getElementById('dev-bar-teste');
+    if (devBar) devBar.style.display = MODO_TESTE ? 'flex' : 'none';
+
+    iniciarCountdownPix();
+
+    document.getElementById('store-step-1').style.display = 'none';
+    document.getElementById('store-step-2').style.display = 'block';
+
+  } catch (err) {
+    console.error('[MAXPROMO] ❌ ERRO CRÍTICO AO AVANÇAR:', err);
+    if (typeof showNotification === 'function') {
+      showNotification('❌ Erro interno: ' + err.message, 'error');
+    } else {
+      alert('❌ Erro interno: ' + err.message);
+    }
+  }
+}
 
    // ==========================================
   // SE CHEGOU AQUI, TUDO ESTÁ 100% VÁLIDO!
@@ -3569,7 +3620,7 @@ if (document.readyState === 'loading') {
   autoRefreshInterval = setInterval(function() {
     if (tabAtiva === 'feed') renderFeed();
   }, 30000);
-}
+
 
 // ============================================
 // CARREGAR DOAÇÕES
@@ -3655,6 +3706,7 @@ function renderizarOpcoesDoacao(lista) {
     container.appendChild(el);
   });
 }
+
 
 // ============================================
 // INICIALIZAR
