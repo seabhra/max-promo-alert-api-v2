@@ -3188,11 +3188,11 @@ function limparModalLoja() {
 }
 
 // ============================================
-// 8. INICIALIZAÇÃO / LISTENERS — VERSÃO BLINDADA
+// 8. INICIALIZAÇÃO / LISTENERS — 
 // ============================================
 
 // ============================================
-// FUNÇÃO CENTRAL DE VALIDAÇÃO E AVANÇO - CORRIGIDA
+// FUNÇÃO CENTRAL DE VALIDAÇÃO E AVANÇO
 // ============================================
 function validarEAvancarStep1() {
   console.log('[MAXPROMO] 🔍 Iniciando validação rigorosa...');
@@ -3373,41 +3373,6 @@ function validarEAvancarStep1() {
   }
 }
 
-   // ==========================================
-  // SE CHEGOU AQUI, TUDO ESTÁ 100% VÁLIDO!
-  // ==========================================
-  console.log('[MAXPROMO] ✅ VALIDAÇÃO APROVADA! Gerando pagamento...');
-
-  try {
-    // Coleta os dados do formulário
-    storeFormData = {
-      nome: document.getElementById('input-store-name').value.trim(),
-      url: document.getElementById('input-store-url').value.trim(),
-      categoria: document.getElementById('input-store-cat').value || '',
-      email: document.getElementById('input-store-email').value.trim(),
-      produto: document.getElementById('input-product-name').value.trim(),
-      precoOld: parseFloat(document.getElementById('input-price-old').value) || 0,
-      precoNew: parseFloat(document.getElementById('input-price-new').value) || 0,
-      descricao: document.getElementById('input-descricao').value.trim(),
-      dias: planoSelecionado.dias,
-      valor: planoSelecionado.valor,
-      label: planoSelecionado.label,
-      desc: planoSelecionado.desc
-    };
-
-    console.log('[MAXPROMO] 📝 Dados coletados:', storeFormData);
-
-    // Gerar PIX e avançar para Step 2
-    // ... (restante do código)
-    
-  } catch (err) {
-    console.error('[MAXPROMO] ❌ ERRO CRÍTICO AO AVANÇAR:', err);
-    if (typeof showNotification === 'function') {
-      showNotification('❌ Erro interno: ' + err.message, 'error');
-    } else {
-      alert('❌ Erro interno: ' + err.message);
-    }
-  }
 
 
 // ============================================
