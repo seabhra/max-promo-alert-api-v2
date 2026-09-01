@@ -1552,13 +1552,6 @@ function calcularPrecoPorDesconto() {
 // ============================================
 
   
-  // Calcula a data de expiração baseada nos dias do plano
-  const dataAtual = new Date();
-  const dataExpiracao = new Date(dataAtual);
-  dataExpiracao.setDate(dataExpiracao.getDate() + parseInt(planoDias));
-  const dataFormatada = dataExpiracao.toLocaleDateString('pt-BR');
- 
-
   //==============================================
   // Validação para habilitar o botão "Continuar"
   //==============================================
@@ -2670,7 +2663,7 @@ var PIX_CONFIG = {
   chave:     'seabhra@gmail.com',
   nome:      'Geraldo Augusto Seabra',
   cidade:    'Sabará - MG',
-  descricao: 'MAXPROMO APP'
+  descricao: 'MAX PROMO APP'
 };
 
 // ============================================
