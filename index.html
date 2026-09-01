@@ -1006,7 +1006,7 @@ MODAL COMPARAR ------------
   <div class="modal-box">
     <div id="store-error" class="form-error" style="display:none;"></div>
 
-   <!-- STEP 1: Escolher plano e dados -->
+
 <!-- STEP 1: Escolher plano e dados -->
 <div id="store-step-1">
   <h2><i class="fas fa-store" style="color:var(--accent-color);margin-right:8px;"></i>Inserir Loja</h2>
@@ -2880,54 +2880,65 @@ function iniciarCountdownPix() {
 // ============================================
 // 4. PLANOS - CORRIGIDO
 // ============================================
+// ============================================
+// 4. SELEÇÃO DE PLANO
+// ============================================
 function selecionarPlano(el) {
+  if (!el) return;
+
   console.log('[MAXPROMO] 📦 Plano selecionado:', el);
-  
-  // Remove seleção de todos os planos
-  document.querySelectorAll('.plano-card').forEach(function(c) {
-    c.classList.remove('selected');
-  });
-  
-  // Adiciona seleção ao plano clicado
+
+  // Remove a seleção anterior
+  document.querySelectorAll('.plano-card.selected')
+    .forEach(card => card.classList.remove('selected'));
+
+  // Seleciona o plano atual
   el.classList.add('selected');
 
-  // Extrai dados do plano
-  var dias = parseInt(el.dataset.dias, 10);
-  var valor = parseFloat(el.dataset.valor);
-  var label = dias + ' dias';
-  
+  // Obtém os dados do plano
+  const dias = parseInt(el.dataset.dias, 10) || 0;
+  const valor = parseFloat(el.dataset.valor) || 0;
+  const descEl = el.querySelector('.plano-desc');
+
   planoSelecionado = {
-    dias: dias,
-    valor: valor,
-    label: label,
-    desc: el.querySelector('.plano-desc') ? el.querySelector('.plano-desc').textContent : ''
+    dias,
+    valor,
+    label: `${dias} dias`,
+    desc: descEl ? descEl.textContent.trim() : ''
   };
 
   console.log('[MAXPROMO] ✅ Plano selecionado:', planoSelecionado);
 
-  // Atualiza display
-  var tp = document.getElementById('tempo-permanencia-display');
-  if (tp) {
-    tp.textContent = label + ' — R$ ' + valor.toFixed(2).replace('.', ',');
+  // Atualiza o resumo do plano
+  const display = document.getElementById('tempo-permanencia-display');
+
+  if (display) {
+    display.textContent =
+      `${planoSelecionado.label} — R$ ${valor.toFixed(2).replace('.', ',')}`;
   }
 
-  // Atualiza campo hidden
-  var inputPlano = document.getElementById('input-plano-dias');
+  // Atualiza campo oculto
+  const inputPlano = document.getElementById('input-plano-dias');
+
   if (inputPlano) {
     inputPlano.value = dias;
   }
 
   // Habilita o botão Continuar
-  var btn = document.getElementById('btn-store-step1-next');
+  const btn = document.getElementById('btn-store-step1-next');
+
   if (btn) {
     btn.disabled = false;
-    btn.innerHTML = '<i class="fas fa-arrow-right" style="font-size:.75rem;margin-right:6px;"></i>Continuar → Pagar PIX';
+    btn.innerHTML =
+      '<i class="fas fa-arrow-right" style="font-size:.75rem;margin-right:6px;"></i>' +
+      'Continuar → Pagar PIX';
     btn.style.opacity = '1';
     btn.style.cursor = 'pointer';
   }
 
   // Remove erro visual
-  var grid = document.getElementById('planos-grid');
+  const grid = document.getElementById('planos-grid');
+
   if (grid) {
     grid.classList.remove('planos-erro');
   }
@@ -3408,14 +3419,13 @@ function initStoreModal() {
       return false;
     });
   }
-
+//===============================================================
   // 3. PLANOS - Adiciona listeners para garantir que onclick funcione
-  document.querySelectorAll('.plano-card').forEach(function(card) {
-    card.addEventListener('click', function(e) {
-      console.log('[MAXPROMO] 🖱️ Plano clicado:', this);
-      selecionarPlano(this);
-    });
-  });
+  //=================================================================
+  document.querySelectorAll('.plano-card').forEach(card => {
+  card.addEventListener('click', () => selecionarPlano(card));
+});
+ 
 
   // 4. CAMPOS COM VALIDAÇÃO EM TEMPO REAL
   var camposReais = ['input-store-name', 'input-store-url', 'input-store-email'];
