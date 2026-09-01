@@ -1013,7 +1013,6 @@ MODAL COMPARAR ------------
 
     <p>Preencha os dados e escolha o plano. O pagamento é via PIX, único e sem renovação automática.</p>
 
-  <form id="form-store-step1" novalidate autocomplete="off">
 
     <!-- PLANOS -->
     <div class="section-label" style="color:var(--accent-color);"><i class="fas fa-layer-group"></i> Escolha o plano</div>
@@ -1135,33 +1134,47 @@ MODAL COMPARAR ------------
              oninput="this.setCustomValidity(''); ">
       <small class="text-muted">Digite o nome do produto em promoção</small>
     </div>
+<div style="display: flex; gap: 16px; flex-wrap: wrap;">
+  <div style="flex: 1; min-width: 150px;">
+    <label for="input-price-old">Preço Antigo (R$)</label>
+    <input type="text"
+           id="input-price-old"
+           inputmode="decimal"
+           maxlength="12"
+           placeholder="160,00"
+           class="form-control"
+           oninput="sanitizarMoeda(this); calcularDesconto();"
+           onblur="formatarMoeda(this);">
+  </div>
 
-    <div style="display: flex; gap: 16px; flex-wrap: wrap;">
-      <div style="flex: 1; min-width: 150px;">
-        <label for="input-price-old">Preço Antigo (R$)</label>
-        <input type="number" id="input-price-old" placeholder="160,00" step="0.01" min="0"
-               oninput="calcularDesconto(); ">
-      </div>
-      <div style="flex: 1; min-width: 150px;">
-        <label for="input-price-new">PREÇO PROMOCIONAL (R$) *</label>
-        <input type="number" 
-               id="input-price-new" 
-               required 
-               min="0.01" 
-               step="0.01"
-               placeholder="Ex: 144,00" 
-               class="form-control"
-               oninvalid="this.setCustomValidity('⚠️ Informe o preço promocional (valor maior que zero)')"
-               oninput="this.setCustomValidity(''); calcularDesconto();">
-        <small class="text-muted">Informe o preço com desconto</small>
-      </div>
-      <div style="flex: 1; min-width: 150px;">
-        <label for="input-discount">Desconto (%)</label>
-        <input type="number" id="input-discount" placeholder="10" step="0.1" min="0" max="100"
-               oninput="calcularPrecoPorDesconto(); ">
-        <small style="color: var(--text-muted); font-size: 0.7rem;">Calculado automaticamente</small>
-      </div>
-    </div>
+  <div style="flex: 1; min-width: 150px;">
+    <label for="input-price-new">PREÇO PROMOCIONAL (R$) *</label>
+    <input type="text"
+           id="input-price-new"
+           inputmode="decimal"
+           maxlength="12"
+           placeholder="144,00"
+           class="form-control"
+           required
+           oninvalid="this.setCustomValidity('⚠️ Informe o preço promocional (valor maior que zero)')"
+           oninput="sanitizarMoeda(this); this.setCustomValidity(''); calcularDesconto();"
+           onblur="formatarMoeda(this);">
+    <small class="text-muted">Informe o preço com desconto</small>
+  </div>
+
+  <div style="flex: 1; min-width: 150px;">
+    <label for="input-discount">Desconto (%)</label>
+    <input type="text"
+           id="input-discount"
+           inputmode="decimal"
+           maxlength="6"
+           placeholder="10"
+           class="form-control"
+           oninput="sanitizarMoeda(this); calcularPrecoPorDesconto();"
+           onblur="formatarMoeda(this, 1);">
+    <small style="color: var(--text-muted); font-size: 0.7rem;">Calculado automaticamente</small>
+  </div>
+</div>
 
     <input type="hidden" id="input-plano-dias" value="0">
 
@@ -1527,8 +1540,8 @@ function mostrarErroCampo(campo, msgCustom) {
 // ============================================
 
 function calcularDesconto() {
-  const precoOld = parseFloat(document.getElementById('input-price-old').value);
-  const precoNew = parseFloat(document.getElementById('input-price-new').value);
+  const precoOld = parseMoeda(document.getElementById('input-price-old').value);
+  const precoNew = parseMoeda(document.getElementById('input-price-new').value);
   const discountInput = document.getElementById('input-discount');
   
   if (precoOld > 0 && precoNew >= 0 && precoNew < precoOld) {
@@ -1551,47 +1564,12 @@ function calcularPrecoPorDesconto() {
     atualizarPreview();
   }
 }
-// ============================================
-// PRÉVIA DA CONFIGURAÇÃO
-// ============================================
 
-function atualizarPreview() {
-  const nomeLoja = document.getElementById('input-store-name').value || 'Nome da loja';
-  const produto = document.getElementById('input-product-name').value || 'Nome do produto';
-  const precoOld = document.getElementById('input-price-old').value || '0';
-  const precoNew = document.getElementById('input-price-new').value || '0';
-  const desconto = document.getElementById('input-discount').value || '0';
-  const planoDias = document.getElementById('input-plano-dias').value || '0';
-  const descricao = document.getElementById('input-descricao').value || 'Descrição da promoção';
-  const tipoPromocao = document.getElementById('input-store-cat').value || 'flash';
-  const url = document.getElementById('input-store-url').value || 'https://exemplo.com';
-  
-  // Calcula a data de expiração baseada nos dias do plano
-  const dataAtual = new Date();
-  const dataExpiracao = new Date(dataAtual);
-  dataExpiracao.setDate(dataExpiracao.getDate() + parseInt(planoDias));
-  const dataFormatada = dataExpiracao.toLocaleDateString('pt-BR');
-  
-  const preview = document.getElementById('config-preview');
-  preview.innerHTML = `
-    <strong>id:</strong> <span style="color:var(--accent-color);">[gerado automático]</span><br>
-    <strong>tipo:</strong> <span style="color:var(--accent-color);">'${tipoPromocao}'</span><br>
-    <strong>titulo:</strong> <span style="color:var(--accent-color);">'${produto}'</span><br>
-    <strong>desc:</strong> <span style="color:var(--accent-color);">'${descricao}'</span><br>
-    <strong>loja:</strong> <span style="color:var(--accent-color);">'${nomeLoja}'</span><br>
-    <strong>precoOld:</strong> <span style="color:var(--accent-color);">${parseFloat(precoOld).toFixed(2)}</span><br>
-    <strong>precoNew:</strong> <span style="color:var(--accent-color);">${parseFloat(precoNew).toFixed(2)}</span><br>
-    <strong>tempoRestante (dias):</strong> <span style="color:var(--accent-color);">${planoDias}</span><br>
-    <strong>expira em:</strong> <span style="color:#4CAF50;font-weight:600;">${dataFormatada}</span><br>
-    <strong>clickThroughUrl:</strong> <span style="color:var(--accent-color);">'${url}'</span><br>
-    <strong>url:</strong> <span style="color:var(--accent-color);">'${url}'</span>
-  `;
-
-  //==============================================
+ //==============================================
   // Validação para habilitar o botão "Continuar"
   //==============================================
   validarFormulario();
-}
+
 function validarFormulario() {
   const nomeLoja = document.getElementById('input-store-name').value.trim();
   const url = document.getElementById('input-store-url').value.trim();
@@ -2681,7 +2659,65 @@ if (modalConfirm) {
    ============================================================ */
 
 
+// ============================================
+// 1 - HELPERS DE MOEDA — aceita formatos BR e US
+// ============================================
 
+/** Converte "R$ 1.234,56", "160,00", "160.00", "1.234" → number */
+function parseMoeda(str) {
+  if (str === null || str === undefined) return NaN;
+  var s = String(str).trim().replace(/[Rr]\$/g, '').replace(/\s/g, '');
+  if (!s) return NaN;
+
+  var ultimaVirgula = s.lastIndexOf(',');
+  var ultimoPonto   = s.lastIndexOf('.');
+
+  if (ultimaVirgula > ultimoPonto) {
+    // "1.234,56" → vírgula é decimal, pontos são milhar
+    s = s.replace(/\./g, '').replace(',', '.');
+  } else if (ultimoPonto > ultimaVirgula) {
+    // "1,234.56" → ponto é decimal, vírgulas são milhar
+    s = s.replace(/,/g, '');
+  } else if (ultimoPonto !== -1) {
+    // só ponto: "160.00" = decimal, mas "1.234" = milhar (contexto de preço)
+    var partes = s.split('.');
+    if (partes.length > 2 || partes[partes.length - 1].length === 3) {
+      s = s.replace(/\./g, '');
+    }
+  } else if (ultimaVirgula !== -1) {
+    // só vírgula = decimal
+    s = s.replace(',', '.');
+  }
+
+  s = s.replace(/[^0-9.]/g, '');
+  var v = parseFloat(s);
+  return isNaN(v) ? NaN : v;
+}
+
+/** Bloqueia letras/símbolos e limita a 1 vírgula + 2 casas decimais */
+function sanitizarMoeda(campo) {
+  var v = campo.value.replace(/[^\d.,]/g, '');
+
+  var iVirg = v.indexOf(',');
+  if (iVirg !== -1) {
+    // remove vírgulas extras depois da primeira
+    v = v.slice(0, iVirg + 1) + v.slice(iVirg + 1).replace(/,/g, '');
+    // no máximo 2 casas decimais
+    var dec = v.slice(iVirg + 1).replace(/\./g, '');
+    if (dec.length > 2) v = v.slice(0, iVirg + 1) + dec.slice(0, 2);
+  }
+
+  if (campo.value !== v) campo.value = v;
+}
+
+/** No blur, mostra o valor normalizado: "1.234,5" → "1234,50" */
+function formatarMoeda(campo, casas) {
+  casas = (casas === undefined) ? 2 : casas;
+  if (!campo.value.trim()) return;                 // vazio: não mexe
+  var v = parseMoeda(campo.value);
+  if (isNaN(v)) { campo.value = ''; return; }      // lixo: limpa
+  campo.value = v.toFixed(casas).replace('.', ',');
+}
 
 // ============================================
 // 2. HELPERS
@@ -2934,47 +2970,81 @@ function selecionarPlano(el) {
 // 5. PREÇOS / DESCONTO / PREVIEW / CONFIG
 // ============================================
 function calcularDesconto() {
-  var pOld = parseFloat((_$('input-price-old') || {}).value) || 0;
-  var pNew = parseFloat((_$('input-price-new') || {}).value) || 0;
+  var pOld = parseMoeda((_$('input-price-old') || {}).value);
+  var pNew = parseMoeda((_$('input-price-new') || {}).value);
   if (pOld > 0 && pNew > 0 && pNew < pOld) {
-    _$('input-discount').value = ((1 - pNew / pOld) * 100).toFixed(1);
+    // escreve com vírgula (antes: "10.0" com ponto)
+    _$('input-discount').value = ((1 - pNew / pOld) * 100).toFixed(1).replace('.', ',');
   }
   atualizarPreview();
 }
 
 function calcularPrecoPorDesconto() {
-  var pOld = parseFloat((_$('input-price-old') || {}).value) || 0;
-  var desc = parseFloat((_$('input-discount') || {}).value) || 0;
-  if (pOld > 0 && desc > 0 && desc < 100) {
-    _$('input-price-new').value = (pOld * (1 - desc / 100)).toFixed(2);
+  var elOld  = _$('input-price-old');
+  var elDesc = _$('input-discount');
+  var pOld   = parseMoeda((elOld  || {}).value);
+  var desc   = parseMoeda((elDesc || {}).value);
+
+  if (pOld > 0 && desc > 0) {
+    if (desc > 100) {                       // teto de 100% (era o antigo max="100")
+      desc = 100;
+      if (elDesc) elDesc.value = '100';
+    }
+    var elNew = _$('input-price-new');
+    if (elNew) elNew.value = (pOld * (1 - desc / 100)).toFixed(2).replace('.', ',');
   }
   atualizarPreview();
 }
 
+// ============================================
+// FUNÇÃO ATUALIZAR PREVIEW
+// ============================================
 function atualizarPreview() {
   var el = _$('config-preview');
   if (!el) return;
 
-  var nome   = (_$('input-store-name')   || {}).value || '';
-  var url    = (_$('input-store-url')    || {}).value || '';
-  var cat    = (_$('input-store-cat')    || {}).value || '';
-  var prod   = (_$('input-product-name') || {}).value || '';
-  var pOld   = parseFloat((_$('input-price-old') || {}).value) || 0;
-  var pNew   = parseFloat((_$('input-price-new') || {}).value) || 0;
+  var nome  = (_$('input-store-name')   || {}).value || '';
+  var url   = (_$('input-store-url')    || {}).value || '';
+  var email = (_$('input-store-email')  || {}).value || '';
+  var cat   = (_$('input-store-cat')    || {}).value || '';
+  var prod  = (_$('input-product-name') || {}).value || '';
+  var descr = (_$('input-descricao')    || {}).value || '';
+  var pOld  = parseMoeda((_$('input-price-old') || {}).value) || 0;
+  var pNew  = parseMoeda((_$('input-price-new') || {}).value) || 0;
 
   if (!nome.trim() && !url.trim() && !prod.trim() && !planoSelecionado) {
     el.textContent = 'Nenhum dado preenchido ainda.';
     return;
   }
 
+  var mapaCat = {
+    desconto: 'Desconto', flash: 'Flash Sale', cupom: 'Cupom',
+    cashback: 'Cashback', frete_gratis: 'Frete Grátis', saldao: 'Saldão',
+    outlet: 'Outlet', live: 'Live Sale', sorteio: 'Sorteio'
+  };
+
+  // ── Data de expiração (só se um plano estiver selecionado) ──
+  var expiraTxt = '<span style="color:#ff9800;">⚠ depende do plano</span>';
+  if (planoSelecionado && planoSelecionado.dias > 0) {
+    var dt = new Date();
+    dt.setDate(dt.getDate() + planoSelecionado.dias);
+    expiraTxt = '<strong style="color:#4CAF50;">' + dt.toLocaleDateString('pt-BR') + '</strong>';
+  }
+
+  // ── Montagem da prévia (concatenação, SEM crases) ──
   el.innerHTML =
     '🏪 Loja: <strong>' + escaparHTML(nome || '—') + '</strong><br>' +
     '🔗 URL: ' + escaparHTML(url || '—') + '<br>' +
-    '🏷️ Tipo: ' + escaparHTML(cat || '—') + '<br>' +
+    '📧 E-mail: ' + escaparHTML(email || '—') + '<br>' +
+    '🏷️ Tipo: ' + escaparHTML(mapaCat[cat] || cat || '—') + '<br>' +
     '📦 Produto: ' + escaparHTML(prod || '—') + '<br>' +
+    (descr.trim() ? '📝 Descrição: ' + escaparHTML(descr) + '<br>' : '') +
     '💰 Preço: ' + (pOld > 0 ? 'R$ ' + pOld.toFixed(2).replace('.', ',') : '—') +
     ' → <strong>' + (pNew > 0 ? 'R$ ' + pNew.toFixed(2).replace('.', ',') : '—') + '</strong><br>' +
-    '📅 Plano: ' + (planoSelecionado ? planoSelecionado.label + ' (' + formatarDinheiro(planoSelecionado.valor) + ')' : '—');
+    '📅 Plano: ' + (planoSelecionado
+        ? planoSelecionado.label + ' (' + formatarDinheiro(planoSelecionado.valor) + ')'
+        : '<span style="color:#ff9800;">⚠ selecione</span>') + '<br>' +
+    '⏳ Ativo até: ' + expiraTxt;
 }
 
 function gerarConfiguracao() {
@@ -3223,25 +3293,83 @@ function validarEAvancarStep1() {
     nomeEl.setCustomValidity('');
   }
 
-  // C. VALIDAR URL
-  var urlEl = document.getElementById('input-store-url');
-  if (urlEl) {
-    var url = urlEl.value.trim();
-    var padraoURL = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/i;
-    if (!url) {
-      urlEl.focus();
-      urlEl.setCustomValidity('⚠️ Digite a URL da loja');
-      urlEl.reportValidity();
-      return;
-    }
-    if (!padraoURL.test(url)) {
-      urlEl.focus();
-      urlEl.setCustomValidity('⚠️ URL inválida. Ex: https://minhaloja.com.br');
-      urlEl.reportValidity();
-      return;
-    }
-    urlEl.setCustomValidity('');
+
+  // FUNÇÃO ERRO CAMPO URL
+
+function _erroCampoURL(campo, msg) {
+  campo.focus();
+  campo.setCustomValidity(msg);
+  campo.reportValidity();
+}
+
+/**
+ * Valida e normaliza URL. Retorna { ok: true, href } ou { ok: false }.
+ * — Aceita sem protocolo e normaliza para https://
+ * — Aceita domínios, IPs e localhost
+ * — Imune a ReDoS
+ */
+function validarURL(campo) {
+  var valor = campo.value.trim();
+
+  if (!valor) {
+    _erroCampoURL(campo, '⚠️ Digite a URL da loja');
+    return { ok: false };
   }
+
+  // 1. Normaliza: adiciona https:// se o usuário esqueceu o protocolo
+  var normalizada = /^https?:\/\//i.test(valor) ? valor : 'https://' + valor;
+
+  // 2. Parse pelo próprio parser do navegador (valida tudo de uma vez)
+  var url;
+  try {
+    url = new URL(normalizada);
+  } catch (e) {
+    _erroCampoURL(campo, '⚠️ URL inválida. Ex: https://minhaloja.com.br');
+    return { ok: false };
+  }
+
+  // 3. Só http/https (bloqueia ftp:, javascript:, data:, etc.)
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+    _erroCampoURL(campo, '⚠️ A URL deve começar com http:// ou https://');
+    return { ok: false };
+  }
+
+  // 4. Hostname: precisa de domínio com ponto, OU ser localhost/IP
+  var host = url.hostname; // já sai em punycode (aceita acentos: mínião.com ✓)
+  var ehLocalhost = (host === 'localhost');
+  var ehIP        = /^\d{1,3}(\.\d{1,3}){3}$/.test(host);
+  var temPonto    = host.indexOf('.') > 0; // "abc" sozinho rejeita
+
+  if (!ehLocalhost && !ehIP && !temPonto) {
+    _erroCampoURL(campo, '⚠️ Domínio incompleto. Ex: minhaloja.com.br');
+    return { ok: false };
+  }
+
+  // 5. Labels do domínio: 1–63 chars, sem hífen nas pontas, sem ".."
+  //    (o parser do URL aceita "a..com" e "-abc.com", então filtramos aqui)
+  if (!ehIP) {
+    var labels = host.split('.');
+    for (var i = 0; i < labels.length; i++) {
+      var l = labels[i];
+      if (!l || l.length > 63 || /^-|-$/.test(l) || !/^[a-z0-9-]+$/i.test(l)) {
+        _erroCampoURL(campo, '⚠️ Domínio inválido. Verifique o endereço.');
+        return { ok: false };
+      }
+    }
+  }
+
+  campo.setCustomValidity('');
+  return { ok: true, href: url.href }; // ← URL normalizada pronta para salvar
+}
+  
+  // C. VALIDAR URL
+  var urlFinal = '';
+var urlEl = document.getElementById('input-store-url');
+if (urlEl) {
+  var res = validarURL(urlEl);
+  if (!res.ok) return;            // balão já foi exibido pela função
+  urlFinal = res.href;            // ex: "https://minhaloja.com.br"
+}
 
   // D. VALIDAR EMAIL
   var emailEl = document.getElementById('input-store-email');
@@ -3289,17 +3417,30 @@ function validarEAvancarStep1() {
   }
 
   // G. VALIDAR PREÇO NOVO
-  var priceNewEl = document.getElementById('input-price-new');
-  if (priceNewEl) {
-    var pNew = parseFloat(priceNewEl.value);
-    if (!priceNewEl.value.trim() || isNaN(pNew) || pNew <= 0) {
-      priceNewEl.focus();
-      priceNewEl.setCustomValidity('⚠️ Informe o preço promocional (valor maior que zero)');
-      priceNewEl.reportValidity();
-      return;
-    }
-    priceNewEl.setCustomValidity('');
+
+var priceNewEl = document.getElementById('input-price-new');
+var pNew = NaN;
+if (priceNewEl) {
+  pNew = parseMoeda(priceNewEl.value);
+  if (!priceNewEl.value.trim() || isNaN(pNew) || pNew <= 0) {
+    priceNewEl.focus();
+    priceNewEl.setCustomValidity('⚠️ Informe o preço promocional (valor maior que zero)');
+    priceNewEl.reportValidity();
+    return;
   }
+  priceNewEl.setCustomValidity('');
+}
+
+// H. VALIDAÇÃO CRUZADA: promocional deve ser menor que o antigo
+var pOldVal = parseMoeda((document.getElementById('input-price-old') || {}).value);
+if (!isNaN(pOldVal) && pOldVal > 0 && pNew >= pOldVal) {
+  priceNewEl.focus();
+  priceNewEl.setCustomValidity('⚠️ O preço promocional deve ser MENOR que o preço antigo');
+  priceNewEl.reportValidity();
+  return;
+}
+
+
 
   // ==========================================
   // TUDO VÁLIDO — coleta dados e gera o PIX
@@ -3309,12 +3450,14 @@ function validarEAvancarStep1() {
   try {
     storeFormData = {
       nome: document.getElementById('input-store-name').value.trim(),
-      url: document.getElementById('input-store-url').value.trim(),
+
+      url: document.getElementById('urlFinal').value.trim(),
+      
       categoria: document.getElementById('input-store-cat').value || '',
       email: document.getElementById('input-store-email').value.trim(),
       produto: document.getElementById('input-product-name').value.trim(),
-      precoOld: parseFloat(document.getElementById('input-price-old').value) || 0,
-      precoNew: parseFloat(document.getElementById('input-price-new').value) || 0,
+      precoOld: parseMoeda(document.getElementById('input-price-old').value) || 0,
+      precoNew: parseMoeda(document.getElementById('input-price-new').value) || 0,
       descricao: document.getElementById('input-descricao').value.trim(),
       dias: planoSelecionado.dias,
       valor: planoSelecionado.valor,
@@ -3416,20 +3559,22 @@ function initStoreModal() {
   camposReais.forEach(function(id) {
     var el = document.getElementById(id);
     if (el) {
-      el.addEventListener('blur', function() {
-        if (this.value && this.value.trim() === '') {
-          this.classList.add('input-erro');
-        } else {
-          this.classList.remove('input-erro');
-          this.setCustomValidity('');
-        }
-      });
-      el.addEventListener('input', function() {
-        if (this.value && this.value.trim() !== '') {
-          this.classList.remove('input-erro');
-          this.setCustomValidity('');
-        }
-      });
+      
+   el.addEventListener('blur', function () {
+  if (!this.value.trim()) {
+    this.classList.add('input-erro');
+    this.setCustomValidity('⚠️ Preencha este campo');
+    this.reportValidity();
+  }
+  // NÃO limpar validity de campos preenchidos aqui
+});
+el.addEventListener('input', function () {
+  if (this.value.trim()) {
+    this.classList.remove('input-erro');
+    this.setCustomValidity('');
+  }
+});
+
     }
   });
 
@@ -3465,6 +3610,13 @@ function initStoreModal() {
       confirmarPagamentoEAvancar('pago');
     });
   }
+  
+  // PIX EXPIRADO
+  var pixExpirado = false;
+// no tick(), quando restante <= 0: pixExpirado = true;
+// no "Voltar": pixExpirado = false;
+// no botão paguei:
+if (pixExpirado) { showNotification('⏰ QR expirado — gere um novo', 'error'); return; }
 
   // 8. BOTÃO SIMULAR PAGAMENTO
   var btnSimular = document.getElementById('btn-dev-simular');
