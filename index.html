@@ -1082,8 +1082,7 @@ MODAL COMPARAR ------------
              placeholder="Ex: https://minhaloja.com.br" 
              class="form-control"
              oninvalid="this.setCustomValidity('⚠️ Digite uma URL válida. Ex: https://minhaloja.com.br')"
-             oninput="this.setCustomValidity('');">
-
+             oninput="this.setCustomValidity(''); ">
       <small class="text-muted">URL completa da sua loja (ex: https://www.minhaloja.com.br)</small>
     </div>
 
@@ -2682,6 +2681,8 @@ if (modalConfirm) {
    ============================================================ */
 
 
+
+
 // ============================================
 // 2. HELPERS
 // ============================================
@@ -3009,572 +3010,110 @@ function gerarConfiguracao() {
 // ============================================
 // 6. VALIDAÇÃO — BALÃO NATIVO "PREENCHA ESTE CAMPO"
 // ============================================
-
-// ============================================================
-// MAXPROMO — VALIDAÇÃO ÚNICA DO FORMULÁRIO
-// ============================================================
-
-function limparErro(campo) {
+function mostrarErroCampo(campo, msgCustom) {
   if (!campo) return;
-
-  campo.setCustomValidity('');
+  
+  // Remove classe de erro anterior
   campo.classList.remove('input-erro');
-}
-
-
-// ------------------------------------------------------------
-// Mostra erro nativo do navegador
-// ------------------------------------------------------------
-function erroCampo(campo, mensagem) {
-  if (!campo) return false;
-
-  campo.classList.add('input-erro');
-  campo.setCustomValidity(mensagem);
+  
+  // Força o foco
   campo.focus();
-
+  
+  if (msgCustom) {
+    campo.setCustomValidity(msgCustom);
+  } else {
+    campo.setCustomValidity('Preencha este campo');
+  }
+  
+  // Tenta usar reportValidity (navegadores modernos)
   if (typeof campo.reportValidity === 'function') {
     campo.reportValidity();
+  } else {
+    // Fallback para navegadores antigos
+    campo.style.borderColor = '#ff4444';
+    campo.style.boxShadow = '0 0 0 2px rgba(255, 68, 68, 0.2)';
+    showNotification(msgCustom || 'Preencha este campo corretamente', 'error');
   }
+  
+  // Adiciona classe de erro visual
+  campo.classList.add('input-erro');
 
-  return false;
+  // Limpa a validação quando o usuário começar a digitar
+  var limpar = function() {
+    campo.classList.remove('input-erro');
+    campo.setCustomValidity('');
+    campo.style.borderColor = '';
+    campo.style.boxShadow = '';
+    campo.removeEventListener('input', limpar);
+    campo.removeEventListener('change', limpar);
+  };
+  campo.addEventListener('input', limpar, { once: true });
+  campo.addEventListener('change', limpar, { once: true });
 }
 
+// ============================================
+// FUNÇÕES DE VALIDAÇÃO PERSONALIZADA
+// ============================================
 
-// ------------------------------------------------------------
-// Validação da URL
-// ------------------------------------------------------------
-function validarCampoURL(campo) {
-
-  const valor = campo.value.trim();
-
+function validarURL(campo) {
+  var valor = campo.value.trim();
   if (!valor) {
-    return erroCampo(
-      campo,
-      '⚠️ Digite a URL da loja.'
-    );
+    campo.setCustomValidity('⚠️ Digite a URL da loja');
+    campo.reportValidity();
+    return false;
   }
-
-  let url = valor;
-
-  if (!/^https?:\/\//i.test(url)) {
-    url = 'https://' + url;
+  
+  // Padrão para validar URL
+  var padrao = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/i;
+  if (!padrao.test(valor)) {
+    campo.setCustomValidity('⚠️ URL inválida. Ex: https://minhaloja.com.br');
+    campo.reportValidity();
+    return false;
   }
-
-  try {
-
-    const objetoURL = new URL(url);
-
-    if (!objetoURL.hostname || !objetoURL.hostname.includes('.')) {
-      throw new Error('URL inválida');
-    }
-
-    limparErro(campo);
-
-    return true;
-
-  } catch (erro) {
-
-    return erroCampo(
-      campo,
-      '⚠️ URL inválida. Ex: https://minhaloja.com.br'
-    );
-  }
-}
-
-
-// ------------------------------------------------------------
-// Validação do e-mail
-// ------------------------------------------------------------
-function validarCampoEmail(campo) {
-
-  const valor = campo.value.trim();
-
-  if (!valor) {
-    return erroCampo(
-      campo,
-      '⚠️ Digite seu e-mail.'
-    );
-  }
-
-  const emailValido =
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-  if (!emailValido.test(valor)) {
-    return erroCampo(
-      campo,
-      '⚠️ E-mail inválido. Ex: loja@email.com'
-    );
-  }
-
-  limparErro(campo);
-
+  
+  campo.setCustomValidity('');
   return true;
 }
 
-
-// ------------------------------------------------------------
-// Validação geral do Step 1
-// ------------------------------------------------------------
-function validarEAvancarStep1() {
-
-  console.log('[MAXPROMO] 🔍 Iniciando validação rigorosa...');
-
-
-  // ==========================================================
-  // 1. PLANO
-  // ==========================================================
-
-  if (
-    !planoSelecionado ||
-    !planoSelecionado.dias ||
-    planoSelecionado.dias <= 0
-  ) {
-
-    console.error(
-      '[MAXPROMO] ❌ Nenhum plano selecionado.'
-    );
-
-    const grid =
-      document.getElementById('planos-grid');
-
-    if (grid) {
-
-      grid.classList.remove('planos-erro');
-
-      void grid.offsetWidth;
-
-      grid.classList.add('planos-erro');
-
-      grid.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center'
-      });
-    }
-
-    if (typeof showNotification === 'function') {
-
-      showNotification(
-        '⚠️ Selecione um plano antes de continuar.',
-        'error'
-      );
-
-    } else {
-
-      alert(
-        '⚠️ Selecione um plano antes de continuar.'
-      );
-    }
-
+function validarEmail(campo) {
+  var valor = campo.value.trim();
+  if (!valor) {
+    campo.setCustomValidity('⚠️ Digite seu e-mail');
+    campo.reportValidity();
     return false;
   }
-
-
-  console.log(
-    '[MAXPROMO] ✅ Plano:',
-    planoSelecionado
-  );
-
-
-  // ==========================================================
-  // 2. NOME DA LOJA
-  // ==========================================================
-
-  const nomeEl =
-    document.getElementById('input-store-name');
-
-  if (!nomeEl) {
-
-    console.error(
-      '[MAXPROMO] ❌ input-store-name não encontrado.'
-    );
-
+  
+  // Padrão para validar email
+  var padrao = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!padrao.test(valor)) {
+    campo.setCustomValidity('⚠️ E-mail inválido. Ex: loja@email.com');
+    campo.reportValidity();
     return false;
   }
+  
+  campo.setCustomValidity('');
+  return true;
+}
 
-  const nome =
-    nomeEl.value.trim();
-
-  if (!nome) {
-
-    return erroCampo(
-      nomeEl,
-      '⚠️ Digite o nome da loja.'
-    );
-  }
-
-  if (nome.length < 3) {
-
-    return erroCampo(
-      nomeEl,
-      '⚠️ O nome da loja deve ter pelo menos 3 caracteres.'
-    );
-  }
-
-  limparErro(nomeEl);
-
-  console.log(
-    '[MAXPROMO] ✅ Nome da loja OK.'
-  );
-
-
-  // ==========================================================
-  // 3. URL
-  // ==========================================================
-
-  const urlEl =
-    document.getElementById('input-store-url');
-
-  if (!urlEl) {
-
-    console.error(
-      '[MAXPROMO] ❌ input-store-url não encontrado.'
-    );
-
+function validarSelect(campo) {
+  if (!campo.value) {
+    campo.setCustomValidity('⚠️ Selecione uma opção');
+    campo.reportValidity();
     return false;
   }
+  campo.setCustomValidity('');
+  return true;
+}
 
-  if (!validarCampoURL(urlEl)) {
+function validarNumero(campo) {
+  var valor = parseFloat(campo.value);
+  if (!campo.value.trim() || isNaN(valor) || valor <= 0) {
+    campo.setCustomValidity('⚠️ Digite um valor maior que zero');
+    campo.reportValidity();
     return false;
   }
-
-  console.log(
-    '[MAXPROMO] ✅ URL OK.'
-  );
-
-
-  // ==========================================================
-  // 4. E-MAIL
-  // ==========================================================
-
-  const emailEl =
-    document.getElementById('input-store-email');
-
-  if (!emailEl) {
-
-    console.error(
-      '[MAXPROMO] ❌ input-store-email não encontrado.'
-    );
-
-    return false;
-  }
-
-  if (!validarCampoEmail(emailEl)) {
-    return false;
-  }
-
-  console.log(
-    '[MAXPROMO] ✅ E-mail OK.'
-  );
-
-
-  // ==========================================================
-  // 5. CATEGORIA
-  // ==========================================================
-
-  const categoriaEl =
-    document.getElementById('input-store-cat');
-
-  if (!categoriaEl) {
-
-    console.error(
-      '[MAXPROMO] ❌ input-store-cat não encontrado.'
-    );
-
-    return false;
-  }
-
-  if (!categoriaEl.value) {
-
-    return erroCampo(
-      categoriaEl,
-      '⚠️ Selecione o tipo de promoção.'
-    );
-  }
-
-  limparErro(categoriaEl);
-
-  console.log(
-    '[MAXPROMO] ✅ Categoria OK.'
-  );
-
-
-  // ==========================================================
-  // 6. PRODUTO
-  // ==========================================================
-
-  const produtoEl =
-    document.getElementById('input-product-name');
-
-  if (!produtoEl) {
-
-    console.error(
-      '[MAXPROMO] ❌ input-product-name não encontrado.'
-    );
-
-    return false;
-  }
-
-  const produto =
-    produtoEl.value.trim();
-
-  if (!produto) {
-
-    return erroCampo(
-      produtoEl,
-      '⚠️ Digite o nome do produto.'
-    );
-  }
-
-  if (produto.length < 2) {
-
-    return erroCampo(
-      produtoEl,
-      '⚠️ O nome do produto deve ter pelo menos 2 caracteres.'
-    );
-  }
-
-  limparErro(produtoEl);
-
-  console.log(
-    '[MAXPROMO] ✅ Produto OK.'
-  );
-
-
-  // ==========================================================
-  // 7. PREÇO PROMOCIONAL
-  // ==========================================================
-
-  const precoNewEl =
-    document.getElementById('input-price-new');
-
-  if (!precoNewEl) {
-
-    console.error(
-      '[MAXPROMO] ❌ input-price-new não encontrado.'
-    );
-
-    return false;
-  }
-
-  const precoNew =
-    parseFloat(
-      String(precoNewEl.value)
-        .replace(',', '.')
-    );
-
-  if (
-    !precoNewEl.value.trim() ||
-    isNaN(precoNew) ||
-    precoNew <= 0
-  ) {
-
-    return erroCampo(
-      precoNewEl,
-      '⚠️ Informe o preço promocional maior que zero.'
-    );
-  }
-
-  limparErro(precoNewEl);
-
-  console.log(
-    '[MAXPROMO] ✅ Preço promocional OK.'
-  );
-
-
-  // ==========================================================
-  // 8. COLETA DOS DADOS
-  // ==========================================================
-
-  const precoOldEl =
-    document.getElementById('input-price-old');
-
-  const descricaoEl =
-    document.getElementById('input-descricao');
-
-
-  storeFormData = {
-
-    nome: nome,
-
-    url:
-      urlEl.value.trim(),
-
-    categoria:
-      categoriaEl.value,
-
-    email:
-      emailEl.value.trim(),
-
-    produto:
-      produto,
-
-    precoOld:
-      precoOldEl
-        ? parseFloat(
-            String(precoOldEl.value)
-              .replace(',', '.')
-          ) || 0
-        : 0,
-
-    precoNew:
-      precoNew,
-
-    descricao:
-      descricaoEl
-        ? descricaoEl.value.trim()
-        : '',
-
-    dias:
-      planoSelecionado.dias,
-
-    valor:
-      planoSelecionado.valor,
-
-    label:
-      planoSelecionado.label,
-
-    desc:
-      planoSelecionado.desc
-  };
-
-
-  console.log(
-    '[MAXPROMO] 📝 Dados coletados:',
-    storeFormData
-  );
-
-
-  // ==========================================================
-  // 9. GERA PIX
-  // ==========================================================
-
-  try {
-
-    pixTxid =
-      'MAXPROMO' + Date.now();
-
-
-    const pixCode =
-      gerarPixCopiaCola(
-        PIX_CONFIG.chave,
-        PIX_CONFIG.nome,
-        PIX_CONFIG.cidade,
-        planoSelecionado.valor,
-        PIX_CONFIG.descricao +
-          ' ' +
-          planoSelecionado.label
-      );
-
-
-    const keyEl =
-      document.getElementById('pix-key-display');
-
-    if (keyEl) {
-      keyEl.value = pixCode;
-    }
-
-
-    renderizarQRCode(pixCode);
-
-
-    const valorFormatado =
-      formatarDinheiro(
-        planoSelecionado.valor
-      );
-
-
-    const valorLabel =
-      document.getElementById('pix-valor-label');
-
-    if (valorLabel) {
-      valorLabel.textContent =
-        valorFormatado;
-    }
-
-
-    const diasLabel =
-      document.getElementById('pix-dias-label');
-
-    if (diasLabel) {
-      diasLabel.textContent =
-        planoSelecionado.label;
-    }
-
-
-    const instrucaoValor =
-      document.getElementById('instrucao-valor');
-
-    if (instrucaoValor) {
-      instrucaoValor.textContent =
-        valorFormatado;
-    }
-
-
-    const devBar =
-      document.getElementById('dev-bar-teste');
-
-    if (devBar) {
-      devBar.style.display =
-        typeof MODO_TESTE !== 'undefined' &&
-        MODO_TESTE
-          ? 'flex'
-          : 'none';
-    }
-
-
-    iniciarCountdownPix();
-
-
-    // ========================================================
-    // 10. STEP 2
-    // ========================================================
-
-    const step1 =
-      document.getElementById('store-step-1');
-
-    const step2 =
-      document.getElementById('store-step-2');
-
-
-    if (step1) {
-      step1.style.display = 'none';
-    }
-
-    if (step2) {
-      step2.style.display = 'block';
-    }
-
-
-    console.log(
-      '[MAXPROMO] 🚀 STEP 1 → STEP 2'
-    );
-
-    return true;
-
-
-  } catch (erro) {
-
-    console.error(
-      '[MAXPROMO] ❌ ERRO AO GERAR PIX:',
-      erro
-    );
-
-    if (typeof showNotification === 'function') {
-
-      showNotification(
-        '❌ Erro interno: ' + erro.message,
-        'error'
-      );
-
-    } else {
-
-      alert(
-        '❌ Erro interno: ' + erro.message
-      );
-    }
-
-    return false;
-  }
+  campo.setCustomValidity('');
+  return true;
 }
 
 // ============================================
@@ -3650,414 +3189,117 @@ function limparModalLoja() {
 // ============================================
 // FUNÇÃO CENTRAL DE VALIDAÇÃO E AVANÇO
 // ============================================
-// ============================================
-// VALIDAÇÃO CENTRAL — STEP 1
-// ============================================
 function validarEAvancarStep1() {
+  console.log('[MAXPROMO] 🔍 Iniciando validação rigorosa...');
 
-  console.log('[MAXPROMO] 🔍 Iniciando validação...');
-
-  // --------------------------------------------
-  // 1. PLANO
-  // --------------------------------------------
-  if (
-    !planoSelecionado ||
-    !planoSelecionado.dias ||
-    planoSelecionado.dias <= 0
-  ) {
-    console.error('[MAXPROMO] ❌ PLANO NÃO SELECIONADO');
-
-    const grid = document.getElementById('planos-grid');
-
+  // A. VALIDAR PLANO
+  if (!planoSelecionado || !planoSelecionado.dias || planoSelecionado.dias <= 0) {
+    console.error('[MAXPROMO] ❌ ERRO: Nenhum plano selecionado!');
+    var grid = document.getElementById('planos-grid');
     if (grid) {
       grid.classList.remove('planos-erro');
       void grid.offsetWidth;
       grid.classList.add('planos-erro');
-      grid.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center'
-      });
+      grid.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
-
-    mostrarMensagemValidacao('⚠️ Selecione um plano antes de continuar.');
-    return false;
+    if (typeof showNotification === 'function') {
+      showNotification('⚠️ SELECIONE UM PLANO ANTES DE CONTINUAR!', 'error');
+    } else {
+      alert('⚠️ SELECIONE UM PLANO ANTES DE CONTINUAR!');
+    }
+    return;
   }
 
-  console.log('[MAXPROMO] ✅ Plano OK:', planoSelecionado);
-
-
-  // --------------------------------------------
-  // FUNÇÃO AUXILIAR DE VALIDAÇÃO
-  // --------------------------------------------
-  function validarCampo(id, nome, regra) {
-
-    const campo = document.getElementById(id);
-
-    if (!campo) {
-      console.error(
-        `[MAXPROMO] ❌ Campo não encontrado: ${id}`
-      );
-      return false;
+  // B. VALIDAR NOME DA LOJA
+  var nomeEl = document.getElementById('input-store-name');
+  if (nomeEl) {
+    var nome = nomeEl.value.trim();
+    if (!nome || nome.length < 3) {
+      nomeEl.focus();
+      nomeEl.setCustomValidity('⚠️ Digite o nome da loja (mínimo 3 caracteres)');
+      nomeEl.reportValidity();
+      return;
     }
-
-    const valor = campo.value.trim();
-
-    console.log(
-      `[MAXPROMO] 🔎 Validando ${nome}:`,
-      valor
-    );
-
-    const erro = regra(valor, campo);
-
-    if (erro) {
-
-      console.error(
-        `[MAXPROMO] ❌ ${nome}: ${erro}`
-      );
-
-      campo.focus();
-      campo.setCustomValidity(erro);
-
-      if (typeof campo.reportValidity === 'function') {
-        campo.reportValidity();
-      }
-
-      campo.classList.add('input-erro');
-
-      return false;
-    }
-
-    campo.setCustomValidity('');
-    campo.classList.remove('input-erro');
-
-    console.log(`[MAXPROMO] ✅ ${nome} OK`);
-
-    return true;
+    nomeEl.setCustomValidity('');
   }
 
-
-  // --------------------------------------------
-  // 2. NOME DA LOJA
-  // --------------------------------------------
-  if (!validarCampo(
-    'input-store-name',
-    'Nome da loja',
-    function(valor) {
-
-      if (!valor) {
-        return '⚠️ Digite o nome da loja.';
-      }
-
-      if (valor.length < 3) {
-        return '⚠️ O nome da loja deve ter pelo menos 3 caracteres.';
-      }
-
-      return null;
+  // C. VALIDAR URL
+  var urlEl = document.getElementById('input-store-url');
+  if (urlEl) {
+    var url = urlEl.value.trim();
+    var padraoURL = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/i;
+    if (!url) {
+      urlEl.focus();
+      urlEl.setCustomValidity('⚠️ Digite a URL da loja');
+      urlEl.reportValidity();
+      return;
     }
-  )) {
-    return false;
+    if (!padraoURL.test(url)) {
+      urlEl.focus();
+      urlEl.setCustomValidity('⚠️ URL inválida. Ex: https://minhaloja.com.br');
+      urlEl.reportValidity();
+      return;
+    }
+    urlEl.setCustomValidity('');
   }
 
-
-  // --------------------------------------------
-  // 3. URL
-  // --------------------------------------------
-  if (!validarCampo(
-    'input-store-url',
-    'URL da loja',
-    function(valor) {
-
-      if (!valor) {
-        return '⚠️ Digite a URL da loja.';
-      }
-
-      let url = valor;
-
-      if (!/^https?:\/\//i.test(url)) {
-        url = 'https://' + url;
-      }
-
-      try {
-        new URL(url);
-        return null;
-      } catch (e) {
-        return '⚠️ URL inválida. Ex: https://minhaloja.com.br';
-      }
+  // D. VALIDAR EMAIL
+  var emailEl = document.getElementById('input-store-email');
+  if (emailEl) {
+    var email = emailEl.value.trim();
+    var padraoEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email) {
+      emailEl.focus();
+      emailEl.setCustomValidity('⚠️ Digite seu e-mail');
+      emailEl.reportValidity();
+      return;
     }
-  )) {
-    return false;
+    if (!padraoEmail.test(email)) {
+      emailEl.focus();
+      emailEl.setCustomValidity('⚠️ E-mail inválido. Ex: loja@email.com');
+      emailEl.reportValidity();
+      return;
+    }
+    emailEl.setCustomValidity('');
   }
 
-
-  // --------------------------------------------
-  // 4. E-MAIL
-  // --------------------------------------------
-  if (!validarCampo(
-    'input-store-email',
-    'E-mail',
-    function(valor) {
-
-      if (!valor) {
-        return '⚠️ Digite seu e-mail.';
-      }
-
-      const padrao =
-        /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-      if (!padrao.test(valor)) {
-        return '⚠️ E-mail inválido.';
-      }
-
-      return null;
+  // E. VALIDAR CATEGORIA
+  var catEl = document.getElementById('input-store-cat');
+  if (catEl) {
+    if (!catEl.value) {
+      catEl.focus();
+      catEl.setCustomValidity('⚠️ Selecione o tipo de promoção');
+      catEl.reportValidity();
+      return;
     }
-  )) {
-    return false;
+    catEl.setCustomValidity('');
   }
 
-
-  // --------------------------------------------
-  // 5. CATEGORIA
-  // --------------------------------------------
-  if (!validarCampo(
-    'input-store-cat',
-    'Categoria',
-    function(valor) {
-
-      if (!valor) {
-        return '⚠️ Selecione o tipo de promoção.';
-      }
-
-      return null;
+  // F. VALIDAR PRODUTO
+  var prodEl = document.getElementById('input-product-name');
+  if (prodEl) {
+    var produto = prodEl.value.trim();
+    if (!produto || produto.length < 2) {
+      prodEl.focus();
+      prodEl.setCustomValidity('⚠️ Digite o nome do produto (mínimo 2 caracteres)');
+      prodEl.reportValidity();
+      return;
     }
-  )) {
-    return false;
+    prodEl.setCustomValidity('');
   }
 
-
-  // --------------------------------------------
-  // 6. PRODUTO
-  // --------------------------------------------
-  if (!validarCampo(
-    'input-product-name',
-    'Produto',
-    function(valor) {
-
-      if (!valor) {
-        return '⚠️ Digite o nome do produto.';
-      }
-
-      if (valor.length < 2) {
-        return '⚠️ O nome do produto deve ter pelo menos 2 caracteres.';
-      }
-
-      return null;
+  // G. VALIDAR PREÇO NOVO
+  var priceNewEl = document.getElementById('input-price-new');
+  if (priceNewEl) {
+    var pNew = parseFloat(priceNewEl.value);
+    if (!priceNewEl.value.trim() || isNaN(pNew) || pNew <= 0) {
+      priceNewEl.focus();
+      priceNewEl.setCustomValidity('⚠️ Informe o preço promocional (valor maior que zero)');
+      priceNewEl.reportValidity();
+      return;
     }
-  )) {
-    return false;
+    priceNewEl.setCustomValidity('');
   }
-
-
-  // --------------------------------------------
-  // 7. PREÇO PROMOCIONAL
-  // --------------------------------------------
-  if (!validarCampo(
-    'input-price-new',
-    'Preço promocional',
-    function(valor) {
-
-      if (!valor) {
-        return '⚠️ Informe o preço promocional.';
-      }
-
-      const numero = parseFloat(valor);
-
-      if (isNaN(numero) || numero <= 0) {
-        return '⚠️ O preço promocional deve ser maior que zero.';
-      }
-
-      return null;
-    }
-  )) {
-    return false;
-  }
-
-
-  // --------------------------------------------
-  // 8. TUDO VÁLIDO
-  // --------------------------------------------
-  console.log(
-    '[MAXPROMO] 🟢 TODOS OS CAMPOS VALIDADOS!'
-  );
-
-  try {
-
-    storeFormData = {
-      nome: document
-        .getElementById('input-store-name')
-        .value.trim(),
-
-      url: document
-        .getElementById('input-store-url')
-        .value.trim(),
-
-      categoria: document
-        .getElementById('input-store-cat')
-        .value || '',
-
-      email: document
-        .getElementById('input-store-email')
-        .value.trim(),
-
-      produto: document
-        .getElementById('input-product-name')
-        .value.trim(),
-
-      precoOld:
-        parseFloat(
-          document.getElementById('input-price-old').value
-        ) || 0,
-
-      precoNew:
-        parseFloat(
-          document.getElementById('input-price-new').value
-        ) || 0,
-
-      descricao:
-        document.getElementById('input-descricao')
-          ? document.getElementById('input-descricao').value.trim()
-          : '',
-
-      dias: planoSelecionado.dias,
-      valor: planoSelecionado.valor,
-      label: planoSelecionado.label,
-      desc: planoSelecionado.desc
-    };
-
-    console.log(
-      '[MAXPROMO] 📝 Dados coletados:',
-      storeFormData
-    );
-
-
-    // ------------------------------------------
-    // GERA TXID
-    // ------------------------------------------
-    pixTxid = 'MAXPROMO' + Date.now();
-
-
-    // ------------------------------------------
-    // GERA PIX
-    // ------------------------------------------
-    const pixCode = gerarPixCopiaCola(
-      PIX_CONFIG.chave,
-      PIX_CONFIG.nome,
-      PIX_CONFIG.cidade,
-      planoSelecionado.valor,
-      PIX_CONFIG.descricao + ' ' +
-      planoSelecionado.label
-    );
-
-
-    // ------------------------------------------
-    // MOSTRA PIX
-    // ------------------------------------------
-    const keyEl =
-      document.getElementById('pix-key-display');
-
-    if (keyEl) {
-      keyEl.value = pixCode;
-    }
-
-    renderizarQRCode(pixCode);
-
-
-    const valorLabel =
-      document.getElementById('pix-valor-label');
-
-    if (valorLabel) {
-      valorLabel.textContent =
-        formatarDinheiro(planoSelecionado.valor);
-    }
-
-
-    const diasLabel =
-      document.getElementById('pix-dias-label');
-
-    if (diasLabel) {
-      diasLabel.textContent =
-        planoSelecionado.label;
-    }
-
-
-    const instrucaoValor =
-      document.getElementById('instrucao-valor');
-
-    if (instrucaoValor) {
-      instrucaoValor.textContent =
-        formatarDinheiro(planoSelecionado.valor);
-    }
-
-
-    const devBar =
-      document.getElementById('dev-bar-teste');
-
-    if (devBar) {
-      devBar.style.display =
-        typeof MODO_TESTE !== 'undefined' && MODO_TESTE
-          ? 'flex'
-          : 'none';
-    }
-
-
-    iniciarCountdownPix();
-
-
-    // ------------------------------------------
-    // AVANÇA PARA STEP 2
-    // ------------------------------------------
-    const step1 =
-      document.getElementById('store-step-1');
-
-    const step2 =
-      document.getElementById('store-step-2');
-
-    if (step1) step1.style.display = 'none';
-    if (step2) step2.style.display = 'block';
-
-
-    console.log(
-      '[MAXPROMO] 🚀 Avançou para o pagamento PIX!'
-    );
-
-    return true;
-
-  } catch (erro) {
-
-    console.error(
-      '[MAXPROMO] ❌ ERRO AO GERAR PIX:',
-      erro
-    );
-
-    mostrarMensagemValidacao(
-      '❌ Erro interno: ' + erro.message
-    );
-
-    return false;
-  }
-}
-
-
-// ============================================
-// MENSAGEM DE VALIDAÇÃO
-// ============================================
-function mostrarMensagemValidacao(mensagem) {
-
-  if (typeof showNotification === 'function') {
-    showNotification(mensagem, 'error');
-  } else {
-    alert(mensagem);
-  }
-}
 
   // ==========================================
   // TUDO VÁLIDO — coleta dados e gera o PIX
@@ -4129,203 +3371,155 @@ function mostrarMensagemValidacao(mensagem) {
 
 
 // ============================================
-// INICIALIZAÇÃO DOS LISTENERS - 
+// INICIALIZAÇÃO DOS LISTENERS - CORRIGIDA
 // ============================================
-// ============================================================
-// MAXPROMO — EVENTOS ÚNICOS
-// ============================================================
-
 function initStoreModal() {
+  console.warn('[MAXPROMO] 🚀 INICIALIZANDO VERSÃO FINAL');
 
-  console.warn(
-    '[MAXPROMO] 🚀 INICIALIZANDO VERSÃO FINAL'
-  );
-
-
-  // ==========================================================
-  // BOTÃO CONTINUAR
-  // ==========================================================
-
-  const btn =
-    document.getElementById(
-      'btn-store-step1-next'
-    );
-
-  if (btn) {
-
-    // Impede múltiplas inicializações
-    if (btn.dataset.maxpromoBound === '1') {
-      return;
-    }
-
-    btn.dataset.maxpromoBound = '1';
-
-
-    btn.addEventListener(
-      'click',
-      function(event) {
-
-        event.preventDefault();
-        event.stopPropagation();
-
-        console.log(
-          '[MAXPROMO] 🖱️ Botão Continuar clicado!'
-        );
-
-        validarEAvancarStep1();
-      }
-    );
-  }
-
-
-  // ==========================================================
-  // FORMULÁRIO
-  // ==========================================================
-
-  const form =
-    document.getElementById(
-      'form-store-step1'
-    );
-
-  if (form && form.dataset.maxpromoBound !== '1') {
-
-    form.dataset.maxpromoBound = '1';
-
-    form.addEventListener(
-      'submit',
-      function(event) {
-
-        event.preventDefault();
-        event.stopPropagation();
-
-        console.log(
-          '[MAXPROMO] 📝 Submit interceptado.'
-        );
-
-        validarEAvancarStep1();
-      }
-    );
-  }
-
-
-  // ==========================================================
-  // PLANOS
-  // ==========================================================
-
-  document
-    .querySelectorAll('.plano-card')
-    .forEach(function(card) {
-
-      if (card.dataset.maxpromoBound === '1') {
-        return;
-      }
-
-      card.dataset.maxpromoBound = '1';
-
-      card.addEventListener(
-        'click',
-        function(event) {
-
-          event.preventDefault();
-
-          selecionarPlano(this);
-        }
-      );
+  // 1. BOTÃO CONTINUAR - Usa evento diretamente no elemento
+  var btnContinuar = document.getElementById('btn-store-step1-next');
+  if (btnContinuar) {
+    // Remove listeners antigos
+    var novoBtn = btnContinuar.cloneNode(true);
+    btnContinuar.parentNode.replaceChild(novoBtn, btnContinuar);
+    
+    novoBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log('[MAXPROMO] 🖱️ Botão Continuar clicado!');
+      validarEAvancarStep1();
+      return false;
     });
-
-
-  // ==========================================================
-  // VALIDAÇÃO DOS CAMPOS AO SAIR
-  // ==========================================================
-
-  const url =
-    document.getElementById(
-      'input-store-url'
-    );
-
-  if (url && url.dataset.maxpromoBound !== '1') {
-
-    url.dataset.maxpromoBound = '1';
-
-    url.addEventListener(
-      'blur',
-      function() {
-
-        if (this.value.trim()) {
-          validarCampoURL(this);
-        }
-      }
-    );
   }
 
-
-  const email =
-    document.getElementById(
-      'input-store-email'
-    );
-
-  if (email && email.dataset.maxpromoBound !== '1') {
-
-    email.dataset.maxpromoBound = '1';
-
-    email.addEventListener(
-      'blur',
-      function() {
-
-        if (this.value.trim()) {
-          validarCampoEmail(this);
-        }
-      }
-    );
+  // 2. FORMULÁRIO - Previne submit padrão
+  var form = document.getElementById('form-store-step1');
+  if (form) {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log('[MAXPROMO] 📝 Formulário submetido!');
+      validarEAvancarStep1();
+      return false;
+    });
   }
+//===============================================================
+  // 3. PLANOS - Adiciona listeners para garantir que onclick funcione
+  //=================================================================
+  document.querySelectorAll('.plano-card').forEach(card => {
+  card.addEventListener('click', () => selecionarPlano(card));
+});
+ 
 
-
-  // ==========================================================
-  // LIMPA ERROS QUANDO O USUÁRIO DIGITA
-  // ==========================================================
-
-  [
-    'input-store-name',
-    'input-store-url',
-    'input-store-email',
-    'input-store-cat',
-    'input-product-name',
-    'input-price-new'
-  ]
-  .forEach(function(id) {
-
-    const campo =
-      document.getElementById(id);
-
-    if (!campo ||
-        campo.dataset.maxpromoInputBound === '1') {
-      return;
+  // 4. CAMPOS COM VALIDAÇÃO EM TEMPO REAL
+  var camposReais = ['input-store-name', 'input-store-url', 'input-store-email'];
+  camposReais.forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('blur', function() {
+        if (this.value && this.value.trim() === '') {
+          this.classList.add('input-erro');
+        } else {
+          this.classList.remove('input-erro');
+          this.setCustomValidity('');
+        }
+      });
+      el.addEventListener('input', function() {
+        if (this.value && this.value.trim() !== '') {
+          this.classList.remove('input-erro');
+          this.setCustomValidity('');
+        }
+      });
     }
-
-    campo.dataset.maxpromoInputBound = '1';
-
-    campo.addEventListener(
-      'input',
-      function() {
-
-        limparErro(this);
-      }
-    );
-
-    campo.addEventListener(
-      'change',
-      function() {
-
-        limparErro(this);
-      }
-    );
   });
 
+  // 5. BOTÃO CANCELAR
+  var btnCancel = document.getElementById('btn-store-cancel');
+  if (btnCancel) {
+    btnCancel.addEventListener('click', function() {
+      limparModalLoja();
+      closeModal('modal-add-store');
+    });
+  }
 
-  console.log(
-    '[MAXPROMO] ✅ Eventos registrados uma única vez.'
-  );
+  // 6. BOTÃO VOLTAR (Step 2)
+  var btnVoltar = document.getElementById('btn-store-step2-back');
+  if (btnVoltar) {
+    btnVoltar.addEventListener('click', function() {
+      clearInterval(pixCountdownInterval);
+      var st1 = document.getElementById('store-step-1');
+      var st2 = document.getElementById('store-step-2');
+      if (st1) st1.style.display = 'block';
+      if (st2) st2.style.display = 'none';
+    });
+  }
 
+  // 7. BOTÃO PAGUEI
+  var btnPaguei = document.getElementById('btn-store-step2-paguei');
+  if (btnPaguei) {
+    btnPaguei.addEventListener('click', function() {
+      if (!storeFormData) {
+        showNotification('❌ Dados do formulário não encontrados', 'error');
+        return;
+      }
+      confirmarPagamentoEAvancar('pago');
+    });
+  }
+
+  // 8. BOTÃO SIMULAR PAGAMENTO
+  var btnSimular = document.getElementById('btn-dev-simular');
+  if (btnSimular) {
+    btnSimular.addEventListener('click', function() {
+      if (!storeFormData) {
+        showNotification('❌ Dados do formulário não encontrados', 'error');
+        return;
+      }
+      confirmarPagamentoEAvancar('pago_simulado');
+    });
+  }
+
+  // 9. BOTÃO FECHAR STEP 3
+  var btnClose = document.getElementById('btn-store-step3-close');
+  if (btnClose) {
+    btnClose.addEventListener('click', function() {
+      limparModalLoja();
+      closeModal('modal-add-store');
+    });
+  }
+
+  // 10. BOTÃO COPIAR PIX
+  var btnCopy = document.getElementById('btn-copy-pix');
+  if (btnCopy) {
+    btnCopy.addEventListener('click', function() {
+      var keyEl = document.getElementById('pix-key-display');
+      if (!keyEl || !keyEl.value) {
+        showNotification('Nenhum código PIX disponível', 'error');
+        return;
+      }
+      
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(keyEl.value).then(function() {
+          showNotification('✅ Código PIX copiado!', 'success');
+        }).catch(function() {
+          fallbackCopy(keyEl.value);
+          showNotification('✅ Código PIX copiado!', 'success');
+        });
+      } else {
+        fallbackCopy(keyEl.value);
+        showNotification('✅ Código PIX copiado!', 'success');
+      }
+    });
+  }
+}
+
+// Inicialização
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', function() {
+    initStoreModal();
+  });
+} else {
+  initStoreModal();
+}
 
   // ============================================
   // OUTROS MODAIS
