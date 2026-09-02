@@ -801,6 +801,7 @@
   }
 }
 
+
 /* ============================================
    11. CONTROLE DE VISIBILIDADE DOS STEPS
    ============================================ */
@@ -905,7 +906,6 @@
     padding: 10px;
   }
 }
-
 
 /* ============================================
    BOTÃO FLUTUANTE VERDE - 
@@ -2035,8 +2035,11 @@ function validarEAvancarStep1() {
 
     iniciarCountdownPix();
 
-    var st1 = _$('store-step-1'); if (st1) st1.style.display = 'none';
-    var st2 = _$('store-step-2'); if (st2) st2.style.display = 'block';
+    var st1 = _$('store-step-1'); 
+    if (st1) st1.style.display = 'none';
+
+    var st2 = _$('store-step-2'); 
+    if (st2) st2.style.display = 'block';
 
   } catch (err) {
     console.error('[MAXPROMO] ❌ ERRO CRÍTICO AO AVANÇAR:', err);
@@ -2098,9 +2101,14 @@ function limparModalLoja() {
   var err = _$('store-error');
   if (err) err.style.display = 'none';
 
-  var st1 = _$('store-step-1'); if (st1) st1.style.display = 'block';
-  var st2 = _$('store-step-2'); if (st2) st2.style.display = 'none';
-  var st3 = _$('store-step-3'); if (st3) st3.style.display = 'none';
+  var st1 = _$('store-step-1'); 
+  if (st1) st1.style.display = 'block';
+
+  var st2 = _$('store-step-2'); 
+  if (st2) st2.style.display = 'none';
+
+  var st3 = _$('store-step-3'); 
+  if (st3) st3.style.display = 'none';
 
   var box = _$('pix-timer-box');
   if (box) box.classList.remove('urgente');
