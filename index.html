@@ -1,3 +1,4 @@
+romo_corrigido.html
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -831,21 +832,21 @@
   justify-content: center;
 }
 
-.fab-add-store:hover {
+.add-store:hover {
   transform: scale(1.08);
   box-shadow: 0 8px 35px rgba(76, 175, 80, 0.55);
 }
 
-.fab-add-store:active {
+.add-store:active {
   transform: scale(0.93);
 }
 
-.fab-add-store i {
+.add-store i {
   font-size: 1.4rem;
 }
 
 /* Tooltip */
-.fab-add-store::after {
+.add-store::after {
   content: "Inserir Loja";
   position: absolute;
   right: 68px;
@@ -868,20 +869,21 @@
 
 /* Responsivo */
 @media (max-width: 380px) {
-  .fab-add-store {
+  .add-store {
     width: 48px;
     height: 48px;
     font-size: 1.2rem;
     bottom: 16px;
     right: 16px;
   }
-  .fab-add-store::after {
+  .add-store::after {
     display: none;
   }
 }
 
 
 </style>
+<base target="_blank">
 </head>
 
 <body>
@@ -1203,7 +1205,7 @@ MODAL COMPARAR ------------
 
     <div class="modal-actions">
       <button type="button" class="btn-cancel" id="btn-store-cancel">Cancelar</button>
-      <button type="submit" class="btn-confirm" id="btn-store-step1-next" disabled>
+      <button type="submit" class="btn-confirm" id="btn-store-step1-next" type="button" disabled>
         <i class="fas fa-arrow-right" style="font-size:.75rem;margin-right:6px;"></i>Continuar → Pagar PIX
       </button> 
     </div>
@@ -1468,37 +1470,6 @@ function gerarHTMLIcone(tipo, tamanho) {
 // SELEÇÃO DE PLANO
 // ============================================
 
-var planoSelecionado = null;
-
-function selecionarPlano(el) {
-  document.querySelectorAll('.plano-card').forEach(function(c) {
-    c.classList.remove('selected');
-  });
-  el.classList.add('selected');
-
-  planoSelecionado = {
-    dias: parseInt(el.dataset.dias, 10),
-    valor: parseFloat(el.dataset.valor),
-    label: el.dataset.dias + ' dias',
-    desc: el.querySelector('.plano-desc') ? el.querySelector('.plano-desc').textContent : ''
-  };
-
-  document.getElementById('input-plano-dias').value = planoSelecionado.dias;
-  document.getElementById('tempo-permanencia-display').textContent =
-    planoSelecionado.label + ' — R$ ' + planoSelecionado.valor.toFixed(2).replace('.', ',');
-
-  // Desbloqueia o botão
-  var btn = document.getElementById('btn-store-step1-next');
-  btn.disabled = false;
-  btn.innerHTML = '<i class="fas fa-arrow-right" style="font-size:.75rem;margin-right:6px;"></i>Continuar → Pagar PIX';
-
-  // Limpa erro dos planos
-  var g = document.getElementById('planos-grid');
-  if (g) g.classList.remove('planos-erro');
-
-  if (typeof atualizarPreview === 'function') atualizarPreview();
-}
-
 // ============================================
 // HELPER: exibe balão nativo + marca campo
 // ============================================
@@ -1522,319 +1493,19 @@ function mostrarErroCampo(campo, msgCustom) {
 // FUNÇÕES PARA CÁLCULO DE DESCONTO
 // ============================================
 
-function calcularDesconto() {
-  const precoOld = parseMoeda(document.getElementById('input-price-old').value);
-  const precoNew = parseMoeda(document.getElementById('input-price-new').value);
-  const discountInput = document.getElementById('input-discount');
-  
-  if (precoOld > 0 && precoNew >= 0 && precoNew < precoOld) {
-    const desconto = ((precoOld - precoNew) / precoOld * 100);
-    discountInput.value = desconto.toFixed(1);
-    atualizarPreview();
-  } else if (precoOld > 0 && precoNew >= precoOld) {
-    discountInput.value = 0;
-    atualizarPreview();
-  }
-}
-function calcularPrecoPorDesconto() {
-  const precoOld = parseFloat(document.getElementById('input-price-old').value);
-  const desconto = parseFloat(document.getElementById('input-discount').value);
-  const priceNewInput = document.getElementById('input-price-new');
-  
-  if (precoOld > 0 && desconto >= 0 && desconto <= 100) {
-    const precoNew = precoOld * (1 - desconto / 100);
-    priceNewInput.value = precoNew.toFixed(2);
-    atualizarPreview();
-  }
-}
-  
-  //==============================================
+//==============================================
   // Validação para habilitar o botão "Continuar"
   //==============================================
   validarFormulario();
-
-function validarFormulario() {
-  const nomeLoja = document.getElementById('input-store-name').value.trim();
-  const url = document.getElementById('input-store-url').value.trim();
-  const email = document.getElementById('input-store-email').value.trim();
-  const produto = document.getElementById('input-product-name').value.trim();
-  const precoOld = parseFloat(document.getElementById('input-price-old').value);
-  const precoNew = parseFloat(document.getElementById('input-price-new').value);
-  const planoDias = parseInt(document.getElementById('input-plano-dias').value);
-  const planoSelecionado = document.querySelector('.plano-card.selecionado');
-  
-  const nextBtn = document.getElementById('btn-store-step1-next');
-  
-  const isValid = nomeLoja && url && email && produto && precoOld > 0 && precoNew >= 0 && planoDias > 0 && planoSelecionado;
-  
-  if (isValid) {
-    nextBtn.style.opacity = '1';
-    nextBtn.style.cursor = 'pointer';
-    nextBtn.innerHTML = '<i class="fas fa-arrow-right" style="font-size:.75rem;margin-right:6px;"></i>Continuar → Pagar PIX';
-    nextBtn.disabled = false;
-  } else {
-    nextBtn.style.opacity = '0.5';
-    nextBtn.style.cursor = 'not-allowed';
-    nextBtn.innerHTML = '<i class="fas fa-lock" style="font-size:.75rem;margin-right:6px;"></i>Continuar → Pagar PIX';
-    nextBtn.disabled = true;
-  }
-}
 
 // ============================================
 // GERAR CONFIGURAÇÃO FINAL
 // ============================================
 
-function gerarConfiguracao() {
-  const planoDias = parseInt(document.getElementById('input-plano-dias').value);
-  const dataAtual = new Date();
-  const dataExpiracao = new Date(dataAtual);
-  dataExpiracao.setDate(dataExpiracao.getDate() + planoDias);
-  
-  // Tempo restante em segundos (conversão de dias para segundos)
-  const tempoRestanteSegundos = planoDias * 24 * 60 * 60;
-  
-  const data = {
-    id: Math.floor(Math.random() * 1000) + 1,
-    tipo: document.getElementById('input-store-cat').value,
-    titulo: document.getElementById('input-product-name').value.trim(),
-    desc: document.getElementById('input-descricao').value.trim() || 'Promoção especial',
-    loja: document.getElementById('input-store-name').value.trim(),
-    precoOld: parseFloat(document.getElementById('input-price-old').value),
-    precoNew: parseFloat(document.getElementById('input-price-new').value),
-    tempoRestante: tempoRestanteSegundos,
-    diasAtivo: planoDias,
-    dataExpiracao: dataExpiracao.toISOString(),
-    clickThroughUrl: document.getElementById('input-store-url').value.trim(),
-    url: document.getElementById('input-store-url').value.trim()
-  };
-  
-  return data;
-}
-
 //==============================//
   // CAMPOS DE INPUTS FORMULÁRIO//
   //============================//
   
-const campos = ['input-store-name', 'input-store-url', 'input-store-cat', 'input-store-email', 
-                  'input-product-name', 'input-descricao'];
-  
-  campos.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) {
-      el.addEventListener('input', atualizarPreview);
-      el.addEventListener('change', atualizarPreview);
-    }
-  });
-  
-  // Botão de continuar - captura os dados
-  document.getElementById('btn-store-step1-next').addEventListener('click', function(e) {
-    if (this.disabled) return;
-    
-    const config = gerarConfiguracao();
-    console.log('Configuração gerada:', config);
-    
-    // Salva no localStorage ou variável global para uso posterior
-    window.configLoja = config;
-    
-    // Exibe no console no formato PRODUCT
-    console.log(`
-      var PRODUCT = {
-        id: ${config.id},
-        tipo: '${config.tipo}',
-        titulo: '${config.titulo}',
-        desc: '${config.desc}',
-        loja: '${config.loja}',
-        precoOld: ${config.precoOld},
-        precoNew: ${config.precoNew},
-        tempoRestante: ${config.tempoRestante}, // ${config.diasAtivo} dias
-        clickThroughUrl: '${config.clickThroughUrl}',
-        url: '${config.url}'
-      };
-    `);
-    
-    // Avança para o passo 2 (PIX)
-    document.getElementById('store-step-1').style.display = 'none';
-    document.getElementById('store-step-2').style.display = 'block';
-  });
-
-function gerarPixCopiaCola(chave, nome, cidade, valor, descricao) {
-  function campo(id, val) { return id + String(val.length).padStart(2, '0') + val; }
-  function crc16(str) {
-    var crc = 0xFFFF;
-    for (var i = 0; i < str.length; i++) {
-      crc ^= str.charCodeAt(i) << 8;
-      for (var j = 0; j < 8; j++) {
-        crc = (crc & 0x8000) ? (crc << 1) ^ 0x1021 : crc << 1;
-      }
-    }
-    return (crc & 0xFFFF).toString(16).toUpperCase().padStart(4, '0');
-  }
-  
-  var nomeClean = (nome || '').substring(0, 25).toUpperCase();
-  var cidadeClean = (cidade || '').substring(0, 15).toUpperCase();
-  var descClean = (descricao || '').substring(0, 72);
-  var valorStr = Number(valor).toFixed(2);
-  
-  var merchantAcc = campo('26', campo('00', 'BR.GOV.BCB.PIX') + campo('01', chave) + (descClean ? campo('02', descClean) : ''));
-  var addData = campo('62', campo('05', '***'));
-  var payload = '000201' + '010212' + merchantAcc + '52040000' + '5303986' + '54' + String(valorStr.length).padStart(2, '0') + valorStr + '5802BR' + '59' + String(nomeClean.length).padStart(2, '0') + nomeClean + '60' + String(cidadeClean.length).padStart(2, '0') + cidadeClean + addData + '6304';
-  
-  return payload + crc16(payload);
-}
-
-function renderizarQRCode(texto) {
-  var canvas = document.getElementById('pix-qr-canvas');
-  if (!canvas) return;
-  var ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, 180, 180);
-  
-  if (typeof QRCode !== 'undefined') {
-    var tmpDiv = document.createElement('div');
-    document.body.appendChild(tmpDiv);
-    try {
-      new QRCode(tmpDiv, {
-        text: texto,
-        width: 180,
-        height: 180,
-        colorDark: '#000000',
-        colorLight: '#ffffff',
-        correctLevel: QRCode.CorrectLevel.M
-      });
-      setTimeout(function() {
-        var img = tmpDiv.querySelector('img');
-        if (img) {
-          var i = new Image();
-          i.onload = function() { ctx.drawImage(i, 0, 0, 180, 180); };
-          i.src = img.src;
-        }
-        if (tmpDiv.parentNode) document.body.removeChild(tmpDiv);
-      }, 150);
-    } catch(e) {
-      if (tmpDiv.parentNode) document.body.removeChild(tmpDiv);
-      _qrFallback(ctx);
-    }
-  } else {
-    _qrFallback(ctx);
-  }
-}
-
-function _qrFallback(ctx) {
-  ctx.fillStyle = '#fff';
-  ctx.fillRect(0, 0, 180, 180);
-  ctx.fillStyle = '#444';
-  ctx.font = '13px Inter,sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('Use Copia e Cola', 90, 80);
-  ctx.fillText('abaixo ↓', 90, 100);
-}
-
-function iniciarCountdownPix() {
-  clearInterval(pixCountdownInterval);
-  var segundos = 600;
-  pixCountdownInterval = setInterval(function() {
-    segundos--;
-    var m = Math.floor(segundos / 60);
-    var s = segundos % 60;
-    var countEl = document.getElementById('pix-countdown');
-    if (countEl) countEl.textContent = m + ':' + String(s).padStart(2, '0');
-    if (segundos <= 60) {
-      var timerEl = document.getElementById('pix-timer-box');
-      if (timerEl) timerEl.classList.add('urgente');
-    }
-    if (segundos <= 0) {
-      clearInterval(pixCountdownInterval);
-      _setStatusPix('erro', '<i class="fas fa-times-circle"></i> QR expirado. Volte e gere novamente.');
-    }
-  }, 1000);
-}
-
-function _setStatusPix(tipo, html) {
-  var el = document.getElementById('pix-status-msg');
-  if (!el) return;
-  el.className = 'pix-status-msg ' + tipo;
-  el.innerHTML = html;
-}
-
-function limparModalLoja() {
-  document.getElementById('input-store-name').value = '';
-  document.getElementById('input-store-url').value = '';
-  document.getElementById('input-store-email').value = '';
-  document.querySelectorAll('.plano-card').forEach(function(c) { c.classList.remove('selected'); });
-  planoSelecionado = null;
-  storeFormData = {};
-  clearInterval(pixCountdownInterval);
-  document.getElementById('store-step-1').style.display = 'block';
-  document.getElementById('store-step-2').style.display = 'none';
-  document.getElementById('store-step-3').style.display = 'none';
-  
-  var btnNext = document.getElementById('btn-store-step1-next');
-  if (btnNext) {
-    btnNext.disabled = true;
-    btnNext.innerHTML = '<i class="fas fa-lock" style="font-size:.75rem;margin-right:6px;"></i>Continuar → Pagar PIX';
-  }
-  
-  var statusMsg = document.getElementById('pix-status-msg');
-  if (statusMsg) {
-    statusMsg.className = 'pix-status-msg aguardando';
-    statusMsg.innerHTML = '<i class="fas fa-hourglass-half" style="color:var(--accent-color);"></i> Aguardando confirmação do pagamento...';
-  }
-  
-  var timerBox = document.getElementById('pix-timer-box');
-  if (timerBox) timerBox.classList.remove('urgente');
-  document.getElementById('pix-countdown').textContent = '10:00';
-}
-
-async function salvarLojaNoNeon(form, status) {
-  var payload = {
-    loja_nome: form.nome,
-    loja_url: form.url,
-    loja_categoria: form.categoria,
-    loja_email: form.email,
-    plano_dias: parseInt(form.dias),
-    valor_pago: parseFloat(form.valor),
-    data_expiracao: calcularExpiracao(form.dias),
-    pix_txid: pixTxid || ('MANUAL_' + Date.now()),
-    status: status || 'aguardando_validacao',
-    modo_pagamento: 'pix_manual'
-  };
-  try {
-    var r = await fetch('/api/salvar-loja', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    return await r.json();
-  } catch(e) {
-    console.error('[Max Promo] salvarLoja:', e);
-    try {
-      var key = 'maxpromo_lojas_pendentes';
-      var pending = JSON.parse(localStorage.getItem(key) || '[]');
-      pending.push(Object.assign({}, payload, { tentativa_em: new Date().toISOString() }));
-      localStorage.setItem(key, JSON.stringify(pending));
-    } catch(_) {}
-    return null;
-  }
-}
-
-function confirmarPagamentoEAvancar(statusFinal) {
-  clearInterval(pixCountdownInterval);
-  salvarLojaNoNeon(storeFormData, statusFinal || 'aguardando_validacao');
-  
-  var resumo = document.getElementById('store-step3-resumo');
-  if (resumo) {
-    resumo.innerHTML = 
-      '<div><strong>🏪 Loja:</strong> ' + storeFormData.nome + '</div>' +
-      '<div><strong>🔗 URL:</strong> ' + storeFormData.url + '</div>' +
-      '<div><strong>📅 Plano:</strong> ' + storeFormData.label + ' (' + formatarDinheiro(storeFormData.valor) + ')</div>' +
-      '<div><strong>⏳ Válido até:</strong> ' + calcularExpiracao(storeFormData.dias) + '</div>' +
-      '<div><strong>✅ Status:</strong> <span style="color:#4CAF50;">✔ Solicitação recebida — publicação em até 24h</span></div>';
-  }
-  
-  document.getElementById('store-step-2').style.display = 'none';
-  document.getElementById('store-step-3').style.display = 'block';
-}
-
 // ============================================
 // FUNÇÕES DE RENDER
 // ============================================
@@ -2016,7 +1687,7 @@ async function renderFeed(promos) {
     lista = neonData || [];
   }
   
-  var listaCompleta = [PRODUCT, ...lista];
+  var listaCompleta = [BOLSA_TIGRESA, ...lista];
   
   if (filtroAtivo) {
     listaCompleta = listaCompleta.filter(function(p) { return p.tipo === filtroAtivo; });
@@ -2645,9 +2316,7 @@ if (modalConfirm) {
 // ============================================
 // 1. ESTADO GLOBAL + CONFIG
 // ============================================
-var planoSelecionado     = null;
-var storeFormData        = null;
-var pixTxid              = '';
+// planoSelecionado, storeFormData, pixTxid já declarados no estado global acima
 var pixCountdownInterval = null;
 var pixExpirado          = false;
 var PIX_TEMPO_SEGUNDOS = 600; // 10 min
@@ -3466,11 +3135,7 @@ function initStoreModal() {
   }
 }
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initStoreModal);
-} else {
-  initStoreModal();
-}
+// initStoreModal() chamado dentro de initApp()
 
   // ============================================
   // OUTROS MODAIS
@@ -3523,6 +3188,11 @@ if (document.readyState === 'loading') {
       if (tabAtiva === 'monitored') renderMonitored();
     }
   }, 8000);
+
+  // ============================================
+  // INIT STORE MODAL
+  // ============================================
+  if (typeof initStoreModal === 'function') initStoreModal();
 
   // ============================================
   // AUTO-REFRESH
