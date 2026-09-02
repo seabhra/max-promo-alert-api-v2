@@ -801,112 +801,17 @@
   }
 }
 
+
+
+
+
 /* ============================================
-   11. CONTROLE DE VISIBILIDADE DOS STEPS
+   BOTÃO FLUTUANTE AMARELO
    ============================================ */
-
-/* Por padrão, esconde todos os steps exceto o ativo */
-#store-step-1,
-#store-step-2,
-#store-step-3 {
-  display: none !important;
-  width: 100%;
-  max-width: 100%;
-}
-
-/* Mostra apenas o step ativo */
-#store-step-1[style*="display: block"],
-#store-step-2[style*="display: block"],
-#store-step-3[style*="display: block"] {
-  display: block !important;
-}
-
-/* Quando o step está visível via JS, aplica o layout correto */
-#store-step-1:not([style*="display: none"]),
-#store-step-2:not([style*="display: none"]),
-#store-step-3:not([style*="display: none"]) {
-  display: block !important;
-  width: 100% !important;
-}
-
-/* Prévia de configuração - sempre abaixo do formulário */
-.config-preview,
-#config-preview {
-  display: block !important;
-  width: 100% !important;
-  max-width: 100% !important;
-  clear: both !important;
-  float: none !important;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  padding: 16px;
-  font-size: 0.85rem;
-  line-height: 1.6;
-  margin-top: 20px;
-  margin-bottom: 24px;
-  word-wrap: break-word;
-}
-
-/* Garante que o formulário use layout em coluna */
-#form-store-step1 {
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: stretch !important;
-  width: 100% !important;
-}
-
-/* Seções do formulário */
-.form-section,
-.section-label,
-.form-group {
-  width: 100% !important;
-  max-width: 100% !important;
-  display: block !important;
-}
-
-/* Mobile: ajustes específicos */
-@media (max-width: 768px) {
-  #store-step-1,
-  #store-step-2,
-  #store-step-3 {
-    padding: 0 8px;
-  }
+.fab-add{position:absolute;bottom:24px;right:24px;width:56px;height:56px;border-radius:50%;border:none;background:linear-gradient(135deg,#FFB300,#FF8F00);color:#000;font-size:1.5rem;cursor:pointer;box-shadow:0 6px 25px rgba(255,179,0,0.35);transition:all 0.25s ease;z-index:600;display:flex;align-items:center;justify-content:center}
+  .fab-add:hover{transform:scale(1.08);box-shadow:0 8px 30px rgba(255,179,0,0.5)}
+  .fab-add:active{transform:scale(0.93)}
   
-  .config-preview,
-  #config-preview {
-    font-size: 0.8rem;
-    padding: 12px;
-    margin-top: 16px;
-    margin-bottom: 20px;
-  }
-  
-  /* Garante que o campo de código PIX e botão fiquem empilhados */
-  .pix-copiacola-row {
-    flex-direction: column !important;
-    align-items: stretch !important;
-  }
-  
-  .pix-copiacola-row input {
-    width: 100% !important;
-    margin-bottom: 8px;
-  }
-  
-  .btn-copy-pix {
-    width: 100% !important;
-    height: 42px !important;
-  }
-}
-
-@media (max-width: 380px) {
-  .config-preview,
-  #config-preview {
-    font-size: 0.75rem;
-    padding: 10px;
-  }
-}
-
-
 /* ============================================
    BOTÃO FLUTUANTE VERDE - 
    ============================================ */
@@ -2035,11 +1940,8 @@ function validarEAvancarStep1() {
 
     iniciarCountdownPix();
 
-    var st1 = _$('store-step-1'); 
-    if (st1) st1.style.display = 'none';
-
-    var st2 = _$('store-step-2'); 
-    if (st2) st2.style.display = 'block';
+    var st1 = _$('store-step-1'); if (st1) st1.style.display = 'none';
+    var st2 = _$('store-step-2'); if (st2) st2.style.display = 'block';
 
   } catch (err) {
     console.error('[MAXPROMO] ❌ ERRO CRÍTICO AO AVANÇAR:', err);
@@ -2101,14 +2003,9 @@ function limparModalLoja() {
   var err = _$('store-error');
   if (err) err.style.display = 'none';
 
-  var st1 = _$('store-step-1'); 
-  if (st1) st1.style.display = 'block';
-
-  var st2 = _$('store-step-2'); 
-  if (st2) st2.style.display = 'none';
-  
-  var st3 = _$('store-step-3'); 
-  if (st3) st3.style.display = 'none';
+  var st1 = _$('store-step-1'); if (st1) st1.style.display = 'block';
+  var st2 = _$('store-step-2'); if (st2) st2.style.display = 'none';
+  var st3 = _$('store-step-3'); if (st3) st3.style.display = 'none';
 
   var box = _$('pix-timer-box');
   if (box) box.classList.remove('urgente');
