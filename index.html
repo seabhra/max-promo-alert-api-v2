@@ -801,74 +801,90 @@
   }
 }
 
-
 /* ============================================
-   11. CORREÇÃO DE LAYOUT: EMPILHAMENTO SEGURO
+   11. CONTROLE DE VISIBILIDADE DOS STEPS
    ============================================ */
 
-/* Garante que o modal empilhe os steps verticalmente */
-#modal-add-store .modal-box {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  max-width: 650px; /* Ajuste conforme seu design original */
-}
-
-/* Cada step ocupa 100% da largura e nunca fica lado a lado */
+/* Por padrão, esconde todos os steps exceto o ativo */
 #store-step-1,
 #store-step-2,
 #store-step-3 {
+  display: none !important;
   width: 100%;
-  flex: 0 0 100%;
-  display: none; /* Controlado exclusivamente pelo JS */
+  max-width: 100%;
 }
 
-/* Quando o JS ativa o step, ele aparece corretamente em bloco */
+/* Mostra apenas o step ativo */
 #store-step-1[style*="display: block"],
 #store-step-2[style*="display: block"],
 #store-step-3[style*="display: block"] {
   display: block !important;
 }
 
-/* Garante que a prévia fique abaixo e ocupe toda a largura */
+/* Quando o step está visível via JS, aplica o layout correto */
+#store-step-1:not([style*="display: none"]),
+#store-step-2:not([style*="display: none"]),
+#store-step-3:not([style*="display: none"]) {
+  display: block !important;
+  width: 100% !important;
+}
+
+/* Prévia de configuração - sempre abaixo do formulário */
+.config-preview,
 #config-preview {
-  width: 100%;
-  display: block;
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  clear: both !important;
+  float: none !important;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 16px;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  margin-top: 20px;
+  margin-bottom: 24px;
   word-wrap: break-word;
 }
 
-/* Mobile: ajustes específicos para telas pequenas */
+/* Garante que o formulário use layout em coluna */
+#form-store-step1 {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  width: 100% !important;
+}
+
+/* Seções do formulário */
+.form-section,
+.section-label,
+.form-group {
+  width: 100% !important;
+  max-width: 100% !important;
+  display: block !important;
+}
+
+/* Mobile: ajustes específicos */
 @media (max-width: 768px) {
-  #modal-add-store .modal-box {
-    max-width: 100%;
-    margin: 0;
-    padding: 16px;
+  #store-step-1,
+  #store-step-2,
+  #store-step-3 {
+    padding: 0 8px;
   }
   
-  /* Força os campos de preço a ficarem um embaixo do outro no celular */
-  .price-fields-row {
-    flex-direction: column !important;
-    gap: 12px !important;
+  .config-preview,
+  #config-preview {
+    font-size: 0.8rem;
+    padding: 12px;
+    margin-top: 16px;
+    margin-bottom: 20px;
   }
   
-  .price-fields-row .form-group {
-    min-width: 100% !important;
-    width: 100% !important;
-  }
-  
-  /* Botões de ação empilhados no mobile */
-  .modal-actions {
-    flex-direction: column !important;
-    gap: 10px !important;
-  }
-  
-  .modal-actions button {
-    width: 100% !important;
-  }
-  
-  /* Campo PIX e botão de copiar empilhados */
+  /* Garante que o campo de código PIX e botão fiquem empilhados */
   .pix-copiacola-row {
     flex-direction: column !important;
+    align-items: stretch !important;
   }
   
   .pix-copiacola-row input {
@@ -878,8 +894,18 @@
   
   .btn-copy-pix {
     width: 100% !important;
+    height: 42px !important;
   }
 }
+
+@media (max-width: 380px) {
+  .config-preview,
+  #config-preview {
+    font-size: 0.75rem;
+    padding: 10px;
+  }
+}
+
 
 /* ============================================
    BOTÃO FLUTUANTE VERDE - 
@@ -1083,31 +1109,31 @@ MODAL COMPARAR ------------
 <!-- STEP 1: Escolher plano e dados -->
 <div id="store-step-1">
   <h2><i class="fas fa-store" style="color:var(--accent-color);margin-right:8px;"></i>Inserir Loja</h2>
-  <p style="margin-bottom: 16px;">Preencha os dados e escolha o plano. O pagamento é via PIX, único e sem renovação automática.</p>
 
-  <!-- INÍCIO DO FORMULÁRIO (CORREÇÃO AQUI) -->
-  <form id="form-store-step1">
+    <p>Preencha os dados e escolha o plano. O pagamento é via PIX, único e sem renovação automática.</p>
+
 
     <!-- PLANOS -->
     <div class="section-label" style="color:var(--accent-color);"><i class="fas fa-layer-group"></i> Escolha o plano</div>
+
     <div class="planos-grid" id="planos-grid">
-      <div class="plano-card" data-dias="30" data-valor="9.90">
+      <div class="plano-card" data-dias="30" data-valor="9.90" >
         <div class="plano-dias">📅 30 dias</div>
         <div class="plano-valor">R$ 9,90</div>
         <div class="plano-desc">Teste o serviço</div>
       </div>
-      <div class="plano-card" data-dias="60" data-valor="19.90">
+      <div class="plano-card" data-dias="60" data-valor="19.90" >
         <div class="plano-popular">⭐ Popular</div>
         <div class="plano-dias">📅 60 dias</div>
         <div class="plano-valor">R$ 19,90</div>
         <div class="plano-desc">R$ 0,33/dia</div>
       </div>
-      <div class="plano-card" data-dias="90" data-valor="39.90">
+      <div class="plano-card" data-dias="90" data-valor="39.90" >
         <div class="plano-dias">📅 90 dias</div>
         <div class="plano-valor">R$ 39,90</div>
         <div class="plano-desc">R$ 0,44/dia</div>
       </div>
-      <div class="plano-card" data-dias="365" data-valor="99.90">
+      <div class="plano-card" data-dias="365" data-valor="99.90" >
         <div class="plano-popular">🔥 Melhor</div>
         <div class="plano-dias">📅 365 dias</div>
         <div class="plano-valor">R$ 99,90</div>
@@ -1126,27 +1152,58 @@ MODAL COMPARAR ------------
 
     <div class="section-label"><i class="fas fa-pencil"></i> Dados da loja</div>
 
+    
+    <!-- ============================================ -->
+<!-- CAMPOS OBRIGATÓRIOS COM VALIDAÇÃO HTML5  -->
+<!-- ============================================ -->
+
+<!-- CAMPOS DO FORMULÁRIO -->
     <div class="form-group">
       <label for="input-store-name">NOME DA LOJA *</label>
-      <input type="text" id="input-store-name" required minlength="3" maxlength="60" placeholder="Ex: Atelier Sorelle Santos" class="form-control">
+      <input type="text" 
+             id="input-store-name" 
+             required 
+             minlength="3" 
+             maxlength="60"
+             placeholder="Ex: Atelier Sorelle Santos" 
+             class="form-control"
+             oninvalid="this.setCustomValidity('⚠️ Preencha o nome da loja (mínimo 3 caracteres)')"
+             oninput="this.setCustomValidity('');">
       <small class="text-muted">Digite o nome da sua loja (mínimo 3 caracteres)</small>
     </div>
 
     <div class="form-group">
       <label for="input-store-url">SITE / URL *</label>
-      <input type="text" id="input-store-url" required placeholder="Ex: https://minhaloja.com.br" class="form-control">
-      <small class="text-muted">URL completa da sua loja</small>
+      <input type="text" 
+             id="input-store-url" 
+             required 
+             placeholder="Ex: https://minhaloja.com.br" 
+             class="form-control"
+             oninvalid="this.setCustomValidity('⚠️ Digite uma URL válida. Ex: https://minhaloja.com.br')"
+             oninput="this.setCustomValidity(''); ">
+      <small class="text-muted">URL completa da sua loja (ex: https://www.minhaloja.com.br)</small>
     </div>
 
     <div class="form-group">
       <label for="input-store-email">ENVIAR E-MAIL DE SOLICITAÇÃO *</label>
-      <input type="email" id="input-store-email" required placeholder="loja@email.com" class="form-control">
+      <input type="text" 
+             id="input-store-email" 
+             required 
+             placeholder="loja@email.com" 
+             class="form-control"
+             oninvalid="this.setCustomValidity('⚠️ Digite um e-mail válido. Ex: loja@email.com')"
+             oninput="this.setCustomValidity(''); "
+             onblur="validarEmail(this)">
       <small class="text-muted">E-mail para contato e confirmação</small>
     </div>
 
     <div class="form-group">
       <label for="input-store-cat">TIPO DE PROMOÇÃO PRINCIPAL *</label>
-      <select id="input-store-cat" required class="form-control">
+      <select id="input-store-cat" 
+              required
+              class="form-control"
+              oninvalid="this.setCustomValidity('⚠️ Selecione o tipo de promoção')"
+              onchange="this.setCustomValidity('');">
         <option value="" disabled selected>Selecione o tipo de promoção...</option>
         <option value="desconto">Desconto</option>
         <option value="flash">Flash Sale</option>
@@ -1158,54 +1215,98 @@ MODAL COMPARAR ------------
         <option value="live">Live Sale</option>
         <option value="sorteio">Sorteio</option>
       </select>
+      <small class="text-muted">Selecione o tipo de promoção que melhor se encaixa</small>
     </div>
 
     <div class="section-label"><i class="fas fa-tag"></i> Dados do Produto</div>
 
     <div class="form-group">
       <label for="input-product-name">NOME DO PRODUTO *</label>
-      <input type="text" id="input-product-name" required minlength="2" maxlength="80" placeholder="Ex: Bolsa Tigresa - Edição limitada" class="form-control">
+      <input type="text" 
+             id="input-product-name" 
+             required 
+             minlength="2" 
+             maxlength="80"
+             placeholder="Ex: Bolsa Tigresa - Edição limitada" 
+             class="form-control"
+             oninvalid="this.setCustomValidity('⚠️ Digite o nome do produto (mínimo 2 caracteres)')"
+             oninput="this.setCustomValidity(''); ">
+      <small class="text-muted">Digite o nome do produto em promoção</small>
     </div>
+<div style="display: flex; gap: 16px; flex-wrap: wrap;">
+  <div style="flex: 1; min-width: 150px;">
+    <label for="input-price-old">Preço Antigo (R$)</label>
+    <input type="text"
+           id="input-price-old"
+           inputmode="decimal"
+           maxlength="12"
+           placeholder="160,00"
+           class="form-control"
+           oninput="sanitizarMoeda(this); calcularDesconto();"
+           onblur="formatarMoeda(this);">
+  </div>
 
-    <!-- CAMPOS DE PREÇO EM COLUNA NO MOBILE, LINHA NO DESKTOP -->
-    <div class="price-fields-row" style="display: flex; gap: 16px; flex-wrap: wrap;">
-      <div class="form-group" style="flex: 1; min-width: 140px;">
-        <label for="input-price-old">Preço Antigo (R$)</label>
-        <input type="text" id="input-price-old" inputmode="decimal" placeholder="160,00" class="form-control">
-      </div>
-      <div class="form-group" style="flex: 1; min-width: 140px;">
-        <label for="input-price-new">PREÇO PROMOCIONAL (R$) *</label>
-        <input type="text" id="input-price-new" inputmode="decimal" placeholder="144,00" class="form-control" required>
-      </div>
-      <div class="form-group" style="flex: 1; min-width: 140px;">
-        <label for="input-discount">Desconto (%)</label>
-        <input type="text" id="input-discount" inputmode="decimal" placeholder="10" class="form-control">
-        <small class="text-muted">Calculado automaticamente</small>
-      </div>
-    </div>
+  <div style="flex: 1; min-width: 150px;">
+    <label for="input-price-new">PREÇO PROMOCIONAL (R$) *</label>
+    <input type="text"
+           id="input-price-new"
+           inputmode="decimal"
+           maxlength="12"
+           placeholder="144,00"
+           class="form-control"
+           required
+           oninvalid="this.setCustomValidity('⚠️ Informe o preço promocional (valor maior que zero)')"
+           oninput="sanitizarMoeda(this); this.setCustomValidity(''); calcularDesconto();"
+           onblur="formatarMoeda(this);">
+    <small class="text-muted">Informe o preço com desconto</small>
+  </div>
+
+  <div style="flex: 1; min-width: 150px;">
+    <label for="input-discount">Desconto (%)</label>
+    <input type="text"
+           id="input-discount"
+           inputmode="decimal"
+           maxlength="6"
+           placeholder="10"
+           class="form-control"
+           oninput="sanitizarMoeda(this); calcularPrecoPorDesconto();"
+           onblur="formatarMoeda(this, 1);">
+    <small style="color: var(--text-muted); font-size: 0.7rem;">Calculado automaticamente</small>
+  </div>
+</div>
 
     <input type="hidden" id="input-plano-dias" value="0">
 
     <div class="form-group">
       <label for="input-descricao">Descrição da Promoção</label>
-      <textarea id="input-descricao" rows="2" placeholder="Ex: Flash Sale: 10% OFF por 2 horas apenas!" maxlength="200" class="form-control" style="resize:vertical;"></textarea>
+    <textarea id="input-descricao" rows="2" placeholder="Ex: Flash Sale: 10% OFF por 2 horas apenas!" maxlength="200"
+          style="width:100%;padding:10px;border:1px solid var(--border-color);border-radius:6px;background:var(--bg-input);color:var(--text-primary);font-family:inherit;resize:vertical;">
+  </textarea>
     </div>
+</div>    
+    <!-- ============================================ -->
+    <!-- FIM DA INCLUSÃO DOS CAMPOS OBRIGATÓRIOS -->
+    <!-- ============================================ -->   
+       
 
-    <!-- PRÉVIA DE CONFIGURAÇÃO -->
+    <!-- ============================================ -->
+    <!-- PREVIA DE CONFIGURAÇÃO E CONFIRMAÇÃO -->
+    <!-- ============================================ -->
     <div style="margin-top: 16px; padding: 12px; background: var(--bg-secondary); border-radius: 6px; border-left: 3px solid var(--accent-color);">
       <div style="font-weight: 600; margin-bottom: 8px; font-size: 0.9rem;">📋 Prévia da Configuração:</div>
       <div id="config-preview" style="font-family: monospace; font-size: 0.8rem; color: var(--text-muted); line-height: 1.6;">
         Nenhum dado preenchido ainda.
       </div>
+
     </div>
 
-    <div class="modal-actions" style="margin-top: 20px; display: flex; gap: 12px; justify-content: flex-end;">
+    <div class="modal-actions">
       <button type="button" class="btn-cancel" id="btn-store-cancel">Cancelar</button>
       <button type="submit" class="btn-confirm" id="btn-store-step1-next" disabled>
         <i class="fas fa-arrow-right" style="font-size:.75rem;margin-right:6px;"></i>Continuar → Pagar PIX
       </button> 
     </div>
-  </form> <!-- FIM DO FORMULÁRIO -->
+  </form>
 </div>
 
     <!-- STEP 2: Pagamento PIX -->
@@ -1934,14 +2035,11 @@ function validarEAvancarStep1() {
 
     iniciarCountdownPix();
 
-   var st1 = document.getElementById('store-step-1');
-   var st2 = document.getElementById('store-step-2');
-   
+    var st1 = _$('store-step-1'); 
     if (st1) st1.style.display = 'none';
-    if (st2) {
-  st2.style.display = 'block';
-  st2.style.visibility = 'visible';
-}
+
+    var st2 = _$('store-step-2'); 
+    if (st2) st2.style.display = 'block';
 
   } catch (err) {
     console.error('[MAXPROMO] ❌ ERRO CRÍTICO AO AVANÇAR:', err);
@@ -1969,11 +2067,8 @@ function confirmarPagamentoEAvancar(origem) {
       '<div><strong>💳 Pagamento:</strong> ' + (origem === 'pago_simulado' ? 'Simulado (teste)' : 'PIX') + '</div>';
   }
 
-  var st2 = document.getElementById('store-step-2');
-  if (st2) st2.style.display = 'none';
-
-var st3 = document.getElementById('store-step-3');
-  if (st3) st3.style.display = 'block';
+  var st2 = _$('store-step-2'); if (st2) st2.style.display = 'none';
+  var st3 = _$('store-step-3'); if (st3) st3.style.display = 'block';
 }
 
 function resetarBotaoContinuar() {
@@ -2006,13 +2101,13 @@ function limparModalLoja() {
   var err = _$('store-error');
   if (err) err.style.display = 'none';
 
-  var st1 = document.getElementById('store-step-1');
+  var st1 = _$('store-step-1'); 
   if (st1) st1.style.display = 'block';
 
-var st2 = document.getElementById('store-step-2');
+  var st2 = _$('store-step-2'); 
   if (st2) st2.style.display = 'none';
-
- var st3 = document.getElementById('store-step-3');
+  
+  var st3 = _$('store-step-3'); 
   if (st3) st3.style.display = 'none';
 
   var box = _$('pix-timer-box');
