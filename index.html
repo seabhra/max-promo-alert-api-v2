@@ -1295,7 +1295,7 @@ MODAL COMPARAR ------------
 var BOLSA_TIGRESA = {
   id: 21,
   tipo: 'flash',
-  titulo: 'Bolsa Tigresa - Edição limitada',
+  titulo: 'Bolsa Tigresa - Edição Limitada',
   desc: 'Flash Sale: 10% OFF por 2 horas apenas!',
   loja: 'Atelier Sorelle Santos',
   precoOld: 160,
@@ -1547,10 +1547,6 @@ function calcularPrecoPorDesconto() {
     atualizarPreview();
   }
 }
-// ============================================
-// PRÉVIA DA CONFIGURAÇÃO
-// ============================================
-
   
   //==============================================
   // Validação para habilitar o botão "Continuar"
@@ -1640,9 +1636,9 @@ const campos = ['input-store-name', 'input-store-url', 'input-store-cat', 'input
     // Salva no localStorage ou variável global para uso posterior
     window.configLoja = config;
     
-    // Exibe no console no formato BOLSA_TIGRESA
+    // Exibe no console no formato PRODUCT
     console.log(`
-      var BOLSA_TIGRESA = {
+      var PRODUCT = {
         id: ${config.id},
         tipo: '${config.tipo}',
         titulo: '${config.titulo}',
@@ -1846,7 +1842,7 @@ var MOCK_PROMOS = [
   {
     id: 21,
     tipo: 'flash',
-    titulo: 'Bolsa Tigresa – edição limitada',
+    titulo: 'Bolsa Tigresa – Edição Limitada',
     desc: 'Flash Sale: 10% OFF por 2 horas apenas!',
     loja: 'Atelier Sorelle Santos',
     precoOld: 3499,
@@ -2020,7 +2016,7 @@ async function renderFeed(promos) {
     lista = neonData || [];
   }
   
-  var listaCompleta = [BOLSA_TIGRESA, ...lista];
+  var listaCompleta = [PRODUCT, ...lista];
   
   if (filtroAtivo) {
     listaCompleta = listaCompleta.filter(function(p) { return p.tipo === filtroAtivo; });
@@ -2654,7 +2650,6 @@ var storeFormData        = null;
 var pixTxid              = '';
 var pixCountdownInterval = null;
 var pixExpirado          = false;
-
 var PIX_TEMPO_SEGUNDOS = 600; // 10 min
 var MODO_TESTE = true;        // false em produção
 
@@ -2960,7 +2955,11 @@ function calcularPrecoPorDesconto() {
   }
   atualizarPreview();
 }
+// ============================================
+// FUNÇÃO ATUALIZAR PREVIEW
+// ============================================
 
+console.log('>>> CHEGOU NA DEFINIÇÃO DO PREVIEW');
 function atualizarPreview() {
   var el = _$('config-preview');
   if (!el) return;
