@@ -1805,6 +1805,23 @@ function validarEAvancarStep1() {
   }
   if (prodEl) prodEl.setCustomValidity('');
 
+
+  // CORREÇÃO AQUI: Validação do PREÇO ANTIGO
+  var priceOldEl = _$('input-price-old');
+  var pOldVal = 0;
+  if (priceOldEl && priceOldEl.value.trim()) {
+    pOldVal = parseMoeda(priceOldEl.value);
+    if (isNaN(pOldVal) || pOldVal <= 0) {
+      priceOldEl.focus(); 
+      priceOldEl.setCustomValidity('⚠️ Preço antigo inválido (deve ser maior que zero)'); 
+      priceOldEl.reportValidity();
+      return;
+    }
+  } else if (priceOldEl) {
+    // Se o campo preço antigo estiver vazio, define como 0
+    pOldVal = 0;
+  }
+
   var priceNewEl = _$('input-price-new');
   var pNew = NaN;
   if (priceNewEl) {
