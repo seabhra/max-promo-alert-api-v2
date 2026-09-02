@@ -1,4 +1,3 @@
-romo_corrigido.html
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -832,21 +831,21 @@ romo_corrigido.html
   justify-content: center;
 }
 
-.add-store:hover {
+.fab-add-store:hover {
   transform: scale(1.08);
   box-shadow: 0 8px 35px rgba(76, 175, 80, 0.55);
 }
 
-.add-store:active {
+.fab-add-store:active {
   transform: scale(0.93);
 }
 
-.add-store i {
+.fab-add-store i {
   font-size: 1.4rem;
 }
 
 /* Tooltip */
-.add-store::after {
+.fab-add-store::after {
   content: "Inserir Loja";
   position: absolute;
   right: 68px;
@@ -869,21 +868,20 @@ romo_corrigido.html
 
 /* Responsivo */
 @media (max-width: 380px) {
-  .add-store {
+  .fab-add-store {
     width: 48px;
     height: 48px;
     font-size: 1.2rem;
     bottom: 16px;
     right: 16px;
   }
-  .add-store::after {
+  .fab-add-store::after {
     display: none;
   }
 }
 
 
 </style>
-<base target="_blank">
 </head>
 
 <body>
@@ -1205,7 +1203,7 @@ MODAL COMPARAR ------------
 
     <div class="modal-actions">
       <button type="button" class="btn-cancel" id="btn-store-cancel">Cancelar</button>
-      <button type="submit" class="btn-confirm" id="btn-store-step1-next" type="button" disabled>
+      <button type="submit" class="btn-confirm" id="btn-store-step1-next" disabled>
         <i class="fas fa-arrow-right" style="font-size:.75rem;margin-right:6px;"></i>Continuar → Pagar PIX
       </button> 
     </div>
@@ -1288,11 +1286,8 @@ MODAL COMPARAR ------------
 
 <!-- INICIO DO js -->
 <script>
-
-
-
 // ============================================
-// CONFIGURAÇÃO DOS ÍCONES
+// 1. CONFIGURAÇÃO E ESTADO GLOBAL
 // ============================================
 var BOLSA_TIGRESA = {
   id: 21,
@@ -1330,8 +1325,6 @@ var PROMO_CONFIG = {
   'sorteio':{icon:'/public/imagens_promo/ic_promo_sorteio.png',faIcon:'fas fa-trophy',color:'#7B1FA2',label:'SORTEIO',emoji:'🎰'}
 };
 
-
-
 var PLANOS = {
   '30' : { valor: 9.90,  label: '30 dias',  desc: 'Teste o serviço' },
   '60' : { valor: 19.90, label: '60 dias',  desc: 'R$ 0,33/dia' },
@@ -1339,15 +1332,21 @@ var PLANOS = {
   '365': { valor: 99.90, label: '365 dias', desc: 'Melhor custo-benefício' }
 };
 
-var storeFormData = {};
+var storeFormData = null;
 var planoSelecionado = null;
 var pixCountdownInterval = null;
-var pixTxid = null;
+var pixTxid = '';
+var pixExpirado = false;
 var MODO_TESTE = true;
+var PIX_TEMPO_SEGUNDOS = 600;
 
-// ============================================
-// ESTADO GLOBAL
-// ============================================
+var PIX_CONFIG = {
+  chave: 'seabhra@gmail.com',
+  nome: 'Geraldo Augusto Seabra',
+  cidade: 'Sabara - MG',
+  descricao: 'MAX PROMO APP'
+};
+
 var iconCache = {};
 var sidebarAberta = true;
 var searchActive = false;
@@ -1360,14 +1359,15 @@ var savingsTotal = 0;
 var demoInterval = null;
 var flashTimers = {};
 var neonOnline = false;
-var promocoesNeon = [];
 var autoRefreshInterval = null;
 var toastTimer = null;
 var menuAberto = false;
 
 // ============================================
-// FUNÇÕES UTILITÁRIAS
+// 2. FUNÇÕES UTILITÁRIAS E HELPERS
 // ============================================
+function _$(id) { return document.getElementById(id); }
+
 function ajustarBrilho(hex, percent) {
   var num = parseInt(hex.replace('#',''), 16);
   var amt = Math.round(2.55 * percent);
@@ -1377,18 +1377,18 @@ function ajustarBrilho(hex, percent) {
   return '#' + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 + (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 + (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1);
 }
 
-function showNotification(msg) {
+function showNotification(msg, tipo) {
   var toast = document.getElementById('toast-msg');
-  if (!toast) return;
+  if (!toast) { console.log('[NOTIFY]', msg); return; }
   toast.textContent = msg;
-  toast.classList.add('show');
+  toast.className = 'toast-msg show ' + (tipo || '');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(function() { toast.classList.remove('show'); }, 2800);
 }
 
-function fallbackCopy(text) {
+function fallbackCopy(texto) {
   var ta = document.createElement('textarea');
-  ta.value = text;
+  ta.value = texto;
   ta.style.position = 'fixed';
   ta.style.left = '-9999px';
   document.body.appendChild(ta);
@@ -1407,7 +1407,7 @@ function formatarTempo(seg) {
 }
 
 function formatarDinheiro(v) {
-  return 'R$ ' + Number(v).toFixed(2).replace('.', ',');
+  return 'R$ ' + Number(v || 0).toFixed(2).replace('.', ',');
 }
 
 function calcularExpiracao(dias) {
@@ -1418,13 +1418,13 @@ function calcularExpiracao(dias) {
 
 function openModal(id) {
   var el = document.getElementById(id);
-  if (el) el.classList.add('active');
+  if (el) { el.classList.add('active'); el.style.display = 'flex'; }
   fecharMenu();
 }
 
 function closeModal(id) {
   var el = document.getElementById(id);
-  if (el) el.classList.remove('active');
+  if (el) { el.classList.remove('active'); el.style.display = 'none'; }
 }
 
 function fecharMenu() {
@@ -1436,8 +1436,70 @@ function fecharMenu() {
   if (toggle) toggle.classList.remove('active');
 }
 
+function escaparHTML(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+
+function limparTexto(t, max) {
+  return String(t || '')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^A-Za-z0-9 ]/g, '')
+    .trim().toUpperCase()
+    .substring(0, max);
+}
+
 // ============================================
-// FUNÇÕES DE ÍCONES
+// 3. FUNÇÕES DE MOEDA (PARSE E FORMAT)
+// ============================================
+function parseMoeda(str) {
+  if (str === null || str === undefined) return NaN;
+  var s = String(str).trim().replace(/[Rr]\$/g, '').replace(/\s/g, '');
+  if (!s) return NaN;
+
+  var ultimaVirgula = s.lastIndexOf(',');
+  var ultimoPonto   = s.lastIndexOf('.');
+
+  if (ultimaVirgula > ultimoPonto) {
+    s = s.replace(/\./g, '').replace(',', '.');
+  } else if (ultimoPonto > ultimaVirgula) {
+    s = s.replace(/,/g, '');
+  } else if (ultimoPonto !== -1) {
+    var partes = s.split('.');
+    if (partes.length > 2 || partes[partes.length - 1].length === 3) {
+      s = s.replace(/\./g, '');
+    }
+  } else if (ultimaVirgula !== -1) {
+    s = s.replace(',', '.');
+  }
+
+  s = s.replace(/[^0-9.]/g, '');
+  var v = parseFloat(s);
+  return isNaN(v) ? NaN : v;
+}
+
+function sanitizarMoeda(campo) {
+  var v = campo.value.replace(/[^\d.,]/g, '');
+  var iVirg = v.indexOf(',');
+  if (iVirg !== -1) {
+    v = v.slice(0, iVirg + 1) + v.slice(iVirg + 1).replace(/,/g, '');
+    var dec = v.slice(iVirg + 1).replace(/\./g, '');
+    if (dec.length > 2) v = v.slice(0, iVirg + 1) + dec.slice(0, 2);
+  }
+  if (campo.value !== v) campo.value = v;
+}
+
+function formatarMoedaInput(campo, casas) {
+  casas = (casas === undefined) ? 2 : casas;
+  if (!campo.value.trim()) return;
+  var v = parseMoeda(campo.value);
+  if (isNaN(v)) { campo.value = ''; return; }
+  campo.value = v.toFixed(casas).replace('.', ',');
+}
+
+// ============================================
+// 4. FUNÇÕES DE ÍCONES
 // ============================================
 function testarIconeDisponivel(src, cb) {
   if (iconCache.hasOwnProperty(src)) { cb(iconCache[src]); return; }
@@ -1467,60 +1529,493 @@ function gerarHTMLIcone(tipo, tamanho) {
 }
 
 // ============================================
-// SELEÇÃO DE PLANO
+// 5. LÓGICA DE PIX E QR CODE
 // ============================================
+function _tlv(id, valor) {
+  return id + String(valor.length).padStart(2, '0') + valor;
+}
 
-// ============================================
-// HELPER: exibe balão nativo + marca campo
-// ============================================
-function mostrarErroCampo(campo, msgCustom) {
-  campo.classList.add('input-erro');
-  if (msgCustom) campo.setCustomValidity(msgCustom);
-  campo.reportValidity();   // ← exibe o balão nativo "Preencha este campo"
-  campo.focus();
+function _crc16(str) {
+  var crc = 0xFFFF;
+  for (var i = 0; i < str.length; i++) {
+    crc ^= str.charCodeAt(i) << 8;
+    for (var j = 0; j < 8; j++) {
+      crc = (crc & 0x8000) ? ((crc << 1) ^ 0x1021) : (crc << 1);
+      crc &= 0xFFFF;
+    }
+  }
+  return crc.toString(16).toUpperCase().padStart(4, '0');
+}
 
-  var limpar = function() {
-    campo.classList.remove('input-erro');
-    campo.setCustomValidity('');
-    campo.removeEventListener('input', limpar);
-    campo.removeEventListener('change', limpar);
-  };
-  campo.addEventListener('input', limpar);
-  campo.addEventListener('change', limpar);
+function gerarPixCopiaCola(chave, nome, cidade, valor, descricao) {
+  var mai = _tlv('26', _tlv('00', 'br.gov.bcb.pix') + _tlv('01', chave));
+  var txidLimpo = (pixTxid || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase().substring(0, 25) || '***';
+  var addl = _tlv('62', _tlv('05', txidLimpo));
+
+  var payload =
+    _tlv('00', '01') +
+    _tlv('01', '12') +
+    mai +
+    _tlv('52', '0000') +
+    _tlv('53', '986') +
+    _tlv('54', Number(valor).toFixed(2)) +
+    _tlv('58', 'BR') +
+    _tlv('59', limparTexto(nome, 25)) +
+    _tlv('60', limparTexto(cidade, 15)) +
+    addl;
+
+  payload += '6304';
+  return payload + _crc16(payload);
+}
+
+function renderizarQRCode(texto) {
+  var wrapper = _$('pix-qr-wrapper');
+  if (!wrapper) return;
+  var canvas = _$('pix-qr-canvas');
+
+  try {
+    if (typeof qrcode !== 'function') throw new Error('Lib qrcode-generator não carregada');
+    if (!canvas) throw new Error('Canvas do QR não encontrado');
+
+    var qr = qrcode(0, 'M');
+    qr.addData(texto);
+    qr.make();
+
+    var modulos = qr.getModuleCount();
+    var tamanho = 360;
+    var celula  = Math.max(1, Math.floor(tamanho / modulos));
+    var offset  = Math.floor((tamanho - celula * modulos) / 2);
+
+    canvas.width  = tamanho;
+    canvas.height = tamanho;
+    canvas.style.width  = '180px';
+    canvas.style.height = '180px';
+
+    var ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, tamanho, tamanho);
+    ctx.fillStyle = '#000000';
+    for (var r = 0; r < modulos; r++) {
+      for (var c = 0; c < modulos; c++) {
+        if (qr.isDark(r, c)) {
+          ctx.fillRect(offset + c * celula, offset + r * celula, celula, celula);
+        }
+      }
+    }
+    var avisoAntigo = _$('pix-qr-aviso');
+    if (avisoAntigo) avisoAntigo.parentNode.removeChild(avisoAntigo);
+    canvas.style.display = 'block';
+    wrapper.style.display = 'flex';
+  } catch (err) {
+    console.error('QR Code:', err);
+    if (canvas) canvas.style.display = 'none';
+    var aviso = _$('pix-qr-aviso');
+    if (!aviso) {
+      aviso = document.createElement('div');
+      aviso.id = 'pix-qr-aviso';
+      aviso.style.cssText = 'color:#000;font-size:.7rem;padding:10px;text-align:center;';
+      wrapper.appendChild(aviso);
+    }
+    aviso.innerHTML = '⚠️ Não foi possível gerar o QR.<br>Use o <strong>Copia e Cola</strong> abaixo.';
+  }
+}
+
+function _setStatusPix(tipo, html) {
+  var el = _$('pix-status-msg');
+  if (!el) return;
+  el.className = 'pix-status-msg ' + tipo;
+  el.innerHTML = html;
+}
+
+function iniciarCountdownPix() {
+  clearInterval(pixCountdownInterval);
+  pixExpirado = false;
+
+  var box = _$('pix-timer-box');
+  var el  = _$('pix-countdown');
+  if (box) box.classList.remove('urgente');
+  if (!el) return;
+
+  var restante = PIX_TEMPO_SEGUNDOS;
+
+  _setStatusPix('aguardando', '<i class="fas fa-hourglass-half" style="color:var(--accent-color);"></i> Aguardando confirmação do pagamento...');
+
+  function tick() {
+    var m = Math.floor(restante / 60);
+    var s = restante % 60;
+    el.textContent = (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+
+    if (restante <= 120 && box) box.classList.add('urgente');
+
+    if (restante <= 0) {
+      clearInterval(pixCountdownInterval);
+      pixExpirado = true;
+      _setStatusPix('erro', '<i class="fas fa-triangle-exclamation"></i> ⏰ Tempo expirado. Clique em <strong>← Voltar</strong> e gere um novo QR Code.');
+      showNotification('⏰ QR Code PIX expirado. Gere um novo.', 'error');
+    }
+    restante--;
+  }
+
+  tick();
+  pixCountdownInterval = setInterval(tick, 1000);
 }
 
 // ============================================
-// FUNÇÕES PARA CÁLCULO DE DESCONTO
+// 6. LÓGICA DO FORMULÁRIO DE LOJA
 // ============================================
+function selecionarPlano(el) {
+  if (!el) return;
+  document.querySelectorAll('.plano-card.selected').forEach(function (card) { card.classList.remove('selected'); });
+  el.classList.add('selected');
 
-//==============================================
-  // Validação para habilitar o botão "Continuar"
-  //==============================================
-  validarFormulario();
+  var dias   = parseInt(el.dataset.dias, 10) || 0;
+  var valor  = parseFloat(el.dataset.valor) || 0;
+  var descEl = el.querySelector('.plano-desc');
 
-// ============================================
-// GERAR CONFIGURAÇÃO FINAL
-// ============================================
+  planoSelecionado = {
+    dias: dias,
+    valor: valor,
+    label: dias + ' dias',
+    desc: descEl ? descEl.textContent.trim() : ''
+  };
 
-//==============================//
-  // CAMPOS DE INPUTS FORMULÁRIO//
-  //============================//
+  var display = _$('tempo-permanencia-display');
+  if (display) display.textContent = planoSelecionado.label + ' — ' + formatarDinheiro(valor);
+
+  var inputPlano = _$('input-plano-dias');
+  if (inputPlano) inputPlano.value = dias;
+
+  var btn = _$('btn-store-step1-next');
+  if (btn) {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-arrow-right" style="font-size:.75rem;margin-right:6px;"></i>Continuar → Pagar PIX';
+  }
+
+  var grid = _$('planos-grid');
+  if (grid) grid.classList.remove('planos-erro');
+
+  atualizarPreview();
+}
+
+function calcularDesconto() {
+  var pOld = parseMoeda((_$('input-price-old') || {}).value);
+  var pNew = parseMoeda((_$('input-price-new') || {}).value);
+  var descEl = _$('input-discount');
   
+  if (pOld > 0 && pNew > 0 && pNew < pOld) {
+    if (descEl) descEl.value = ((1 - pNew / pOld) * 100).toFixed(1).replace('.', ',');
+  } else if (pOld > 0 && pNew >= pOld) {
+    if (descEl) descEl.value = '0,0';
+  }
+  atualizarPreview();
+}
+
+function calcularPrecoPorDesconto() {
+  var elOld  = _$('input-price-old');
+  var elDesc = _$('input-discount');
+  var pOld   = parseMoeda((elOld  || {}).value);
+  var desc   = parseMoeda((elDesc || {}).value);
+
+  if (pOld > 0 && desc >= 0) {
+    if (desc > 100) {
+      desc = 100;
+      if (elDesc) elDesc.value = '100';
+    }
+    var elNew = _$('input-price-new');
+    if (elNew) elNew.value = (pOld * (1 - desc / 100)).toFixed(2).replace('.', ',');
+  }
+  atualizarPreview();
+}
+
+function atualizarPreview() {
+  var el = _$('config-preview');
+  if (!el) return;
+
+  var nome  = (_$('input-store-name')   || {}).value || '';
+  var url   = (_$('input-store-url')    || {}).value || '';
+  var email = (_$('input-store-email')  || {}).value || '';
+  var cat   = (_$('input-store-cat')    || {}).value || '';
+  var prod  = (_$('input-product-name') || {}).value || '';
+  var descr = (_$('input-descricao')    || {}).value || '';
+  var pOld  = parseMoeda((_$('input-price-old') || {}).value) || 0;
+  var pNew  = parseMoeda((_$('input-price-new') || {}).value) || 0;
+
+  if (!nome.trim() && !url.trim() && !prod.trim() && !planoSelecionado) {
+    el.textContent = 'Nenhum dado preenchido ainda.';
+    return;
+  }
+
+  var mapaCat = {
+    desconto: 'Desconto', flash: 'Flash Sale', cupom: 'Cupom',
+    cashback: 'Cashback', frete_gratis: 'Frete Grátis', saldao: 'Saldão',
+    outlet: 'Outlet', live: 'Live Sale', sorteio: 'Sorteio'
+  };
+
+  var expiraTxt = '<span style="color:#ff9800;">⚠ depende do plano</span>';
+  if (planoSelecionado && planoSelecionado.dias > 0) {
+    var dt = new Date();
+    dt.setDate(dt.getDate() + planoSelecionado.dias);
+    expiraTxt = '<strong style="color:#4CAF50;">' + dt.toLocaleDateString('pt-BR') + '</strong>';
+  }
+
+  el.innerHTML =
+    '🏪 Loja: <strong>' + escaparHTML(nome || '—') + '</strong><br>' +
+    '🔗 URL: ' + escaparHTML(url || '—') + '<br>' +
+    '📧 E-mail: ' + escaparHTML(email || '—') + '<br>' +
+    '🏷️ Tipo: ' + escaparHTML(mapaCat[cat] || cat || '—') + '<br>' +
+    '📦 Produto: ' + escaparHTML(prod || '—') + '<br>' +
+    (descr.trim() ? '📝 Descrição: ' + escaparHTML(descr) + '<br>' : '') +
+    '💰 Preço: ' + (pOld > 0 ? 'R$ ' + pOld.toFixed(2).replace('.', ',') : '—') +
+    ' → <strong>' + (pNew > 0 ? 'R$ ' + pNew.toFixed(2).replace('.', ',') : '—') + '</strong><br>' +
+    '📅 Plano: ' + (planoSelecionado
+        ? planoSelecionado.label + ' (' + formatarDinheiro(planoSelecionado.valor) + ')'
+        : '<span style="color:#ff9800;">⚠ selecione</span>') + '<br>' +
+    '⏳ Ativo até: ' + expiraTxt;
+}
+
+function gerarConfiguracao() {
+  var f = storeFormData || {};
+  var mapaTipo = {
+    desconto: 'DESCONTO', flash: 'FLASH', cupom: 'CUPOM',
+    cashback: 'CASHBACK', frete_gratis: 'FRETE_GRATIS', saldao: 'SALDAO',
+    outlet: 'OUTLET', live: 'LIVE', sorteio: 'SORTEIO'
+  };
+  var titulo = (f.produto || f.nome || 'PRODUTO').toUpperCase();
+  var desconto = (f.precoOld > 0 && f.precoNew > 0 && f.precoNew < f.precoOld)
+    ? Math.round((1 - f.precoNew / f.precoOld) * 100)
+    : 0;
+
+  return {
+    id:              'MAXPROMO_' + Date.now(),
+    tipo:            mapaTipo[f.categoria] || 'FLASH',
+    titulo:          titulo,
+    desc:            f.descricao || '',
+    loja:            f.nome || '',
+    precoOld:        f.precoOld || 0,
+    precoNew:        f.precoNew || 0,
+    desconto:        desconto,
+    tempoRestante:   (f.dias || 0) * 86400,
+    diasAtivo:       f.dias || 0,
+    clickThroughUrl: f.url || '',
+    url:             f.url || ''
+  };
+}
+
+function validarURL(campo) {
+  var valor = campo.value.trim();
+  if (!valor) {
+    campo.focus(); campo.setCustomValidity('⚠️ Digite a URL da loja'); campo.reportValidity();
+    return { ok: false };
+  }
+  var normalizada = /^https?:\/\//i.test(valor) ? valor : 'https://' + valor;
+  try {
+    var url = new URL(normalizada);
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') throw new Error('Protocolo inválido');
+    var host = url.hostname;
+    if (host !== 'localhost' && !/^\d{1,3}(\.\d{1,3}){3}$/.test(host) && host.indexOf('.') === -1) {
+      throw new Error('Domínio incompleto');
+    }
+    campo.setCustomValidity('');
+    return { ok: true, href: url.href };
+  } catch (e) {
+    campo.focus(); campo.setCustomValidity('⚠️ URL inválida. Ex: https://minhaloja.com.br'); campo.reportValidity();
+    return { ok: false };
+  }
+}
+
+function validarEAvancarStep1() {
+  if (!planoSelecionado || !planoSelecionado.dias || planoSelecionado.dias <= 0) {
+    var grid = _$('planos-grid');
+    if (grid) {
+      grid.classList.remove('planos-erro');
+      void grid.offsetWidth;
+      grid.classList.add('planos-erro');
+      grid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    showNotification('⚠️ SELECIONE UM PLANO ANTES DE CONTINUAR!', 'error');
+    return;
+  }
+
+  var nomeEl = _$('input-store-name');
+  if (nomeEl && nomeEl.value.trim().length < 3) {
+    nomeEl.focus(); nomeEl.setCustomValidity('⚠️ Digite o nome da loja (mínimo 3 caracteres)'); nomeEl.reportValidity();
+    return;
+  }
+  if (nomeEl) nomeEl.setCustomValidity('');
+
+  var urlFinal = '';
+  var urlEl = _$('input-store-url');
+  if (urlEl) {
+    var resUrl = validarURL(urlEl);
+    if (!resUrl.ok) return;
+    urlFinal = resUrl.href;
+  }
+
+  var emailEl = _$('input-store-email');
+  if (emailEl) {
+    var email = emailEl.value.trim();
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      emailEl.focus(); emailEl.setCustomValidity('⚠️ E-mail inválido'); emailEl.reportValidity();
+      return;
+    }
+    emailEl.setCustomValidity('');
+  }
+
+  var catEl = _$('input-store-cat');
+  if (catEl && !catEl.value) {
+    catEl.focus(); catEl.setCustomValidity('⚠️ Selecione o tipo de promoção'); catEl.reportValidity();
+    return;
+  }
+  if (catEl) catEl.setCustomValidity('');
+
+  var prodEl = _$('input-product-name');
+  if (prodEl && prodEl.value.trim().length < 2) {
+    prodEl.focus(); prodEl.setCustomValidity('⚠️ Digite o nome do produto (mínimo 2 caracteres)'); prodEl.reportValidity();
+    return;
+  }
+  if (prodEl) prodEl.setCustomValidity('');
+
+  var priceNewEl = _$('input-price-new');
+  var pNew = NaN;
+  if (priceNewEl) {
+    pNew = parseMoeda(priceNewEl.value);
+    if (!priceNewEl.value.trim() || isNaN(pNew) || pNew <= 0) {
+      priceNewEl.focus(); priceNewEl.setCustomValidity('⚠️ Informe o preço promocional (maior que zero)'); priceNewEl.reportValidity();
+      return;
+    }
+    priceNewEl.setCustomValidity('');
+  }
+
+  var pOldVal = parseMoeda((_$('input-price-old') || {}).value);
+  if (!isNaN(pOldVal) && pOldVal > 0 && pNew >= pOldVal) {
+    priceNewEl.focus(); priceNewEl.setCustomValidity('⚠️ O preço promocional deve ser MENOR que o preço antigo'); priceNewEl.reportValidity();
+    return;
+  }
+
+  try {
+    if (!PIX_CONFIG.chave || !PIX_CONFIG.nome || !PIX_CONFIG.cidade) {
+      throw new Error('PIX_CONFIG incompleto no script');
+    }
+
+    storeFormData = {
+      nome:      nomeEl.value.trim(),
+      url:       urlFinal,
+      categoria: catEl ? catEl.value : '',
+      email:     emailEl.value.trim(),
+      produto:   prodEl.value.trim(),
+      precoOld:  pOldVal || 0,
+      precoNew:  pNew,
+      descricao: (_$('input-descricao') || {}).value.trim(),
+      dias:      planoSelecionado.dias,
+      valor:     planoSelecionado.valor,
+      label:     planoSelecionado.label,
+      desc:      planoSelecionado.desc
+    };
+
+    pixTxid = 'MAXPROMO' + Date.now();
+
+    var pixCode = gerarPixCopiaCola(
+      PIX_CONFIG.chave, PIX_CONFIG.nome, PIX_CONFIG.cidade,
+      planoSelecionado.valor, PIX_CONFIG.descricao + ' ' + planoSelecionado.label
+    );
+
+    var keyEl = _$('pix-key-display');
+    if (keyEl) keyEl.value = pixCode;
+
+    renderizarQRCode(pixCode);
+
+    var vf = formatarDinheiro(planoSelecionado.valor);
+    var valorLabel = _$('pix-valor-label');
+    if (valorLabel) valorLabel.textContent = vf;
+    var diasLabel = _$('pix-dias-label');
+    if (diasLabel) diasLabel.textContent = planoSelecionado.label;
+    var instrucaoValor = _$('instrucao-valor');
+    if (instrucaoValor) instrucaoValor.textContent = vf;
+    var devBar = _$('dev-bar-teste');
+    if (devBar) devBar.style.display = MODO_TESTE ? 'flex' : 'none';
+
+    iniciarCountdownPix();
+
+    var st1 = _$('store-step-1'); if (st1) st1.style.display = 'none';
+    var st2 = _$('store-step-2'); if (st2) st2.style.display = 'block';
+
+  } catch (err) {
+    console.error('[MAXPROMO] ❌ ERRO CRÍTICO AO AVANÇAR:', err);
+    showNotification('❌ Erro interno: ' + err.message, 'error');
+  }
+}
+
+function confirmarPagamentoEAvancar(origem) {
+  clearInterval(pixCountdownInterval);
+  if (!storeFormData) return;
+
+  var d = new Date();
+  d.setDate(d.getDate() + storeFormData.dias);
+
+  var resumo = _$('store-step3-resumo');
+  if (resumo) {
+    resumo.innerHTML =
+      '<div><strong>🏪 Loja:</strong> ' + escaparHTML(storeFormData.nome) + '</div>' +
+      '<div><strong>🔗 URL:</strong> ' + escaparHTML(storeFormData.url) + '</div>' +
+      '<div><strong>📦 Produto:</strong> ' + escaparHTML(storeFormData.produto || '—') + '</div>' +
+      '<div><strong>💰 Valor:</strong> ' + formatarDinheiro(storeFormData.valor) + '</div>' +
+      '<div><strong>📅 Plano:</strong> ' + escaparHTML(storeFormData.label) + '</div>' +
+      '<div><strong>⏳ Ativo até:</strong> ' + d.toLocaleDateString('pt-BR') + '</div>' +
+      '<div><strong>🆔 TXID:</strong> ' + escaparHTML(pixTxid) + '</div>' +
+      '<div><strong>💳 Pagamento:</strong> ' + (origem === 'pago_simulado' ? 'Simulado (teste)' : 'PIX') + '</div>';
+  }
+
+  var st2 = _$('store-step-2'); if (st2) st2.style.display = 'none';
+  var st3 = _$('store-step-3'); if (st3) st3.style.display = 'block';
+}
+
+function resetarBotaoContinuar() {
+  var btn = _$('btn-store-step1-next');
+  if (!btn) return;
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-lock" style="font-size:.75rem;margin-right:6px;"></i>Continuar → Pagar PIX';
+}
+
+function limparModalLoja() {
+  clearInterval(pixCountdownInterval);
+  planoSelecionado = null;
+  storeFormData = null;
+  pixTxid = '';
+  pixExpirado = false;
+
+  var form = _$('form-store-step1');
+  if (form) form.reset();
+
+  document.querySelectorAll('.plano-card.selected').forEach(function (c) { c.classList.remove('selected'); });
+
+  var tp = _$('tempo-permanencia-display');
+  if (tp) tp.textContent = 'Selecione um plano';
+
+  var prev = _$('config-preview');
+  if (prev) prev.textContent = 'Nenhum dado preenchido ainda.';
+
+  resetarBotaoContinuar();
+
+  var err = _$('store-error');
+  if (err) err.style.display = 'none';
+
+  var st1 = _$('store-step-1'); if (st1) st1.style.display = 'block';
+  var st2 = _$('store-step-2'); if (st2) st2.style.display = 'none';
+  var st3 = _$('store-step-3'); if (st3) st3.style.display = 'none';
+
+  var box = _$('pix-timer-box');
+  if (box) box.classList.remove('urgente');
+}
+
 // ============================================
-// FUNÇÕES DE RENDER
+// 7. RENDERIZAÇÃO DO FEED E INTERFACE
 // ============================================
 var MOCK_PROMOS = [
   {
-    id: 21,
-    tipo: 'flash',
-    titulo: 'Bolsa Tigresa – Edição Limitada',
-    desc: 'Flash Sale: 10% OFF por 2 horas apenas!',
-    loja: 'Atelier Sorelle Santos',
-    precoOld: 3499,
-    precoNew: 1749,
-    tempoRestante: 7200,
-    clickThroughUrl: 'https://ateliersorellesantos.vercel.app/',
-    url: 'https://ateliersorellesantos.vercel.app/'
+    id: 21, tipo: 'flash', titulo: 'Bolsa Tigresa – Edição Limitada',
+    desc: 'Flash Sale: 10% OFF por 2 horas apenas!', loja: 'Atelier Sorelle Santos',
+    precoOld: 3499, precoNew: 1749, tempoRestante: 7200,
+    clickThroughUrl: 'https://ateliersorellesantos.vercel.app/', url: 'https://ateliersorellesantos.vercel.app/'
   }
 ];
 
@@ -1543,9 +2038,6 @@ var MOCK_COMPARE = {
   'MacBook Air M3 256GB': [{loja:'AppleZone',preco:9999},{loja:'MegaByte',preco:10499},{loja:'iAccess',preco:10299},{loja:'ImportTech',preco:9799}]
 };
 
-// ============================================
-// FUNÇÃO BUSCAR PROMOÇÕES NEON
-// ============================================
 async function buscarPromocoesNeon() {
   try {
     var url = '/programas?limite=50';
@@ -1556,21 +2048,14 @@ async function buscarPromocoesNeon() {
     var data = await response.json();
     if (data.programas && data.programas.length > 0) {
       neonOnline = true;
-      document.getElementById('status-dot').classList.remove('offline');
+      var dot = document.getElementById('status-dot');
+      if (dot) dot.classList.remove('offline');
       return data.programas.map(function(p) {
         return {
-          id: p.awin_id || p.id,
-          tipo: mappearSetorParaTipo(p.setor),
-          titulo: p.nome || 'Produto',
-          desc: p.descricao || 'Oferta da Awin',
-          loja: p.nome || 'Awin',
-          precoOld: 0,
-          precoNew: 0,
-          cupom: null,
-          tempoRestante: 0,
-          fonte: 'Awin',
-          clickThroughUrl: p.url_click || '#',
-          url: p.url_click || '#'
+          id: p.awin_id || p.id, tipo: 'desconto', titulo: p.nome || 'Produto',
+          desc: p.descricao || 'Oferta da Awin', loja: p.nome || 'Awin',
+          precoOld: 0, precoNew: 0, cupom: null, tempoRestante: 0,
+          fonte: 'Awin', clickThroughUrl: p.url_click || '#', url: p.url_click || '#'
         };
       });
     }
@@ -1578,22 +2063,10 @@ async function buscarPromocoesNeon() {
   } catch(err) {
     console.warn('Erro ao buscar do Neon:', err);
     neonOnline = false;
-    document.getElementById('status-dot').classList.add('offline');
+    var dot = document.getElementById('status-dot');
+    if (dot) dot.classList.add('offline');
     return null;
   }
-}
-
-function mappearSetorParaTipo(setor) {
-  if (!setor) return 'desconto';
-  var s = setor.toLowerCase();
-  if (s.indexOf('eletronic') !== -1 || s.indexOf('tech') !== -1) return 'flash';
-  if (s.indexOf('moda') !== -1 || s.indexOf('vestuario') !== -1) return 'saldao';
-  if (s.indexOf('casa') !== -1 || s.indexOf('decor') !== -1) return 'outlet';
-  if (s.indexOf('beleza') !== -1 || s.indexOf('saude') !== -1) return 'cashback';
-  if (s.indexOf('games') !== -1) return 'combo';
-  if (s.indexOf('livros') !== -1) return 'leve_pague';
-  if (s.indexOf('esporte') !== -1) return 'frete_gratis';
-  return 'desconto';
 }
 
 function dispararAlertaPromocaoIA(mensagem, tipoPromo) {
@@ -1601,27 +2074,26 @@ function dispararAlertaPromocaoIA(mensagem, tipoPromo) {
   var bar = document.getElementById('alert-bar');
   if (!bar) return;
   bar.classList.remove('alert-bar-critico');
-  bar.style.background = '';
-  bar.style.color = '';
-  bar.style.borderTopColor = '';
+  bar.style.background = ''; bar.style.color = ''; bar.style.borderTopColor = '';
   
   var config = PROMO_CONFIG[tipoPromo] || PROMO_CONFIG['desconto'];
-  document.getElementById('alert-title').textContent = config.emoji + ' ' + config.label + '!';
-  document.getElementById('alert-text').textContent = mensagem;
+  var titleEl = document.getElementById('alert-title');
+  var textEl = document.getElementById('alert-text');
   var iconBox = document.getElementById('alert-icon-box');
-  iconBox.style.background = 'linear-gradient(135deg,' + config.color + ',' + ajustarBrilho(config.color, -25) + ')';
-  iconBox.innerHTML = gerarHTMLIcone(tipoPromo, 'grande');
+  
+  if (titleEl) titleEl.textContent = config.emoji + ' ' + config.label + '!';
+  if (textEl) textEl.textContent = mensagem;
+  if (iconBox) {
+    iconBox.style.background = 'linear-gradient(135deg,' + config.color + ',' + ajustarBrilho(config.color, -25) + ')';
+    iconBox.innerHTML = gerarHTMLIcone(tipoPromo, 'grande');
+  }
   
   if (config.urgent || tipoPromo === 'blackfriday') bar.classList.add('alert-bar-critico');
   if (tipoPromo === 'flash') {
     bar.style.background = 'linear-gradient(90deg,' + config.color + ',' + ajustarBrilho(config.color, -20) + ')';
     bar.style.color = '#000';
-  } else if (tipoPromo === 'blackfriday') {
+  } else if (tipoPromo === 'blackfriday' || tipoPromo === 'bilhete') {
     bar.style.background = 'linear-gradient(90deg,#212121,#111)';
-    bar.style.borderTopColor = '#FFD700';
-    bar.style.color = '#FFD700';
-  } else if (tipoPromo === 'bilhete') {
-    bar.style.background = 'linear-gradient(90deg,#1a1a2e,#16213e)';
     bar.style.borderTopColor = '#FFD700';
     bar.style.color = '#FFD700';
   } else {
@@ -1630,7 +2102,7 @@ function dispararAlertaPromocaoIA(mensagem, tipoPromo) {
   }
   
   var container = document.getElementById('alert-container');
-  if (container.style.display !== 'block') {
+  if (container && container.style.display !== 'block') {
     container.style.display = 'block';
     container.style.animation = 'none';
     container.offsetHeight;
@@ -1645,17 +2117,15 @@ function dispararAlertaPromocaoIA(mensagem, tipoPromo) {
   clearTimeout(alertTimeout);
   alertTimeout = setTimeout(function() { esconderAlertaVisual(); }, 6000);
   savingsTotal += Math.floor(Math.random() * 80) + 20;
-  document.getElementById('savings-total').textContent = 'R$ ' + savingsTotal.toLocaleString('pt-BR');
+  var savingsEl = document.getElementById('savings-total');
+  if (savingsEl) savingsEl.textContent = 'R$ ' + savingsTotal.toLocaleString('pt-BR');
 }
 
 function esconderAlertaVisual() {
-  document.getElementById('alert-container').style.display = 'none';
+  var container = document.getElementById('alert-container');
+  if (container) container.style.display = 'none';
   var bar = document.getElementById('alert-bar');
-  if (bar) {
-    bar.classList.remove('alert-bar-critico');
-    bar.style.color = '';
-    bar.style.borderTopColor = '';
-  }
+  if (bar) { bar.classList.remove('alert-bar-critico'); bar.style.color = ''; bar.style.borderTopColor = ''; }
 }
 
 function iniciarTimer(promoId, segundos) {
@@ -1666,12 +2136,14 @@ function iniciarTimer(promoId, segundos) {
     var el = document.getElementById('timer-' + promoId);
     if (!el) { clearInterval(flashTimers[promoId]); return; }
     if (remaining <= 0) {
-      el.querySelector('.timer-value').textContent = 'Encerrado';
+      var valEl = el.querySelector('.timer-value');
+      if (valEl) valEl.textContent = 'Encerrado';
       el.classList.add('urgent');
       clearInterval(flashTimers[promoId]);
       return;
     }
-    el.querySelector('.timer-value').textContent = formatarTempo(remaining);
+    var valEl = el.querySelector('.timer-value');
+    if (valEl) valEl.textContent = formatarTempo(remaining);
     if (remaining < 600) el.classList.add('urgent');
   }, 1000);
 }
@@ -1687,13 +2159,15 @@ async function renderFeed(promos) {
     lista = neonData || [];
   }
   
-  var listaCompleta = [BOLSA_TIGRESA, ...lista];
+  // CORREÇÃO: Evita crash se lista for null/undefined
+  var listaCompleta = [BOLSA_TIGRESA, ...(lista || [])];
   
   if (filtroAtivo) {
     listaCompleta = listaCompleta.filter(function(p) { return p.tipo === filtroAtivo; });
   }
   
-  var q = document.getElementById('search-query').value.trim().toLowerCase();
+  var searchEl = document.getElementById('search-query');
+  var q = searchEl ? searchEl.value.trim().toLowerCase() : '';
   if (q.length >= 2) {
     listaCompleta = listaCompleta.filter(function(p) {
       return p.titulo.toLowerCase().indexOf(q) !== -1 ||
@@ -1779,16 +2253,10 @@ async function renderFeed(promos) {
           histHTML +
         '</div>' +
       '</div>' +
-      '<div class="promo-card-footer">' +
-        timerHTML +
-        btnHTML +
-      '</div>';
+      '<div class="promo-card-footer">' + timerHTML + btnHTML + '</div>';
     
     container.appendChild(card);
-    
-    if (hasTimer) {
-      iniciarTimer(promo.id, promo.tempoRestante);
-    }
+    if (hasTimer) iniciarTimer(promo.id, promo.tempoRestante);
   });
 }
 
@@ -1807,8 +2275,13 @@ function renderMonitored() {
     var statusColor = '#4CAF50';
     if (prod.currentPrice > prod.targetPrice * 1.1) statusColor = '#ff4444';
     else if (prod.currentPrice > prod.targetPrice) statusColor = '#FFB300';
-    card.innerHTML = '<div class="prod-img" style="color:' + statusColor + ';"><i class="fas fa-box"></i></div><div class="prod-info"><div class="prod-name">' + prod.name + '</div><div class="prod-target">Alvo: R$ ' + prod.targetPrice.toLocaleString('pt-BR') + '</div></div><div class="prod-current" style="color:' + statusColor + ';">R$ ' + prod.currentPrice.toLocaleString('pt-BR') + '</div><button class="remove-btn" data-idx="' + idx + '" title="Remover"><i class="fas fa-trash"></i></button>';
+    
+    card.innerHTML = '<div class="prod-img" style="color:' + statusColor + ';"><i class="fas fa-box"></i></div>' +
+      '<div class="prod-info"><div class="prod-name">' + prod.name + '</div><div class="prod-target">Alvo: R$ ' + prod.targetPrice.toLocaleString('pt-BR') + '</div></div>' +
+      '<div class="prod-current" style="color:' + statusColor + ';">R$ ' + prod.currentPrice.toLocaleString('pt-BR') + '</div>' +
+      '<button class="remove-btn" data-idx="' + idx + '" title="Remover"><i class="fas fa-trash"></i></button>';
     container.appendChild(card);
+    
     card.querySelector('.remove-btn').addEventListener('click', function() {
       monitoredProducts.splice(parseInt(this.getAttribute('data-idx')), 1);
       renderMonitored();
@@ -1937,42 +2410,9 @@ function atualizarBadgeMonitorados() {
 }
 
 // ============================================
-// DEMO ALERT
-// ============================================
-var DEMO_MSGS = {
-  'desconto': '-30% em todos os produtos!',
-  'saldao': 'Saldão de Inverno — ate 70% OFF!',
-  'outlet': 'Outlet de Fabrica!',
-  'flash': 'Flash Sale: 50% OFF por 2 horas!',
-  'frete_gratis': 'Frete Grátis em compras acima de R$ 99',
-  'cupom': 'Use o cupom MAXPROMO20 e ganhe 20% OFF',
-  'leve_pague': 'Compre 2, Leve 3 — Pague 2!',
-  'cashback': '10% de Cashback!',
-  'blackfriday': 'Black Friday: Maiores descontos!',
-  'brinde': 'Ganhe um brinde exclusivo!',
-  'progressivo': 'Compre 2=10% OFF|3=20% OFF|4=30% OFF',
-  'primeira': '20% OFF na primeira compra!',
-  'fidelidade': 'Ganhe pontos duplos!',
-  'misterio': 'Caixa Misteriosa por R$ 49!',
-  'bilhete': 'Bilhete Dourado! Premio exclusivo!',
-  'live': 'AO VIVO agora: Ofertas exclusivas!',
-  'combo': 'Kit Completo: 3 produtos por R$ 99',
-  'parcela': '12x sem juros!',
-  'cross': 'Leve junto com 20% OFF',
-  'sorteio': 'Sorteio iPhone 16 Pro!'
-};
-
-function dispararAlertaAleatorio() {
-  var tipos = Object.keys(PROMO_CONFIG);
-  var tipo = tipos[Math.floor(Math.random() * tipos.length)];
-  dispararAlertaPromocaoIA(DEMO_MSGS[tipo] || PROMO_CONFIG[tipo].label + ' ativado!', tipo);
-}
-
-// ============================================
-// INIT APP
+// 8. INICIALIZAÇÃO PRINCIPAL (APP)
 // ============================================
 function initApp() {
-  // Verifica se os elementos existem antes de adicionar eventos
   setTimeout(function() {
     var loading = document.getElementById('loading-fullscreen');
     if (loading) loading.classList.add('fade-out');
@@ -1982,41 +2422,24 @@ function initApp() {
   renderFilters();
   renderFeed();
 
-  // ============================================
-  // MENU TOGGLE
-  // ============================================
   var menuToggle = document.getElementById('btn-menu-toggle');
   if (menuToggle) {
     menuToggle.addEventListener('click', function(e) {
       e.stopPropagation();
       menuAberto = !menuAberto;
       var dropdown = document.getElementById('menu-dropdown');
-      if (menuAberto) {
-        dropdown.classList.add('open');
-        this.classList.add('active');
-      } else {
-        dropdown.classList.remove('open');
-        this.classList.remove('active');
-      }
+      if (menuAberto) { dropdown.classList.add('open'); this.classList.add('active'); } 
+      else { dropdown.classList.remove('open'); this.classList.remove('active'); }
     });
   }
 
-  // Fechar menu ao clicar fora
   document.addEventListener('click', function(e) {
-    if (!e.target.closest('#btn-menu-toggle') && !e.target.closest('#menu-dropdown')) {
-      fecharMenu();
-    }
+    if (!e.target.closest('#btn-menu-toggle') && !e.target.closest('#menu-dropdown')) fecharMenu();
   });
 
-  // ============================================
-  // TABS
-  // ============================================
   document.querySelectorAll('.tab-btn').forEach(function(btn) {
     btn.addEventListener('click', function() {
-      document.querySelectorAll('.tab-btn').forEach(function(b) {
-        b.classList.remove('active');
-        b.setAttribute('aria-selected', 'false');
-      });
+      document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
       this.classList.add('active');
       this.setAttribute('aria-selected', 'true');
       tabAtiva = this.getAttribute('data-tab');
@@ -2024,9 +2447,6 @@ function initApp() {
     });
   });
 
-  // ============================================
-  // SEARCH
-  // ============================================
   var searchToggle = document.getElementById('btn-search-toggle');
   var searchBar = document.getElementById('search-bar');
   var searchQuery = document.getElementById('search-query');
@@ -2047,54 +2467,38 @@ function initApp() {
 
   var btnSearch = document.getElementById('btn-search');
   if (btnSearch) {
-    btnSearch.addEventListener('click', function() {
-      renderCurrentTab();
-      showNotification('Busca realizada');
-    });
+    btnSearch.addEventListener('click', function() { renderCurrentTab(); showNotification('Busca realizada'); });
   }
 
   if (searchQuery) {
     searchQuery.addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') {
-        renderCurrentTab();
-        showNotification('Busca realizada');
-      }
+      if (e.key === 'Enter') { renderCurrentTab(); showNotification('Busca realizada'); }
     });
     searchQuery.addEventListener('input', function() {
       if (tabAtiva === 'feed') renderFeed();
     });
   }
 
-  // ============================================
-  // ALERT TOGGLE
-  // ============================================
   var alertToggle = document.getElementById('btn-alert-toggle');
   if (alertToggle) {
     alertToggle.addEventListener('click', function() {
       alertasAtivados = !alertasAtivados;
       var icon = document.getElementById('alert-toggle-icon');
       if (alertasAtivados) {
-        icon.className = 'fas fa-bell';
-        this.style.borderColor = '';
-        this.style.color = 'var(--accent-color)';
+        if (icon) icon.className = 'fas fa-bell';
+        this.style.borderColor = ''; this.style.color = 'var(--accent-color)';
         showNotification('Alertas ativados');
       } else {
-        icon.className = 'fas fa-bell-slash';
-        this.style.borderColor = '#ff4444';
-        this.style.color = '#ff4444';
+        if (icon) icon.className = 'fas fa-bell-slash';
+        this.style.borderColor = '#ff4444'; this.style.color = '#ff4444';
         showNotification('Alertas desativados');
       }
     });
   }
 
   var alertClose = document.getElementById('alert-close-btn');
-  if (alertClose) {
-    alertClose.addEventListener('click', esconderAlertaVisual);
-  }
+  if (alertClose) alertClose.addEventListener('click', esconderAlertaVisual);
 
-  // ============================================
-  // SIDEBAR FILTERS
-  // ============================================
   function ativarFiltroSidebar(tipo) {
     filtroAtivo = filtroAtivo === tipo ? null : tipo;
     tabAtiva = 'feed';
@@ -2108,46 +2512,13 @@ function initApp() {
 
   var btnFlash = document.getElementById('btn-filter-flash');
   if (btnFlash) btnFlash.addEventListener('click', function() { ativarFiltroSidebar('flash'); });
-  
   var btnCupom = document.getElementById('btn-filter-cupom');
   if (btnCupom) btnCupom.addEventListener('click', function() { ativarFiltroSidebar('cupom'); });
-  
   var btnFrete = document.getElementById('btn-filter-frete');
   if (btnFrete) btnFrete.addEventListener('click', function() { ativarFiltroSidebar('frete_gratis'); });
-  
   var btnCashback = document.getElementById('btn-filter-cashback');
   if (btnCashback) btnCashback.addEventListener('click', function() { ativarFiltroSidebar('cashback'); });
 
-
-  // ============================================
-  // SIDEBAR FILTERS
-  // ============================================
-  function ativarFiltroSidebar(tipo) {
-    filtroAtivo = filtroAtivo === tipo ? null : tipo;
-    tabAtiva = 'feed';
-    document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
-    var feedTab = document.querySelector('[data-tab="feed"]');
-    if (feedTab) feedTab.classList.add('active');
-    renderFilters();
-    renderFeed();
-    showNotification(filtroAtivo ? 'Filtrando: ' + PROMO_CONFIG[tipo].label : 'Filtro removido');
-  }
-
-  var btnFlash = document.getElementById('btn-filter-flash');
-  if (btnFlash) btnFlash.addEventListener('click', function() { ativarFiltroSidebar('flash'); });
-  
-  var btnCupom = document.getElementById('btn-filter-cupom');
-  if (btnCupom) btnCupom.addEventListener('click', function() { ativarFiltroSidebar('cupom'); });
-  
-  var btnFrete = document.getElementById('btn-filter-frete');
-  if (btnFrete) btnFrete.addEventListener('click', function() { ativarFiltroSidebar('frete_gratis'); });
-  
-  var btnCashback = document.getElementById('btn-filter-cashback');
-  if (btnCashback) btnCashback.addEventListener('click', function() { ativarFiltroSidebar('cashback'); });
-
-  // ============================================
-  // MONITORAR PRODUTOS (SIDEBAR)
-  // ============================================
   var btnMonitorarSidebar = document.getElementById('btn-monitorar-sidebar');
   if (btnMonitorarSidebar) {
     btnMonitorarSidebar.addEventListener('click', function() {
@@ -2160,17 +2531,15 @@ function initApp() {
     });
   }
 
-
-  // ============================================
-  // REFRESH
-  // ============================================
   var refreshBtn = document.getElementById('btn-refresh-feed');
   if (refreshBtn) {
     refreshBtn.addEventListener('click', function() {
       var icon = this.querySelector('i');
-      icon.style.transition = 'transform 0.5s ease';
-      icon.style.transform = 'rotate(360deg)';
-      setTimeout(function() { icon.style.transform = ''; }, 600);
+      if (icon) {
+        icon.style.transition = 'transform 0.5s ease';
+        icon.style.transform = 'rotate(360deg)';
+        setTimeout(function() { icon.style.transform = ''; }, 600);
+      }
       filtroAtivo = null;
       if (searchQuery) searchQuery.value = '';
       iconCache = {};
@@ -2181,13 +2550,13 @@ function initApp() {
     });
   }
 
-  // ============================================
-  // DEMO ALERT
-  // ============================================
   var demoBtn = document.getElementById('btn-demo-alert');
-  if (demoBtn) {
-    demoBtn.addEventListener('click', dispararAlertaAleatorio);
-  }
+  if (demoBtn) demoBtn.addEventListener('click', function() {
+    var tipos = Object.keys(PROMO_CONFIG);
+    var tipo = tipos[Math.floor(Math.random() * tipos.length)];
+    var msgs = { 'flash': 'Flash Sale: 50% OFF por 2 horas!', 'desconto': '-30% em todos os produtos!' };
+    dispararAlertaPromocaoIA(msgs[tipo] || PROMO_CONFIG[tipo].label + ' ativado!', tipo);
+  });
 
   var autoDemoBtn = document.getElementById('btn-demo-auto');
   if (autoDemoBtn) {
@@ -2202,30 +2571,24 @@ function initApp() {
         this.classList.add('active-demo');
         this.textContent = 'Parar Demo';
         showNotification('Demo automatico — alertas a cada 5s');
-        demoInterval = setInterval(dispararAlertaAleatorio, 5000);
+        demoInterval = setInterval(function() {
+          var tipos = Object.keys(PROMO_CONFIG);
+          var tipo = tipos[Math.floor(Math.random() * tipos.length)];
+          dispararAlertaPromocaoIA(PROMO_CONFIG[tipo].label + ' ativado!', tipo);
+        }, 5000);
       }
     });
   }
 
-  // ============================================
-  // MENU ITEMS
-  // ============================================
   var menuInfo = document.getElementById('menu-info');
   if (menuInfo) menuInfo.addEventListener('click', function() { openModal('modal-info'); });
 
   var menuDonate = document.getElementById('menu-donate');
-  if (menuDonate) menuDonate.addEventListener('click', function() { 
-    carregarOpcoesDoacao(); 
-    openModal('modal-donate'); 
-  });
+  if (menuDonate) menuDonate.addEventListener('click', function() { carregarOpcoesDoacao(); openModal('modal-donate'); });
 
   var menuPromoTypes = document.getElementById('menu-promo-types');
-  if (menuPromoTypes) menuPromoTypes.addEventListener('click', function() { 
-    renderPromoTypesGrid(); 
-    openModal('modal-promo-types'); 
-  });
+  if (menuPromoTypes) menuPromoTypes.addEventListener('click', function() { renderPromoTypesGrid(); openModal('modal-promo-types'); });
 
-  // MONITORAR PRODUTO (no menu)
   var menuMonitorar = document.getElementById('menu-monitorar');
   if (menuMonitorar) {
     menuMonitorar.addEventListener('click', function() {
@@ -2240,942 +2603,71 @@ function initApp() {
     });
   }
 
-  // ============================================
-  // FAB - INSERIR LOJA (VERDE)
-  // ============================================
   var fabAddStore = document.getElementById('fab-add-store');
-  if (fabAddStore) {
-    fabAddStore.addEventListener('click', function() {
-      openModal('modal-add-store');
-    });
-  }
+  if (fabAddStore) fabAddStore.addEventListener('click', function() { openModal('modal-add-store'); });
 
-  // ============================================
-  // MODAL: MONITORAR PRODUTO
-  // ============================================
   var modalCancel = document.getElementById('btn-modal-cancel');
-  if (modalCancel) {
-    modalCancel.addEventListener('click', function() {
-      closeModal('modal-add-product');
-    });
-  }
-  
-// ============================================
-  // MODAL: BOTÃO MODAL CONFIRM - INSERIR LOJA
-  // ============================================
+  if (modalCancel) modalCancel.addEventListener('click', function() { closeModal('modal-add-product'); });
+
   var modalConfirm = document.getElementById('btn-modal-confirm');
-if (modalConfirm) {
-  modalConfirm.addEventListener('click', function(e) {
-    // Previne o comportamento padrão do botão/formulário
-    e.preventDefault();
-
-    // 1. Coleta e sanitização dos valores
-    var nameInput = document.getElementById('input-prod-name');
-    var targetInput = document.getElementById('input-prod-target');
-
-    var name = nameInput ? nameInput.value.trim() : '';
-    var target = targetInput ? parseFloat(targetInput.value) : 0;
-
-    // 2. Validação da etapa atual (Bloqueia e exibe alertas se houver erro)
-    if (name.length < 2) {
-      showNotification('Digite o nome do produto');
-      if (nameInput) nameInput.focus();
-      return; // INTERROMPE O FLUXO AQUI (Não avança nem limpa)
-    }
-
-    if (!target || isNaN(target) || target <= 0) {
-      showNotification('Digite um preco alvo valido');
-      if (targetInput) targetInput.focus();
-      return; // INTERROMPE O FLUXO AQUI (Não avança nem limpa)
-    }
-
-    // 3. Processamento e avanço (Executa somente se a validação passar)
-    var current = Math.round(target * (1.15 + Math.random() * 0.25));
-    monitoredProducts.push({ name: name, targetPrice: target, currentPrice: current });
-
-    // Reseta os campos e fecha o modal
-    nameInput.value = '';
-    targetInput.value = '';
-    closeModal('modal-add-product');
-
-    // Atualiza a interface
-    atualizarBadgeMonitorados();
-    renderMonitored();
-    showNotification('Produto adicionado!');
-    dispararAlertaPromocaoIA('Monitorando: ' + name + ' — Alvo R$ ' + target.toLocaleString('pt-BR'), 'fidelidade');
-  });
-}
-
-
-/* ============================================================
-   JS COMPLETO — MODAL "INSERIR LOJA" COM PIX
-   ------------------------------------------------------------
-   ============================================================ */
-
-
-// ============================================
-// 1. ESTADO GLOBAL + CONFIG
-// ============================================
-// planoSelecionado, storeFormData, pixTxid já declarados no estado global acima
-var pixCountdownInterval = null;
-var pixExpirado          = false;
-var PIX_TEMPO_SEGUNDOS = 600; // 10 min
-var MODO_TESTE = true;        // false em produção
-
-// ⚠️ PREENCHA com os dados reais do recebedor
-var PIX_CONFIG = {
-  chave:     'seabhra@gmail.com',
-  nome:      'Geraldo Augusto Seabra',
-  cidade:    'Sabará - MG',
-  descricao: 'MAX PROMO APP'
-};
-
-// ============================================
-// 2. HELPERS
-// ============================================
-function _$(id) { return document.getElementById(id); }
-
-function _notify(msg, tipo) {
-  if (typeof showNotification === 'function') showNotification(msg, tipo);
-  else console.log('[AVISO]', msg);
-}
-
-function _closeModalSafe(id) {
-  if (typeof closeModal === 'function') { closeModal(id); return; }
-  var m = _$(id);
-  if (m) { m.style.display = 'none'; m.classList.remove('active'); }
-}
-
-function escaparHTML(s) {
-  return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
-    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
-  });
-}
-
-function formatarDinheiro(v) {
-  return 'R$ ' + Number(v || 0).toFixed(2).replace('.', ',');
-}
-
-function fallbackCopy(texto) {
-  var ta = document.createElement('textarea');
-  ta.value = texto;
-  ta.style.position = 'fixed';
-  ta.style.opacity = '0';
-  document.body.appendChild(ta);
-  ta.select();
-  try { document.execCommand('copy'); } catch (e) {}
-  document.body.removeChild(ta);
-}
-
-function limparTexto(t, max) {
-  return String(t || '')
-    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^A-Za-z0-9 ]/g, '')
-    .trim().toUpperCase()
-    .substring(0, max);
-}
-
-// ============================================
-// 2b. MOEDA — entende "160,00", "1.234,56", "R$ 99,90"
-// ============================================
-function parseMoeda(str) {
-  if (str === null || str === undefined) return NaN;
-  var s = String(str).trim().replace(/[Rr]\$/g, '').replace(/\s/g, '');
-  if (!s) return NaN;
-
-  var ultimaVirgula = s.lastIndexOf(',');
-  var ultimoPonto   = s.lastIndexOf('.');
-
-  if (ultimaVirgula > ultimoPonto) {
-    s = s.replace(/\./g, '').replace(',', '.');       // 1.234,56
-  } else if (ultimoPonto > ultimaVirgula) {
-    s = s.replace(/,/g, '');                          // 1,234.56
-  } else if (ultimoPonto !== -1) {
-    var partes = s.split('.');
-    if (partes.length > 2 || partes[partes.length - 1].length === 3) {
-      s = s.replace(/\./g, '');                       // 1.234 = milhar
-    }
-  } else if (ultimaVirgula !== -1) {
-    s = s.replace(',', '.');
-  }
-
-  s = s.replace(/[^0-9.]/g, '');
-  var v = parseFloat(s);
-  return isNaN(v) ? NaN : v;
-}
-
-function sanitizarMoeda(campo) {
-  var v = campo.value.replace(/[^\d.,]/g, '');
-  var iVirg = v.indexOf(',');
-  if (iVirg !== -1) {
-    v = v.slice(0, iVirg + 1) + v.slice(iVirg + 1).replace(/,/g, '');
-    var dec = v.slice(iVirg + 1).replace(/\./g, '');
-    if (dec.length > 2) v = v.slice(0, iVirg + 1) + dec.slice(0, 2);
-  }
-  if (campo.value !== v) campo.value = v;
-}
-
-function formatarMoeda(campo, casas) {
-  casas = (casas === undefined) ? 2 : casas;
-  if (!campo.value.trim()) return;
-  var v = parseMoeda(campo.value);
-  if (isNaN(v)) { campo.value = ''; return; }
-  campo.value = v.toFixed(casas).replace('.', ',');
-}
-
-// ============================================
-// 3. PIX — PAYLOAD EMV + CRC16
-// ============================================
-function _tlv(id, valor) {
-  return id + String(valor.length).padStart(2, '0') + valor;
-}
-
-function _crc16(str) {
-  var crc = 0xFFFF;
-  for (var i = 0; i < str.length; i++) {
-    crc ^= str.charCodeAt(i) << 8;
-    for (var j = 0; j < 8; j++) {
-      crc = (crc & 0x8000) ? ((crc << 1) ^ 0x1021) : (crc << 1);
-      crc &= 0xFFFF;
-    }
-  }
-  return crc.toString(16).toUpperCase().padStart(4, '0');
-}
-
-function gerarPixCopiaCola(chave, nome, cidade, valor, descricao) {
-  var mai = _tlv('26', _tlv('00', 'br.gov.bcb.pix') + _tlv('01', chave));
-  var txidLimpo = (pixTxid || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase().substring(0, 25) || '***';
-  var addl = _tlv('62', _tlv('05', txidLimpo));
-
-  var payload =
-    _tlv('00', '01') +
-    _tlv('01', '12') +
-    mai +
-    _tlv('52', '0000') +
-    _tlv('53', '986') +
-    _tlv('54', Number(valor).toFixed(2)) +
-    _tlv('58', 'BR') +
-    _tlv('59', limparTexto(nome, 25)) +
-    _tlv('60', limparTexto(cidade, 15)) +
-    addl;
-
-  payload += '6304';
-  return payload + _crc16(payload);
-}
-
-function renderizarQRCode(texto) {
-  var wrapper = _$('pix-qr-wrapper');
-  if (!wrapper) return;
-  var canvas = _$('pix-qr-canvas');
-
-  try {
-    if (typeof qrcode !== 'function') throw new Error('Lib qrcode-generator não carregada');
-    if (!canvas) throw new Error('Canvas do QR não encontrado');
-
-    var qr = qrcode(0, 'M');
-    qr.addData(texto);
-    qr.make();
-
-    var modulos = qr.getModuleCount();
-    var tamanho = 360;
-    var celula  = Math.max(1, Math.floor(tamanho / modulos));
-    var offset  = Math.floor((tamanho - celula * modulos) / 2);
-
-    canvas.width  = tamanho;
-    canvas.height = tamanho;
-    canvas.style.width  = '180px';
-    canvas.style.height = '180px';
-
-    var ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, tamanho, tamanho);
-    ctx.fillStyle = '#000000';
-    for (var r = 0; r < modulos; r++) {
-      for (var c = 0; c < modulos; c++) {
-        if (qr.isDark(r, c)) {
-          ctx.fillRect(offset + c * celula, offset + r * celula, celula, celula);
-        }
-      }
-    }
-    var avisoAntigo = _$('pix-qr-aviso');
-    if (avisoAntigo) avisoAntigo.parentNode.removeChild(avisoAntigo);
-    canvas.style.display = 'block';
-    wrapper.style.display = 'flex';
-  } catch (err) {
-    console.error('QR Code:', err);
-    if (canvas) canvas.style.display = 'none'; // preserva o canvas
-    var aviso = _$('pix-qr-aviso');
-    if (!aviso) {
-      aviso = document.createElement('div');
-      aviso.id = 'pix-qr-aviso';
-      aviso.style.cssText = 'color:#000;font-size:.7rem;padding:10px;text-align:center;';
-      wrapper.appendChild(aviso);
-    }
-    aviso.innerHTML = '⚠️ Não foi possível gerar o QR.<br>Use o <strong>Copia e Cola</strong> abaixo.';
-  }
-}
-
-function _setStatusPix(tipo, html) {
-  var el = _$('pix-status-msg');
-  if (!el) return;
-  el.className = 'pix-status-msg ' + tipo;
-  el.innerHTML = html;
-}
-
-function iniciarCountdownPix() {
-  clearInterval(pixCountdownInterval);
-  pixExpirado = false;
-
-  var box = _$('pix-timer-box');
-  var el  = _$('pix-countdown');
-  if (box) box.classList.remove('urgente');
-  if (!el) return;
-
-  var restante = PIX_TEMPO_SEGUNDOS;
-
-  _setStatusPix('aguardando',
-    '<i class="fas fa-hourglass-half" style="color:var(--accent-color);"></i> Aguardando confirmação do pagamento...');
-
-  function tick() {
-    var m = Math.floor(restante / 60);
-    var s = restante % 60;
-    el.textContent = (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
-
-    if (restante <= 120 && box) box.classList.add('urgente');
-
-    if (restante <= 0) {
-      clearInterval(pixCountdownInterval);
-      pixExpirado = true;
-      _setStatusPix('erro',
-        '<i class="fas fa-triangle-exclamation"></i> ⏰ Tempo expirado. Clique em <strong>← Voltar</strong> e gere um novo QR Code.');
-      _notify('⏰ QR Code PIX expirado. Gere um novo.', 'error');
-    }
-    restante--;
-  }
-
-  tick();
-  pixCountdownInterval = setInterval(tick, 1000);
-}
-
-// ============================================
-// 4. SELEÇÃO DE PLANO
-// ============================================
-function selecionarPlano(el) {
-  if (!el) return;
-
-  document.querySelectorAll('.plano-card.selected')
-    .forEach(function (card) { card.classList.remove('selected'); });
-  el.classList.add('selected');
-
-  var dias   = parseInt(el.dataset.dias, 10) || 0;
-  var valor  = parseFloat(el.dataset.valor) || 0;
-  var descEl = el.querySelector('.plano-desc');
-
-  planoSelecionado = {
-    dias: dias,
-    valor: valor,
-    label: dias + ' dias',
-    desc: descEl ? descEl.textContent.trim() : ''
-  };
-
-  var display = _$('tempo-permanencia-display');
-  if (display) display.textContent = planoSelecionado.label + ' — ' + formatarDinheiro(valor);
-
-  var inputPlano = _$('input-plano-dias');
-  if (inputPlano) inputPlano.value = dias;
-
-  var btn = _$('btn-store-step1-next');
-  if (btn) {
-    btn.disabled = false;
-    btn.innerHTML = '<i class="fas fa-arrow-right" style="font-size:.75rem;margin-right:6px;"></i>Continuar → Pagar PIX';
-  }
-
-  var grid = _$('planos-grid');
-  if (grid) grid.classList.remove('planos-erro');
-
-  atualizarPreview();
-}
-
-// ============================================
-// 5. PREÇOS / PREVIA
-// ============================================
-function calcularDesconto() {
-  var pOld = parseMoeda((_$('input-price-old') || {}).value);
-  var pNew = parseMoeda((_$('input-price-new') || {}).value);
-  if (pOld > 0 && pNew > 0 && pNew < pOld) {
-    _$('input-discount').value = ((1 - pNew / pOld) * 100).toFixed(1).replace('.', ',');
-  }
-  atualizarPreview();
-}
-
-function calcularPrecoPorDesconto() {
-  var elOld  = _$('input-price-old');
-  var elDesc = _$('input-discount');
-  var pOld   = parseMoeda((elOld  || {}).value);
-  var desc   = parseMoeda((elDesc || {}).value);
-
-  if (pOld > 0 && desc > 0) {
-    if (desc > 100) {
-      desc = 100;
-      if (elDesc) elDesc.value = '100';
-    }
-    var elNew = _$('input-price-new');
-    if (elNew) elNew.value = (pOld * (1 - desc / 100)).toFixed(2).replace('.', ',');
-  }
-  atualizarPreview();
-}
-// ============================================
-// FUNÇÃO ATUALIZAR PREVIEW
-// ============================================
-
-console.log('>>> CHEGOU NA DEFINIÇÃO DO PREVIEW');
-function atualizarPreview() {
-  var el = _$('config-preview');
-  if (!el) return;
-
-  var nome  = (_$('input-store-name')   || {}).value || '';
-  var url   = (_$('input-store-url')    || {}).value || '';
-  var email = (_$('input-store-email')  || {}).value || '';
-  var cat   = (_$('input-store-cat')    || {}).value || '';
-  var prod  = (_$('input-product-name') || {}).value || '';
-  var descr = (_$('input-descricao')    || {}).value || '';
-  var pOld  = parseMoeda((_$('input-price-old') || {}).value) || 0;
-  var pNew  = parseMoeda((_$('input-price-new') || {}).value) || 0;
-
-  if (!nome.trim() && !url.trim() && !prod.trim() && !planoSelecionado) {
-    el.textContent = 'Nenhum dado preenchido ainda.';
-    return;
-  }
-
-  var mapaCat = {
-    desconto: 'Desconto', flash: 'Flash Sale', cupom: 'Cupom',
-    cashback: 'Cashback', frete_gratis: 'Frete Grátis', saldao: 'Saldão',
-    outlet: 'Outlet', live: 'Live Sale', sorteio: 'Sorteio'
-  };
-
-  var expiraTxt = '<span style="color:#ff9800;">⚠ depende do plano</span>';
-  if (planoSelecionado && planoSelecionado.dias > 0) {
-    var dt = new Date();
-    dt.setDate(dt.getDate() + planoSelecionado.dias);
-    expiraTxt = '<strong style="color:#4CAF50;">' + dt.toLocaleDateString('pt-BR') + '</strong>';
-  }
-
-  el.innerHTML =
-    '🏪 Loja: <strong>' + escaparHTML(nome || '—') + '</strong><br>' +
-    '🔗 URL: ' + escaparHTML(url || '—') + '<br>' +
-    '📧 E-mail: ' + escaparHTML(email || '—') + '<br>' +
-    '🏷️ Tipo: ' + escaparHTML(mapaCat[cat] || cat || '—') + '<br>' +
-    '📦 Produto: ' + escaparHTML(prod || '—') + '<br>' +
-    (descr.trim() ? '📝 Descrição: ' + escaparHTML(descr) + '<br>' : '') +
-    '💰 Preço: ' + (pOld > 0 ? 'R$ ' + pOld.toFixed(2).replace('.', ',') : '—') +
-    ' → <strong>' + (pNew > 0 ? 'R$ ' + pNew.toFixed(2).replace('.', ',') : '—') + '</strong><br>' +
-    '📅 Plano: ' + (planoSelecionado
-        ? planoSelecionado.label + ' (' + formatarDinheiro(planoSelecionado.valor) + ')'
-        : '<span style="color:#ff9800;">⚠ selecione</span>') + '<br>' +
-    '⏳ Ativo até: ' + expiraTxt;
-}
-
-function gerarConfiguracao() {
-  var f = storeFormData || {};
-  var mapaTipo = {
-    desconto: 'DESCONTO', flash: 'FLASH', cupom: 'CUPOM',
-    cashback: 'CASHBACK', frete_gratis: 'FRETE_GRATIS', saldao: 'SALDAO',
-    outlet: 'OUTLET', live: 'LIVE', sorteio: 'SORTEIO'
-  };
-  var titulo = (f.produto || f.nome || 'PRODUTO').toUpperCase();
-  var desconto = (f.precoOld > 0 && f.precoNew > 0 && f.precoNew < f.precoOld)
-    ? Math.round((1 - f.precoNew / f.precoOld) * 100)
-    : 0;
-
-  return {
-    id:              'MAXPROMO_' + Date.now(),
-    tipo:            mapaTipo[f.categoria] || 'FLASH',
-    titulo:          titulo,
-    desc:            f.descricao || '',
-    loja:            f.nome || '',
-    precoOld:        f.precoOld || 0,
-    precoNew:        f.precoNew || 0,
-    desconto:        desconto,
-    tempoRestante:   (f.dias || 0) * 86400,
-    diasAtivo:       f.dias || 0,
-    clickThroughUrl: f.url || '',
-    url:             f.url || ''
-  };
-}
-
-// ============================================
-// 6. VALIDADORES
-// ============================================
-function validarURL(campo) {
-  var valor = campo.value.trim();
-
-  if (!valor) {
-    campo.focus();
-    campo.setCustomValidity('⚠️ Digite a URL da loja');
-    campo.reportValidity();
-    return { ok: false };
-  }
-
-  var normalizada = /^https?:\/\//i.test(valor) ? valor : 'https://' + valor;
-
-  var url;
-  try {
-    url = new URL(normalizada);
-  } catch (e) {
-    campo.focus();
-    campo.setCustomValidity('⚠️ URL inválida. Ex: https://minhaloja.com.br');
-    campo.reportValidity();
-    return { ok: false };
-  }
-
-  if (url.protocol !== 'http:' && url.protocol !== 'https:') {
-    campo.focus();
-    campo.setCustomValidity('⚠️ A URL deve começar com http:// ou https://');
-    campo.reportValidity();
-    return { ok: false };
-  }
-
-  var host        = url.hostname;
-  var ehLocalhost = (host === 'localhost');
-  var ehIP        = /^\d{1,3}(\.\d{1,3}){3}$/.test(host);
-  var temPonto    = host.indexOf('.') > 0;
-
-  if (!ehLocalhost && !ehIP && !temPonto) {
-    campo.focus();
-    campo.setCustomValidity('⚠️ Domínio incompleto. Ex: minhaloja.com.br');
-    campo.reportValidity();
-    return { ok: false };
-  }
-
-  if (!ehIP) {
-    var labels = host.split('.');
-    for (var i = 0; i < labels.length; i++) {
-      var l = labels[i];
-      if (!l || l.length > 63 || /^-|-$/.test(l) || !/^[a-z0-9-]+$/i.test(l)) {
-        campo.focus();
-        campo.setCustomValidity('⚠️ Domínio inválido. Verifique o endereço.');
-        campo.reportValidity();
-        return { ok: false };
-      }
-    }
-  }
-
-  campo.setCustomValidity('');
-  return { ok: true, href: url.href };
-}
-
-function validarEmail(campo) {
-  var valor = campo.value.trim();
-  if (!valor) {
-    campo.setCustomValidity('⚠️ Digite seu e-mail');
-    campo.reportValidity();
-    return false;
-  }
-  var padrao = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!padrao.test(valor)) {
-    campo.setCustomValidity('⚠️ E-mail inválido. Ex: loja@email.com');
-    campo.reportValidity();
-    return false;
-  }
-  campo.setCustomValidity('');
-  return true;
-}
-
-// ============================================
-// 7. FLUXO — STEPS 2 E 3
-// ============================================
-function confirmarPagamentoEAvancar(origem) {
-  clearInterval(pixCountdownInterval);
-  if (!storeFormData) return;
-
-  var d = new Date();
-  d.setDate(d.getDate() + storeFormData.dias);
-
-  var resumo = _$('store-step3-resumo');
-  if (resumo) {
-    resumo.innerHTML =
-      '<div><strong>🏪 Loja:</strong> ' + escaparHTML(storeFormData.nome) + '</div>' +
-      '<div><strong>🔗 URL:</strong> ' + escaparHTML(storeFormData.url) + '</div>' +
-      '<div><strong>📦 Produto:</strong> ' + escaparHTML(storeFormData.produto || '—') + '</div>' +
-      '<div><strong>💰 Valor:</strong> ' + formatarDinheiro(storeFormData.valor) + '</div>' +
-      '<div><strong>📅 Plano:</strong> ' + escaparHTML(storeFormData.label) + '</div>' +
-      '<div><strong>⏳ Ativo até:</strong> ' + d.toLocaleDateString('pt-BR') + '</div>' +
-      '<div><strong>🆔 TXID:</strong> ' + escaparHTML(pixTxid) + '</div>' +
-      '<div><strong>💳 Pagamento:</strong> ' + (origem === 'pago_simulado' ? 'Simulado (teste)' : 'PIX') + '</div>';
-  }
-
-  var st2 = _$('store-step-2'); if (st2) st2.style.display = 'none';
-  var st3 = _$('store-step-3'); if (st3) st3.style.display = 'block';
-}
-
-function resetarBotaoContinuar() {
-  var btn = _$('btn-store-step1-next');
-  if (!btn) return;
-  btn.disabled = true;
-  btn.innerHTML = '<i class="fas fa-lock" style="font-size:.75rem;margin-right:6px;"></i>Continuar → Pagar PIX';
-}
-
-function limparModalLoja() {
-  clearInterval(pixCountdownInterval);
-  planoSelecionado = null;
-  storeFormData = null;
-  pixTxid = '';
-  pixExpirado = false;
-
-  var form = _$('form-store-step1');
-  if (form) form.reset();
-
-  document.querySelectorAll('.plano-card.selected').forEach(function (c) {
-    c.classList.remove('selected');
-  });
-
-  var tp = _$('tempo-permanencia-display');
-  if (tp) tp.textContent = 'Selecione um plano';
-
-  var prev = _$('config-preview');
-  if (prev) prev.textContent = 'Nenhum dado preenchido ainda.';
-
-  resetarBotaoContinuar();
-
-  var err = _$('store-error');
-  if (err) err.style.display = 'none';
-
-  var st1 = _$('store-step-1'); if (st1) st1.style.display = 'block';
-  var st2 = _$('store-step-2'); if (st2) st2.style.display = 'none';
-  var st3 = _$('store-step-3'); if (st3) st3.style.display = 'none';
-
-  var box = _$('pix-timer-box');
-  if (box) box.classList.remove('urgente');
-}
-
-// ============================================
-// 8. VALIDAÇÃO CENTRAL
-// ============================================
-function validarEAvancarStep1() {
-  // A. PLANO
-  if (!planoSelecionado || !planoSelecionado.dias || planoSelecionado.dias <= 0) {
-    var grid = _$('planos-grid');
-    if (grid) {
-      grid.classList.remove('planos-erro');
-      void grid.offsetWidth;
-      grid.classList.add('planos-erro');
-      grid.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-    _notify('⚠️ SELECIONE UM PLANO ANTES DE CONTINUAR!', 'error');
-    return;
-  }
-
-  // B. NOME
-  var nomeEl = _$('input-store-name');
-  if (nomeEl) {
-    var nome = nomeEl.value.trim();
-    if (!nome || nome.length < 3) {
-      nomeEl.focus();
-      nomeEl.setCustomValidity('⚠️ Digite o nome da loja (mínimo 3 caracteres)');
-      nomeEl.reportValidity();
-      return;
-    }
-    nomeEl.setCustomValidity('');
-  }
-
-  // C. URL (valida E normaliza → https://)
-  var urlFinal = '';
-  var urlEl = _$('input-store-url');
-  if (urlEl) {
-    var resUrl = validarURL(urlEl);
-    if (!resUrl.ok) return;
-    urlFinal = resUrl.href;
-  }
-
-  // D. E-MAIL
-  var emailEl = _$('input-store-email');
-  if (emailEl) {
-    var email = emailEl.value.trim();
-    var padraoEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!email) {
-      emailEl.focus();
-      emailEl.setCustomValidity('⚠️ Digite seu e-mail');
-      emailEl.reportValidity();
-      return;
-    }
-    if (!padraoEmail.test(email)) {
-      emailEl.focus();
-      emailEl.setCustomValidity('⚠️ E-mail inválido. Ex: loja@email.com');
-      emailEl.reportValidity();
-      return;
-    }
-    emailEl.setCustomValidity('');
-  }
-
-  // E. CATEGORIA
-  var catEl = _$('input-store-cat');
-  if (catEl && !catEl.value) {
-    catEl.focus();
-    catEl.setCustomValidity('⚠️ Selecione o tipo de promoção');
-    catEl.reportValidity();
-    return;
-  }
-  if (catEl) catEl.setCustomValidity('');
-
-  // F. PRODUTO
-  var prodEl = _$('input-product-name');
-  if (prodEl) {
-    var produto = prodEl.value.trim();
-    if (!produto || produto.length < 2) {
-      prodEl.focus();
-      prodEl.setCustomValidity('⚠️ Digite o nome do produto (mínimo 2 caracteres)');
-      prodEl.reportValidity();
-      return;
-    }
-    prodEl.setCustomValidity('');
-  }
-
-  // G. PREÇO NOVO
-  var priceNewEl = _$('input-price-new');
-  var pNew = NaN;
-  if (priceNewEl) {
-    pNew = parseMoeda(priceNewEl.value);
-    if (!priceNewEl.value.trim() || isNaN(pNew) || pNew <= 0) {
-      priceNewEl.focus();
-      priceNewEl.setCustomValidity('⚠️ Informe o preço promocional (valor maior que zero)');
-      priceNewEl.reportValidity();
-      return;
-    }
-    priceNewEl.setCustomValidity('');
-  }
-
-  // H. CRUZADA: promocional < antigo
-  var pOldVal = parseMoeda((_$('input-price-old') || {}).value);
-  if (!isNaN(pOldVal) && pOldVal > 0 && pNew >= pOldVal) {
-    priceNewEl.focus();
-    priceNewEl.setCustomValidity('⚠️ O preço promocional deve ser MENOR que o preço antigo');
-    priceNewEl.reportValidity();
-    return;
-  }
-
-  // TUDO VÁLIDO — gera o PIX
-  try {
-    if (!PIX_CONFIG.chave || !PIX_CONFIG.nome || !PIX_CONFIG.cidade) {
-      throw new Error('PIX_CONFIG incompleto — preencha chave/nome/cidade no topo do script');
-    }
-
-    storeFormData = {
-      nome:      nomeEl.value.trim(),
-      url:       urlFinal,
-      categoria: catEl ? catEl.value : '',
-      email:     emailEl.value.trim(),
-      produto:   prodEl.value.trim(),
-      precoOld:  pOldVal || 0,
-      precoNew:  pNew,
-      descricao: (_$('input-descricao') || {}).value.trim(),
-      dias:      planoSelecionado.dias,
-      valor:     planoSelecionado.valor,
-      label:     planoSelecionado.label,
-      desc:      planoSelecionado.desc
-    };
-
-    pixTxid = 'MAXPROMO' + Date.now();
-
-    var pixCode = gerarPixCopiaCola(
-      PIX_CONFIG.chave,
-      PIX_CONFIG.nome,
-      PIX_CONFIG.cidade,
-      planoSelecionado.valor,
-      PIX_CONFIG.descricao + ' ' + planoSelecionado.label
-    );
-
-    var keyEl = _$('pix-key-display');
-    if (keyEl) keyEl.value = pixCode;
-
-    renderizarQRCode(pixCode);
-
-    var vf = formatarDinheiro(planoSelecionado.valor);
-    var valorLabel = _$('pix-valor-label');
-    if (valorLabel) valorLabel.textContent = vf;
-    var diasLabel = _$('pix-dias-label');
-    if (diasLabel) diasLabel.textContent = planoSelecionado.label;
-    var instrucaoValor = _$('instrucao-valor');
-    if (instrucaoValor) instrucaoValor.textContent = vf;
-    var devBar = _$('dev-bar-teste');
-    if (devBar) devBar.style.display = MODO_TESTE ? 'flex' : 'none';
-
-    iniciarCountdownPix();
-
-    _$('store-step-1').style.display = 'none';
-    _$('store-step-2').style.display = 'block';
-
-  } catch (err) {
-    console.error('[MAXPROMO] ❌ ERRO CRÍTICO AO AVANÇAR:', err);
-    _notify('❌ Erro interno: ' + err.message, 'error');
-  }
-}
-
-// ============================================
-// 9. INICIALIZAÇÃO
-// ============================================
-function initStoreModal() {
-  console.warn('[MAXPROMO] 🚀 INICIALIZANDO VERSÃO FINAL');
-
-  // 1. BOTÃO CONTINUAR (recria para limpar listeners antigos)
-  var btnContinuar = _$('btn-store-step1-next');
-  if (btnContinuar) {
-    var novoBtn = btnContinuar.cloneNode(true);
-    btnContinuar.parentNode.replaceChild(novoBtn, btnContinuar);
-    novoBtn.addEventListener('click', function (e) {
+  if (modalConfirm) {
+    modalConfirm.addEventListener('click', function(e) {
       e.preventDefault();
-      e.stopPropagation();
-      validarEAvancarStep1();
-      return false;
-    });
-  }
+      var nameInput = document.getElementById('input-prod-name');
+      var targetInput = document.getElementById('input-prod-target');
+      var name = nameInput ? nameInput.value.trim() : '';
+      var target = targetInput ? parseFloat(targetInput.value) : 0;
 
-  // 2. FORMULÁRIO
-  var form = _$('form-store-step1');
-  if (form) {
-    form.addEventListener('submit', function (e) {
-      e.preventDefault();
-      e.stopPropagation();
-      validarEAvancarStep1();
-      return false;
-    });
-  }
-
-  // 3. PLANOS
-  document.querySelectorAll('.plano-card').forEach(function (card) {
-    card.addEventListener('click', function () { selecionarPlano(card); });
-  });
-
-  // 4. BORDA DE ERRO EM TEMPO REAL
-  ['input-store-name', 'input-store-url', 'input-store-email'].forEach(function (id) {
-    var el = document.getElementById(id);
-    if (!el) return;
-    el.addEventListener('blur', function () {
-      if (!this.value.trim()) this.classList.add('input-erro');
-    });
-    el.addEventListener('input', function () {
-      if (this.value.trim()) {
-        this.classList.remove('input-erro');
-        this.setCustomValidity('');
+      if (name.length < 2) {
+        showNotification('Digite o nome do produto', 'error');
+        if (nameInput) nameInput.focus();
+        return;
       }
-    });
-  });
-
-  // 4b. PRÉVIA EM TEMPO REAL (delegação no form)
-  if (form) {
-    form.addEventListener('input',  atualizarPreview);
-    form.addEventListener('change', atualizarPreview);
-  }
-
-  // 5. CANCELAR
-  var btnCancel = _$('btn-store-cancel');
-  if (btnCancel) {
-    btnCancel.addEventListener('click', function () {
-      limparModalLoja();
-      _closeModalSafe('modal-add-store');
-    });
-  }
-
-  // 6. VOLTAR (Step 2)
-  var btnVoltar = _$('btn-store-step2-back');
-  if (btnVoltar) {
-    btnVoltar.addEventListener('click', function () {
-      clearInterval(pixCountdownInterval);
-      pixExpirado = false;
-      var st1 = _$('store-step-1'); if (st1) st1.style.display = 'block';
-      var st2 = _$('store-step-2'); if (st2) st2.style.display = 'none';
-    });
-  }
-
-  // 7. JÁ PAGUEI
-  var btnPaguei = _$('btn-store-step2-paguei');
-  if (btnPaguei) {
-    btnPaguei.addEventListener('click', function () {
-      if (!storeFormData) { _notify('❌ Dados do formulário não encontrados', 'error'); return; }
-      if (pixExpirado)    { _notify('⏰ QR Code expirado — volte e gere um novo', 'error'); return; }
-      confirmarPagamentoEAvancar('pago');
-    });
-  }
-
-  // 8. SIMULAR PAGAMENTO
-  var btnSimular = _$('btn-dev-simular');
-  if (btnSimular) {
-    btnSimular.addEventListener('click', function () {
-      if (!storeFormData) { _notify('❌ Dados do formulário não encontrados', 'error'); return; }
-      confirmarPagamentoEAvancar('pago_simulado');
-    });
-  }
-
-  // 9. CONCLUIR (Step 3)
-  var btnClose = _$('btn-store-step3-close');
-  if (btnClose) {
-    btnClose.addEventListener('click', function () {
-      limparModalLoja();
-      _closeModalSafe('modal-add-store');
-    });
-  }
-
-  // 10. COPIAR PIX
-  var btnCopy = _$('btn-copy-pix');
-  if (btnCopy) {
-    btnCopy.addEventListener('click', function () {
-      var keyEl = _$('pix-key-display');
-      if (!keyEl || !keyEl.value) { _notify('Nenhum código PIX disponível', 'error'); return; }
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(keyEl.value).then(function () {
-          _notify('✅ Código PIX copiado!', 'success');
-        }).catch(function () {
-          fallbackCopy(keyEl.value);
-          _notify('✅ Código PIX copiado!', 'success');
-        });
-      } else {
-        fallbackCopy(keyEl.value);
-        _notify('✅ Código PIX copiado!', 'success');
+      if (!target || isNaN(target) || target <= 0) {
+        showNotification('Digite um preco alvo valido', 'error');
+        if (targetInput) targetInput.focus();
+        return;
       }
+
+      var current = Math.round(target * (1.15 + Math.random() * 0.25));
+      monitoredProducts.push({ name: name, targetPrice: target, currentPrice: current });
+      if (nameInput) nameInput.value = '';
+      if (targetInput) targetInput.value = '';
+      closeModal('modal-add-product');
+      atualizarBadgeMonitorados();
+      renderMonitored();
+      showNotification('Produto adicionado!');
+      dispararAlertaPromocaoIA('Monitorando: ' + name + ' — Alvo R$ ' + target.toLocaleString('pt-BR'), 'fidelidade');
     });
   }
-}
 
-// initStoreModal() chamado dentro de initApp()
-
-  // ============================================
-  // OUTROS MODAIS
-  // ============================================
   var btnInfoClose = document.getElementById('btn-info-close');
   if (btnInfoClose) btnInfoClose.addEventListener('click', function() { closeModal('modal-info'); });
-
   var btnDonateClose = document.getElementById('btn-donate-close');
   if (btnDonateClose) btnDonateClose.addEventListener('click', function() { closeModal('modal-donate'); });
-
   var btnTypesClose = document.getElementById('btn-types-close');
   if (btnTypesClose) btnTypesClose.addEventListener('click', function() { closeModal('modal-promo-types'); });
-
   var btnCompareClose = document.getElementById('btn-compare-close');
   if (btnCompareClose) btnCompareClose.addEventListener('click', function() { closeModal('modal-compare'); });
 
-  // Fechar modais ao clicar no overlay
   document.querySelectorAll('.modal-overlay').forEach(function(overlay) {
     overlay.addEventListener('click', function(e) {
-      if (e.target === overlay) overlay.classList.remove('active');
+      if (e.target === overlay) { overlay.classList.remove('active'); overlay.style.display = 'none'; }
     });
   });
 
-  // ESC key
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
-      document.querySelectorAll('.modal-overlay.active').forEach(function(m) {
-        m.classList.remove('active');
-      });
+      document.querySelectorAll('.modal-overlay.active').forEach(function(m) { m.classList.remove('active'); m.style.display = 'none'; });
       if (searchActive) {
         searchActive = false;
-        document.getElementById('search-bar').classList.remove('active');
+        var sb = document.getElementById('search-bar');
+        if (sb) sb.classList.remove('active');
       }
       esconderAlertaVisual();
     }
   });
 
-  // ============================================
-  // MONITORAMENTO AUTOMÁTICO DE PREÇOS
-  // ============================================
   setInterval(function() {
     if (monitoredProducts.length > 0) {
       var idx = Math.floor(Math.random() * monitoredProducts.length);
@@ -3189,21 +2681,133 @@ function initStoreModal() {
     }
   }, 8000);
 
-  // ============================================
-  // INIT STORE MODAL
-  // ============================================
-  if (typeof initStoreModal === 'function') initStoreModal();
-
-  // ============================================
-  // AUTO-REFRESH
-  // ============================================
   autoRefreshInterval = setInterval(function() {
     if (tabAtiva === 'feed') renderFeed();
   }, 30000);
 }
 
 // ============================================
-// CARREGAR DOAÇÕES
+// 9. INICIALIZAÇÃO DO MODAL DE LOJA (PIX)
+// ============================================
+function initStoreModal() {
+  console.warn('[MAXPROMO] 🚀 INICIALIZANDO VERSÃO FINAL');
+
+  var btnContinuar = _$('btn-store-step1-next');
+  if (btnContinuar) {
+    var novoBtn = btnContinuar.cloneNode(true);
+    btnContinuar.parentNode.replaceChild(novoBtn, btnContinuar);
+    novoBtn.addEventListener('click', function (e) {
+      e.preventDefault(); e.stopPropagation();
+      validarEAvancarStep1();
+      return false;
+    });
+  }
+
+  var form = _$('form-store-step1');
+  if (form) {
+    form.addEventListener('submit', function (e) {
+      e.preventDefault(); e.stopPropagation();
+      validarEAvancarStep1();
+      return false;
+    });
+  }
+
+  document.querySelectorAll('.plano-card').forEach(function (card) {
+    card.addEventListener('click', function () { selecionarPlano(card); });
+  });
+
+  ['input-store-name', 'input-store-url', 'input-store-email'].forEach(function (id) {
+    var el = _$ (id);
+    if (!el) return;
+    el.addEventListener('blur', function () { if (!this.value.trim()) this.classList.add('input-erro'); });
+    el.addEventListener('input', function () {
+      if (this.value.trim()) { this.classList.remove('input-erro'); this.setCustomValidity(''); }
+    });
+  });
+
+  // CORREÇÃO: Adicionado tratamento de moeda em tempo real nos inputs de preço
+  var priceOldEl = _$('input-price-old');
+  var priceNewEl = _$('input-price-new');
+  var discountEl = _$('input-discount');
+
+  if (priceOldEl) {
+    priceOldEl.addEventListener('input', function() { sanitizarMoeda(this); calcularDesconto(); });
+    priceOldEl.addEventListener('blur', function() { formatarMoedaInput(this, 2); calcularDesconto(); });
+  }
+  if (priceNewEl) {
+    priceNewEl.addEventListener('input', function() { sanitizarMoeda(this); calcularDesconto(); });
+    priceNewEl.addEventListener('blur', function() { formatarMoedaInput(this, 2); calcularDesconto(); });
+  }
+  if (discountEl) {
+    discountEl.addEventListener('input', function() { calcularPrecoPorDesconto(); });
+  }
+
+  if (form) {
+    form.addEventListener('input', atualizarPreview);
+    form.addEventListener('change', atualizarPreview);
+  }
+
+  var btnCancel = _$('btn-store-cancel');
+  if (btnCancel) {
+    btnCancel.addEventListener('click', function () {
+      limparModalLoja();
+      closeModal('modal-add-store');
+    });
+  }
+
+  var btnVoltar = _$('btn-store-step2-back');
+  if (btnVoltar) {
+    btnVoltar.addEventListener('click', function () {
+      clearInterval(pixCountdownInterval);
+      pixExpirado = false;
+      var st1 = _$('store-step-1'); if (st1) st1.style.display = 'block';
+      var st2 = _$('store-step-2'); if (st2) st2.style.display = 'none';
+    });
+  }
+
+  var btnPaguei = _$('btn-store-step2-paguei');
+  if (btnPaguei) {
+    btnPaguei.addEventListener('click', function () {
+      if (!storeFormData) { showNotification('❌ Dados do formulário não encontrados', 'error'); return; }
+      if (pixExpirado) { showNotification('⏰ QR Code expirado — volte e gere um novo', 'error'); return; }
+      confirmarPagamentoEAvancar('pago');
+    });
+  }
+
+  var btnSimular = _$('btn-dev-simular');
+  if (btnSimular) {
+    btnSimular.addEventListener('click', function () {
+      if (!storeFormData) { showNotification('❌ Dados do formulário não encontrados', 'error'); return; }
+      confirmarPagamentoEAvancar('pago_simulado');
+    });
+  }
+
+  var btnClose = _$('btn-store-step3-close');
+  if (btnClose) {
+    btnClose.addEventListener('click', function () {
+      limparModalLoja();
+      closeModal('modal-add-store');
+    });
+  }
+
+  var btnCopy = _$('btn-copy-pix');
+  if (btnCopy) {
+    btnCopy.addEventListener('click', function () {
+      var keyEl = _$('pix-key-display');
+      if (!keyEl || !keyEl.value) { showNotification('Nenhum código PIX disponível', 'error'); return; }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(keyEl.value).then(function () { showNotification('✅ Código PIX copiado!', 'success'); })
+        .catch(function () { fallbackCopy(keyEl.value); showNotification('✅ Código PIX copiado!', 'success'); });
+      } else {
+        fallbackCopy(keyEl.value);
+        showNotification('✅ Código PIX copiado!', 'success');
+      }
+    });
+  }
+}
+
+// ============================================
+// 10. SISTEMA DE DOAÇÕES
 // ============================================
 var DONATE_API_URL = 'https://seabhra.github.io/max-promo-alert-api/donate_promos';
 var donateOptionsCache = null;
@@ -3272,14 +2876,14 @@ function renderizarOpcoesDoacao(lista) {
       el.addEventListener('click', function() {
         if (a === 'copy' || a === 'copiar') {
           if (navigator.clipboard) {
-            navigator.clipboard.writeText(v).then(function() { showNotification(tit + ': copiado!'); });
+            navigator.clipboard.writeText(v).then(function() { showNotification(tit + ': copiado!', 'success'); });
           } else {
             fallbackCopy(v);
-            showNotification(tit + ': copiado!');
+            showNotification(tit + ': copiado!', 'success');
           }
         } else if (u && u !== '#') {
           window.open(u, '_blank', 'noopener');
-          showNotification('Abrindo ' + tit + '...');
+          showNotification('Abrindo ' + tit + '...', 'success');
         }
       });
     })(acao, url, valorCopy, titulo);
@@ -3287,12 +2891,18 @@ function renderizarOpcoesDoacao(lista) {
   });
 }
 
-
 // ============================================
-// INICIALIZAR
+// INICIALIZAÇÃO FINAL
 // ============================================
-window.onload = initApp;
-
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', function() {
+    initStoreModal();
+    initApp();
+  });
+} else {
+  initStoreModal();
+  initApp();
+}
 </script>
 </body>
 </html>
