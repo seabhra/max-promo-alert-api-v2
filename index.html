@@ -801,6 +801,84 @@
   }
 }
 
+
+/* ============================================
+   11. CORREÇÃO DE LAYOUT: EMPILHAMENTO VERTICAL (MOBILE)
+   ============================================ */
+
+/* Força todos os steps e a prévia a ocuparem 100% da largura e ficarem um abaixo do outro */
+#store-step-1,
+#store-step-2,
+#store-step-3,
+.config-preview,
+#config-preview,
+.pix-section,
+.step-pix-header {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  clear: both !important;
+  float: none !important;
+  box-sizing: border-box;
+}
+
+/* Estilização e espaçamento da prévia de configuração para não grudar no PIX */
+.config-preview,
+#config-preview {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 16px;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  margin-top: 10px;
+  margin-bottom: 24px; /* Espaço seguro antes da próxima seção */
+  word-wrap: break-word;
+}
+
+/* Garante que o formulário e o conteúdo do modal usem coluna no mobile */
+@media (max-width: 768px) {
+  #modal-add-store .modal-box,
+  #modal-add-store .modal-content,
+  #modal-add-store form,
+  #form-store-step1 {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  
+  /* Garante que elementos internos do PIX também não quebrem para o lado */
+  .pix-copiacola-row {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  
+  .pix-copiacola-row input {
+    width: 100% !important;
+    margin-bottom: 8px;
+  }
+  
+  .btn-copy-pix {
+    width: 100% !important;
+    height: 42px !important;
+  }
+}
+
+/* Ajuste extra para telas muito pequenas (iPhone SE, etc) */
+@media (max-width: 380px) {
+  .config-preview,
+  #config-preview {
+    font-size: 0.78rem;
+    padding: 12px;
+  }
+  
+  .manual-instrucoes {
+    font-size: 0.7rem;
+    padding: 10px;
+  }
+}
+
+
 /* ============================================
    BOTÃO FLUTUANTE AMARELO
    ============================================ */
