@@ -803,34 +803,44 @@
 
 
 /* ============================================
-   11. CONTROLE DE VISIBILIDADE DOS STEPS
+   11. CONTROLE RÍGIDO DE VISIBILIDADE DOS STEPS
    ============================================ */
 
-/* Por padrão, esconde todos os steps exceto o ativo */
+/* REGRA GERAL: Esconde TODOS os steps por padrão */
 #store-step-1,
 #store-step-2,
 #store-step-3 {
   display: none !important;
-  width: 100%;
-  max-width: 100%;
+  visibility: hidden !important;
+  height: 0 !important;
+  overflow: hidden !important;
+  width: 100% !important;
 }
 
-/* Mostra apenas o step ativo */
+/* REGRA ESPECÍFICA: Mostra apenas quando o estilo inline diz "display: block" */
 #store-step-1[style*="display: block"],
 #store-step-2[style*="display: block"],
 #store-step-3[style*="display: block"] {
   display: block !important;
-}
-
-/* Quando o step está visível via JS, aplica o layout correto */
-#store-step-1:not([style*="display: none"]),
-#store-step-2:not([style*="display: none"]),
-#store-step-3:not([style*="display: none"]) {
-  display: block !important;
+  visibility: visible !important;
+  height: auto !important;
+  overflow: visible !important;
+  position: relative !important;
   width: 100% !important;
 }
 
-/* Prévia de configuração - sempre abaixo do formulário */
+/* Garante que cada step ocupe 100% da largura e fique em coluna */
+#store-step-1,
+#store-step-2,
+#store-step-3 {
+  width: 100% !important;
+  max-width: 100% !important;
+  float: none !important;
+  clear: both !important;
+  box-sizing: border-box;
+}
+
+/* Prévia de configuração - sempre visível e abaixo do formulário */
 .config-preview,
 #config-preview {
   display: block !important;
@@ -847,30 +857,52 @@
   margin-top: 20px;
   margin-bottom: 24px;
   word-wrap: break-word;
+  order: 3; /* Garante que venha depois */
 }
 
-/* Garante que o formulário use layout em coluna */
-#form-store-step1 {
+/* Container do formulário - layout em coluna */
+#form-store-step1,
+form#form-store-step1 {
   display: flex !important;
   flex-direction: column !important;
   align-items: stretch !important;
   width: 100% !important;
+  gap: 16px;
 }
 
 /* Seções do formulário */
 .form-section,
 .section-label,
-.form-group {
+.form-group,
+.planos-grid {
   width: 100% !important;
   max-width: 100% !important;
   display: block !important;
+  clear: both !important;
 }
 
 /* Mobile: ajustes específicos */
 @media (max-width: 768px) {
+  /* Garante que o modal use scroll vertical */
+  #modal-add-store.modal-overlay {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+  
+  #modal-add-store .modal-box,
+  #modal-add-store .modal-content {
+    width: 100% !important;
+    max-width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  
+  /* Steps em tela cheia no mobile */
   #store-step-1,
   #store-step-2,
   #store-step-3 {
+    width: 100% !important;
     padding: 0 8px;
   }
   
@@ -882,10 +914,11 @@
     margin-bottom: 20px;
   }
   
-  /* Garante que o campo de código PIX e botão fiquem empilhados */
+  /* Campo PIX e botão empilhados */
   .pix-copiacola-row {
     flex-direction: column !important;
     align-items: stretch !important;
+    width: 100% !important;
   }
   
   .pix-copiacola-row input {
@@ -904,6 +937,12 @@
   #config-preview {
     font-size: 0.75rem;
     padding: 10px;
+  }
+  
+  #store-step-1,
+  #store-step-2,
+  #store-step-3 {
+    padding: 0 4px;
   }
 }
 
@@ -2035,11 +2074,14 @@ function validarEAvancarStep1() {
 
     iniciarCountdownPix();
 
-    var st1 = _$('store-step-1'); 
+   var st1 = document.getElementById('store-step-1');
+   var st2 = document.getElementById('store-step-2');
+   
     if (st1) st1.style.display = 'none';
-
-    var st2 = _$('store-step-2'); 
-    if (st2) st2.style.display = 'block';
+    if (st2) {
+  st2.style.display = 'block';
+  st2.style.visibility = 'visible';
+}
 
   } catch (err) {
     console.error('[MAXPROMO] ❌ ERRO CRÍTICO AO AVANÇAR:', err);
@@ -2067,8 +2109,11 @@ function confirmarPagamentoEAvancar(origem) {
       '<div><strong>💳 Pagamento:</strong> ' + (origem === 'pago_simulado' ? 'Simulado (teste)' : 'PIX') + '</div>';
   }
 
-  var st2 = _$('store-step-2'); if (st2) st2.style.display = 'none';
-  var st3 = _$('store-step-3'); if (st3) st3.style.display = 'block';
+  var st2 = document.getElementById('store-step-2');
+  if (st2) st2.style.display = 'none';
+
+var st3 = document.getElementById('store-step-3');
+  if (st3) st3.style.display = 'block';
 }
 
 function resetarBotaoContinuar() {
@@ -2101,13 +2146,13 @@ function limparModalLoja() {
   var err = _$('store-error');
   if (err) err.style.display = 'none';
 
-  var st1 = _$('store-step-1'); 
+  var st1 = document.getElementById('store-step-1');
   if (st1) st1.style.display = 'block';
 
-  var st2 = _$('store-step-2'); 
+var st2 = document.getElementById('store-step-2');
   if (st2) st2.style.display = 'none';
 
-  var st3 = _$('store-step-3'); 
+ var st3 = document.getElementById('store-step-3');
   if (st3) st3.style.display = 'none';
 
   var box = _$('pix-timer-box');
