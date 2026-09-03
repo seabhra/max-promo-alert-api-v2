@@ -9,7 +9,7 @@ jobs:
   limpar-banco:
     runs-on: ubuntu-latest
     steps:
-      - name: 🐘 Instalar PostgreSQL Client
+      - name:  Instalar PostgreSQL Client
         run: |
           sudo apt-get update
           sudo apt-get install -y postgresql-client
@@ -17,6 +17,7 @@ jobs:
       - name: 🧹 Executar Limpeza do Banco
         env:
           DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
+          PGCHANNELBINDING: disable
         run: |
           echo "Iniciando limpeza..."
           psql "$DATABASE_URL" << 'SQL'
