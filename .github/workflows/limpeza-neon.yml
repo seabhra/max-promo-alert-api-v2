@@ -1,0 +1,31 @@
+name: 🧹 Limpeza Automática do Neon
+
+on:
+  schedule:
+    - cron: '0 3 1 * *'
+  workflow_dispatch:
+
+jobs:
+  limpar-banco:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🐘 Instalar PostgreSQL Client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: 🧹 Executar Limpeza do Banco
+        env:
+          DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
+        run: |
+          echo "Iniciando limpeza..."
+          psql "$DATABASE_URL" << 'SQL'
+          DELETE FROM public.transacoes_awin WHERE criado_em < NOW() - INTERVAL '90 days';
+          DELETE FROM public.programas_awin WHERE criado_em < NOW() - INTERVAL '180 days';
+          DELETE FROM public.promos WHERE criado_em < NOW() - INTERVAL '30 days';
+          VACUUM ANALYZE public.transacoes_awin;
+          VACUUM ANALYZE public.programas_awin;
+          VACUUM ANALYZE public.promos;
+          SELECT table_name, pg_size_pretty(pg_total_relation_size('"' || table_schema || '"."' || table_name || '"')) AS tamanho_total FROM information_schema.tables WHERE table_schema = 'public' ORDER BY pg_total_relation_size('"' || table_schema || '"."' || table_name || '"') DESC;
+          SQL
+          echo "✅ Limpeza concluída!"
