@@ -1,4 +1,4 @@
-name: 🧹 Limpeza Automática do Neon
+name:  Limpeza Automática do Neon
 
 on:
   schedule:
@@ -14,29 +14,31 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y postgresql-client
 
+      - name: 🔍 Diagnosticar estrutura da tabela promos
+        env:
+          DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
+        run: |
+          CLEAN_URL=$(echo "$DATABASE_URL" | sed 's/channel_binding=[^&]*\&*//g' | tr -d '\n\r' | xargs)
+          echo "=== Colunas da tabela promos ==="
+          psql "$CLEAN_URL" -c "SELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'promos' AND table_schema = 'public' ORDER BY ordinal_position;"
+
       - name: 🧹 Executar Limpeza do Banco
         env:
           DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
         run: |
-          # Remove channel_binding e quebras de linha da URL
           CLEAN_URL=$(echo "$DATABASE_URL" | sed 's/channel_binding=[^&]*\&*//g' | tr -d '\n\r' | xargs)
           
-          echo "Conectando com URL limpa..."
-          psql "$CLEAN_URL" << 'SQL'
-          -- Cria a coluna criado_em na tabela promos CASO ela não exista (auto-correção)
-          ALTER TABLE public.promos ADD COLUMN IF NOT EXISTS criado_em TIMESTAMPTZ DEFAULT NOW();
+          echo "Criando coluna criado_em se não existir..."
+          psql "$CLEAN_URL" -c "ALTER TABLE public.promos ADD COLUMN IF NOT EXISTS criado_em TIMESTAMPTZ DEFAULT NOW();"
           
-          -- Agora executa as limpezas
+          echo "Executando limpezas..."
+          psql "$CLEAN_URL" << 'SQL'
           DELETE FROM public.transacoes_awin WHERE criado_em < NOW() - INTERVAL '90 days';
           DELETE FROM public.programas_awin WHERE criado_em < NOW() - INTERVAL '180 days';
           DELETE FROM public.promos WHERE criado_em < NOW() - INTERVAL '30 days';
-          
-          -- Libera espaço em disco
           VACUUM ANALYZE public.transacoes_awin;
           VACUUM ANALYZE public.programas_awin;
           VACUUM ANALYZE public.promos;
-          
-          -- Mostra o tamanho final das tabelas
           SELECT table_name, pg_size_pretty(pg_total_relation_size('"' || table_schema || '"."' || table_name || '"')) AS tamanho_total FROM information_schema.tables WHERE table_schema = 'public' ORDER BY pg_total_relation_size('"' || table_schema || '"."' || table_name || '"') DESC;
           SQL
           echo "✅ Limpeza concluída!"
