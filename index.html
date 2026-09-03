@@ -1100,11 +1100,12 @@ MODAL COMPARAR ------------
     </div>
 
     <!-- CAMPOS DE PREÇO EM COLUNA NO MOBILE, LINHA NO DESKTOP -->
-    <div class="price-fields-row" style="display: flex; gap: 16px; flex-wrap: wrap;">
-      <div class="form-group" style="flex: 1; min-width: 140px;">
-        <label for="input-price-old">Preço Antigo (R$) *</label>
-        <input type="text" id="input-price-old" inputmode="decimal" placeholder="160,00" class="form-control" required>
-      </div>
+   <div class="price-fields-row" style="display: flex; gap: 16px; flex-wrap: wrap;">
+  <div class="form-group" style="flex: 1; min-width: 140px;">
+    <label for="input-price-old">Preço Antigo (R$) *</label>
+    <input type="text" id="input-price-old" inputmode="decimal" placeholder="160,00" class="form-control" required>
+  </div>
+
       <div class="form-group" style="flex: 1; min-width: 140px;">
         <label for="input-price-new">PREÇO PROMOCIONAL (R$) *</label>
         <input type="text" id="input-price-new" inputmode="decimal" placeholder="144,00" class="form-control" required>
@@ -1754,6 +1755,7 @@ function validarURL(campo) {
 }
 
 function validarEAvancarStep1() {
+  // 1. Validação do Plano
   if (!planoSelecionado || !planoSelecionado.dias || planoSelecionado.dias <= 0) {
     var grid = _$('planos-grid');
     if (grid) {
@@ -1766,6 +1768,7 @@ function validarEAvancarStep1() {
     return;
   }
 
+  // 2. Validação do Nome da Loja
   var nomeEl = _$('input-store-name');
   if (nomeEl && nomeEl.value.trim().length < 3) {
     nomeEl.focus(); nomeEl.setCustomValidity('⚠️ Digite o nome da loja (mínimo 3 caracteres)'); nomeEl.reportValidity();
@@ -1773,6 +1776,7 @@ function validarEAvancarStep1() {
   }
   if (nomeEl) nomeEl.setCustomValidity('');
 
+  // 3. Validação da URL
   var urlFinal = '';
   var urlEl = _$('input-store-url');
   if (urlEl) {
@@ -1781,6 +1785,7 @@ function validarEAvancarStep1() {
     urlFinal = resUrl.href;
   }
 
+  // 4. Validação do E-mail
   var emailEl = _$('input-store-email');
   if (emailEl) {
     var email = emailEl.value.trim();
@@ -1791,6 +1796,7 @@ function validarEAvancarStep1() {
     emailEl.setCustomValidity('');
   }
 
+  // 5. Validação da Categoria
   var catEl = _$('input-store-cat');
   if (catEl && !catEl.value) {
     catEl.focus(); catEl.setCustomValidity('⚠️ Selecione o tipo de promoção'); catEl.reportValidity();
@@ -1798,6 +1804,7 @@ function validarEAvancarStep1() {
   }
   if (catEl) catEl.setCustomValidity('');
 
+  // 6. Validação do Nome do Produto
   var prodEl = _$('input-product-name');
   if (prodEl && prodEl.value.trim().length < 2) {
     prodEl.focus(); prodEl.setCustomValidity('⚠️ Digite o nome do produto (mínimo 2 caracteres)'); prodEl.reportValidity();
@@ -1805,11 +1812,18 @@ function validarEAvancarStep1() {
   }
   if (prodEl) prodEl.setCustomValidity('');
 
-
-  // CORREÇÃO AQUI: Validação do PREÇO ANTIGO
+  // ==========================================================
+  // 7. Validação do PREÇO ANTIGO (Obrigatório e > 0)
+  // ==========================================================
   var priceOldEl = _$('input-price-old');
   var pOldVal = 0;
-  if (priceOldEl && priceOldEl.value.trim()) {
+  if (priceOldEl) {
+    if (!priceOldEl.value.trim()) {
+      priceOldEl.focus(); 
+      priceOldEl.setCustomValidity('⚠️ O preço antigo é obrigatório'); 
+      priceOldEl.reportValidity();
+      return;
+    }
     pOldVal = parseMoeda(priceOldEl.value);
     if (isNaN(pOldVal) || pOldVal <= 0) {
       priceOldEl.focus(); 
@@ -1817,28 +1831,44 @@ function validarEAvancarStep1() {
       priceOldEl.reportValidity();
       return;
     }
-  } else if (priceOldEl) {
-    // Se o campo preço antigo estiver vazio, define como 0
-    pOldVal = 0;
+    priceOldEl.setCustomValidity(''); // Limpa erro se estiver válido
   }
 
+  // ==========================================================
+  // 8. Validação do PREÇO NOVO / Promocional (Obrigatório e > 0)
+  // ==========================================================
   var priceNewEl = _$('input-price-new');
   var pNew = NaN;
   if (priceNewEl) {
-    pNew = parseMoeda(priceNewEl.value);
-    if (!priceNewEl.value.trim() || isNaN(pNew) || pNew <= 0) {
-      priceNewEl.focus(); priceNewEl.setCustomValidity('⚠️ Informe o preço promocional (maior que zero)'); priceNewEl.reportValidity();
+    if (!priceNewEl.value.trim()) {
+      priceNewEl.focus(); 
+      priceNewEl.setCustomValidity('⚠️ O preço promocional é obrigatório'); 
+      priceNewEl.reportValidity();
       return;
     }
-    priceNewEl.setCustomValidity('');
+    pNew = parseMoeda(priceNewEl.value);
+    if (isNaN(pNew) || pNew <= 0) {
+      priceNewEl.focus(); 
+      priceNewEl.setCustomValidity('⚠️ Preço promocional inválido (deve ser maior que zero)'); 
+      priceNewEl.reportValidity();
+      return;
+    }
+    priceNewEl.setCustomValidity(''); // Limpa erro se estiver válido
   }
 
-  var pOldVal = parseMoeda((_$('input-price-old') || {}).value);
-  if (!isNaN(pOldVal) && pOldVal > 0 && pNew >= pOldVal) {
-    priceNewEl.focus(); priceNewEl.setCustomValidity('⚠️ O preço promocional deve ser MENOR que o preço antigo'); priceNewEl.reportValidity();
+  // ==========================================================
+  // 9. Validação Cruzada: Preço Novo DEVE SER MENOR que o Antigo
+  // ==========================================================
+  if (!isNaN(pOldVal) && pOldVal > 0 && !isNaN(pNew) && pNew >= pOldVal) {
+    priceNewEl.focus(); 
+    priceNewEl.setCustomValidity('⚠️ O preço promocional deve ser MENOR que o preço antigo'); 
+    priceNewEl.reportValidity();
     return;
   }
 
+  // ==========================================================
+  // 10. Geração do PIX e Avanço de Etapa
+  // ==========================================================
   try {
     if (!PIX_CONFIG.chave || !PIX_CONFIG.nome || !PIX_CONFIG.cidade) {
       throw new Error('PIX_CONFIG incompleto no script');
@@ -1850,7 +1880,7 @@ function validarEAvancarStep1() {
       categoria: catEl ? catEl.value : '',
       email:     emailEl.value.trim(),
       produto:   prodEl.value.trim(),
-      precoOld:  pOldVal || 0,
+      precoOld:  pOldVal,
       precoNew:  pNew,
       descricao: (_$('input-descricao') || {}).value.trim(),
       dias:      planoSelecionado.dias,
@@ -1874,10 +1904,13 @@ function validarEAvancarStep1() {
     var vf = formatarDinheiro(planoSelecionado.valor);
     var valorLabel = _$('pix-valor-label');
     if (valorLabel) valorLabel.textContent = vf;
+    
     var diasLabel = _$('pix-dias-label');
     if (diasLabel) diasLabel.textContent = planoSelecionado.label;
+    
     var instrucaoValor = _$('instrucao-valor');
     if (instrucaoValor) instrucaoValor.textContent = vf;
+    
     var devBar = _$('dev-bar-teste');
     if (devBar) devBar.style.display = MODO_TESTE ? 'flex' : 'none';
 
