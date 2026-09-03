@@ -352,7 +352,6 @@
   transform: none !important;
   box-shadow: none !important;
 }
-
 /* ============================================
    5. FORMULÁRIO - GRUPOS E CAMPOS
    ============================================ */
@@ -389,6 +388,7 @@
   letter-spacing: 0.3px;
 }
 
+/* 1. ESTADO PADRÃO (Neutro ao carregar) */
 .form-group .form-control {
   width: 100%;
   padding: 10px 14px;
@@ -401,20 +401,46 @@
   font-family: inherit;
 }
 
+/* 2. ESTADO DE FOCO (Amarelo) 
+   O !important garante que, ao clicar para corrigir um erro, o campo fique amarelo 
+   e não permaneça vermelho, melhorando a experiência do usuário. */
 .form-group .form-control:focus {
   outline: none;
-  border-color: var(--accent-color, #FFB300);
+  border-color: var(--accent-color, #FFB300) !important;
   box-shadow: 0 0 0 4px rgba(255, 179, 0, 0.12);
 }
 
-.form-group .form-control.input-erro {
-  border-color: #ff4444 !important;
-  background-color: #fff8f8 !important;
-  box-shadow: 0 0 0 4px rgba(255, 68, 68, 0.12) !important;
+/* 3. ESTADO INVÁLIDO APÓS INTERAÇÃO (Vermelho) 
+   :user-invalid é suportado por navegadores modernos e só ativa o vermelho 
+   DEPOIS que o usuário toca no campo e sai dele sem preencher corretamente. */
+.form-group .form-control:user-invalid {
+  border-color: #ff6b6b;
 }
 
-.form-group .form-control:invalid:not(:placeholder-shown) {
+/* Fallback para navegadores mais antigos (apenas para inputs e textareas, não selects) */
+.form-group input.form-control:invalid:not(:focus):not(:placeholder-shown),
+.form-group textarea.form-control:invalid:not(:focus):not(:placeholder-shown) {
   border-color: #ff6b6b;
+}
+
+/* 4. CORREÇÃO ESPECÍFICA PARA <SELECT> 
+   Garante que o select não fique vermelho no carregamento inicial, 
+   mesmo sendo required e estando vazio. */
+.form-group select.form-control:invalid {
+  border-color: var(--border-color, rgba(255, 255, 255, .1));
+  color: var(--text-muted, #888); /* Deixa o texto "Selecione..." cinza */
+}
+
+/* Quando o select tiver um valor válido, o texto fica branco */
+.form-group select.form-control:valid {
+  color: var(--text-primary, #fff);
+}
+
+/* 5. CLASSE DE ERRO EXPLÍCITA (Acionada pelo JavaScript) */
+.form-group .form-control.input-erro {
+  border-color: #ff4444 !important;
+  background-color: rgba(255, 68, 68, 0.05) !important; /* Fundo levemente avermelhado, melhor para dark mode */
+  box-shadow: 0 0 0 4px rgba(255, 68, 68, 0.12) !important;
 }
 
 .form-group .text-muted {
@@ -424,19 +450,22 @@
   margin-top: 4px;
 }
 
-/* Estilo para selects */
+/* Estilo para selects (Seta customizada) */
 .form-group select.form-control {
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23666' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 14px center;
   padding-right: 40px;
+  cursor: pointer;
 }
 
 /* Estilo para textarea */
 .form-group textarea.form-control {
   resize: vertical;
-  min-height: 60px;
+  min-height: 80px; /* Aumentado levemente para melhor usabilidade */
   font-family: inherit;
 }
 
