@@ -1,4 +1,4 @@
-name: 🧹 Limpeza Automática do Neon
+name:  Limpeza Automática do Neon
 
 on:
   schedule:
@@ -9,7 +9,7 @@ jobs:
   limpar-banco:
     runs-on: ubuntu-latest
     steps:
-      - name:  Instalar PostgreSQL Client
+      - name: 🐘 Instalar PostgreSQL Client
         run: |
           sudo apt-get update
           sudo apt-get install -y postgresql-client
@@ -17,10 +17,12 @@ jobs:
       - name: 🧹 Executar Limpeza do Banco
         env:
           DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
-          PGCHANNELBINDING: disable
         run: |
-          echo "Iniciando limpeza..."
-          psql "$DATABASE_URL" << 'SQL'
+          # Remove channel_binding e quebras de linha da URL
+          CLEAN_URL=$(echo "$DATABASE_URL" | sed 's/channel_binding=[^&]*\&*//g' | tr -d '\n\r' | xargs)
+          
+          echo "Conectando com URL limpa..."
+          psql "$CLEAN_URL" << 'SQL'
           DELETE FROM public.transacoes_awin WHERE criado_em < NOW() - INTERVAL '90 days';
           DELETE FROM public.programas_awin WHERE criado_em < NOW() - INTERVAL '180 days';
           DELETE FROM public.promos WHERE criado_em < NOW() - INTERVAL '30 days';
