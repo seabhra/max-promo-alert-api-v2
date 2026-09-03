@@ -14,7 +14,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y postgresql-client
 
-      - name:  Executar Limpeza do Banco
+      - name: 🧹 Executar Limpeza do Banco
         env:
           DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
         run: |
@@ -23,12 +23,20 @@ jobs:
           
           echo "Conectando com URL limpa..."
           psql "$CLEAN_URL" << 'SQL'
+          -- Cria a coluna criado_em na tabela promos CASO ela não exista (auto-correção)
+          ALTER TABLE public.promos ADD COLUMN IF NOT EXISTS criado_em TIMESTAMPTZ DEFAULT NOW();
+          
+          -- Agora executa as limpezas
           DELETE FROM public.transacoes_awin WHERE criado_em < NOW() - INTERVAL '90 days';
           DELETE FROM public.programas_awin WHERE criado_em < NOW() - INTERVAL '180 days';
           DELETE FROM public.promos WHERE criado_em < NOW() - INTERVAL '30 days';
+          
+          -- Libera espaço em disco
           VACUUM ANALYZE public.transacoes_awin;
           VACUUM ANALYZE public.programas_awin;
           VACUUM ANALYZE public.promos;
+          
+          -- Mostra o tamanho final das tabelas
           SELECT table_name, pg_size_pretty(pg_total_relation_size('"' || table_schema || '"."' || table_name || '"')) AS tamanho_total FROM information_schema.tables WHERE table_schema = 'public' ORDER BY pg_total_relation_size('"' || table_schema || '"."' || table_name || '"') DESC;
           SQL
           echo "✅ Limpeza concluída!"
